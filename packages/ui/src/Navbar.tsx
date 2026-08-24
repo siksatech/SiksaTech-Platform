@@ -18,7 +18,7 @@ export default function Navbar() {
     setUser(db.getCurrentUser());
   }, [pathname]);
 
-  // Close mobile menu automatically on route change
+  // Close mobile menu on route changes
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
@@ -52,27 +52,27 @@ export default function Navbar() {
           : "bg-white border-b border-slate-200"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[68px] sm:h-[76px]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-[70px]">
           {/* Brand Logo & Name */}
-          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group flex-shrink-0">
-            <SiksaTechLogo size={48} className="h-10 sm:h-12 w-auto object-contain" />
-            <span className="text-[19px] sm:text-[23px] font-black tracking-wider text-slate-900 leading-none">
+          <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
+            <SiksaTechLogo size={42} className="h-10 w-auto object-contain" />
+            <span className="text-[20px] font-bold tracking-tight text-slate-900 leading-none">
               SIKSA<span className="text-blue-600">TECH</span>
             </span>
           </Link>
 
-          {/* Desktop Navigation Links (Visible on Desktop / Laptop / Tablet >= 768px) */}
-          <div className="hidden md:flex items-center gap-0.5 lg:gap-1.5 xl:gap-2">
+          {/* Desktop Navigation Links (Synchronized 14px Font & Sizing) */}
+          <div className="hidden md:flex items-center gap-1 lg:gap-2">
             {navLinks.map((link) => {
               const isActive = pathname === link.path;
               return (
                 <Link
                   key={link.path}
                   href={link.path}
-                  className={`relative px-2.5 lg:px-3.5 py-1.5 text-[12.5px] lg:text-[13.5px] font-bold tracking-wide rounded-lg whitespace-nowrap transition-all ${
+                  className={`relative px-3.5 py-2 text-[14px] font-semibold tracking-normal rounded-lg whitespace-nowrap transition-colors ${
                     isActive
-                      ? "text-blue-600 bg-blue-50/80"
+                      ? "text-blue-600 bg-blue-50/70"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                   }`}
                 >
@@ -85,20 +85,20 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Desktop User CTAs (Visible on >= 768px) */}
-          <div className="hidden md:flex items-center gap-2 lg:gap-3 flex-shrink-0">
+          {/* Desktop User CTAs (Synchronized 14px Font & Heights) */}
+          <div className="hidden md:flex items-center gap-2.5 lg:gap-3 flex-shrink-0">
             {user ? (
               <div className="flex items-center gap-2">
                 <Link
                   href="/dashboard/student"
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg bg-blue-50 hover:bg-blue-100 transition-all whitespace-nowrap"
+                  className="flex items-center gap-1.5 px-3.5 py-2 text-[14px] font-semibold text-blue-600 border border-blue-200 rounded-lg bg-blue-50 hover:bg-blue-100 transition-all whitespace-nowrap"
                 >
-                  <LayoutDashboard className="w-3.5 h-3.5" />
-                  Dashboard
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Dashboard</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="p-1.5 text-slate-400 hover:text-red-500 transition-all rounded-lg hover:bg-red-50"
+                  className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
                   title="Logout"
                 >
                   <LogOut className="w-4 h-4" />
@@ -108,13 +108,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/auth/login"
-                  className="px-2.5 lg:px-3.5 py-1.5 text-xs lg:text-sm font-bold text-slate-700 hover:text-slate-900 transition-all whitespace-nowrap"
+                  className="px-4 py-2 text-[14px] font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-3.5 lg:px-4.5 py-1.5 lg:py-2 text-xs lg:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap"
+                  className="px-4.5 py-2 text-[14px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap"
                 >
                   Get Started
                 </Link>
@@ -122,7 +122,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Controls (Strictly for Mobile Screens < 768px) */}
+          {/* Mobile Controls (< 768px) */}
           <div className="md:hidden flex items-center gap-1">
             <Link
               href="/store"
@@ -133,7 +133,7 @@ export default function Navbar() {
             </Link>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+              className="p-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors"
               aria-label="Toggle mobile menu"
             >
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -142,7 +142,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer Menu (Strictly on Mobile Screens < 768px when isOpen is true) */}
+      {/* Mobile Drawer Menu (Rendered on mobile < 768px when isOpen is true) */}
       {isOpen && (
         <div className="md:hidden bg-white border-t border-slate-200 px-4 pt-3 pb-6 space-y-2 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
           {navLinks.map((link) => {
@@ -152,7 +152,7 @@ export default function Navbar() {
                 key={link.path}
                 href={link.path}
                 onClick={() => setIsOpen(false)}
-                className={`block px-4 py-3 text-sm font-bold rounded-xl transition-all ${
+                className={`block px-4 py-3 text-[14px] font-semibold rounded-lg transition-colors ${
                   isActive
                     ? "text-blue-600 bg-blue-50"
                     : "text-slate-700 hover:bg-slate-50"
@@ -169,17 +169,17 @@ export default function Navbar() {
                 <Link
                   href="/dashboard/student"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-blue-600 border border-blue-200 rounded-xl bg-blue-50"
+                  className="flex items-center justify-center gap-1.5 py-2.5 text-[14px] font-semibold text-blue-600 border border-blue-200 rounded-lg bg-blue-50"
                 >
-                  <LayoutDashboard className="w-3.5 h-3.5" />
-                  Dashboard
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Dashboard</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-red-600 border border-red-200 rounded-xl bg-red-50"
+                  className="flex items-center justify-center gap-1.5 py-2.5 text-[14px] font-semibold text-red-600 border border-red-200 rounded-lg bg-red-50"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
-                  Logout
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
                 </button>
               </>
             ) : (
@@ -187,14 +187,14 @@ export default function Navbar() {
                 <Link
                   href="/auth/login"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center py-3 text-xs font-bold text-slate-700 border border-slate-200 rounded-xl bg-slate-50"
+                  className="flex items-center justify-center py-2.5 text-[14px] font-semibold text-slate-700 border border-slate-200 rounded-lg bg-slate-50"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/register"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center py-3 text-xs font-bold text-white bg-blue-600 rounded-xl shadow"
+                  className="flex items-center justify-center py-2.5 text-[14px] font-semibold text-white bg-blue-600 rounded-lg shadow-sm"
                 >
                   Get Started
                 </Link>
