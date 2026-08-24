@@ -9,36 +9,43 @@ export default function AuthCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
-      if (isRealSupabase && supabase) {
-        try {
-          const { data: { session }, error } = await supabase.auth.getSession();
+    if (!isRealSupabase || !supabase) {
+      router.push("/");
+      return;
+    }
 
-          if (error) {
-            console.error("Auth callback error:", error.message);
-            router.push("/auth/login?error=" + encodeURIComponent(error.message));
-            return;
-          }
-
-          if (session?.user) {
-            router.push("/");
-          } else {
-            router.push("/auth/login");
-          }
-        } catch (err) {
-          console.error("Unexpected error in OAuth callback:", err);
-          router.push("/auth/login");
-        }
-      } else {
-        router.push("/auth/login?error=not_configured");
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        localStorage.setItem("siksatech_user", JSON.stringify({
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || "Team Member",
+          role: "super_admin"
+        }));
+        router.push("/");
       }
-    };
+    });
 
-    handleAuthCallback();
+    // Check existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        localStorage.setItem("siksatech_user", JSON.stringify({
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || "Team Member",
+          role: "super_admin"
+        }));
+        router.push("/");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center space-y-4">
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center space-y-4">
       <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
       <div className="text-center space-y-1">
         <h1 className="text-sm font-bold uppercase tracking-widest text-slate-200">Verifying Team Credentials</h1>
