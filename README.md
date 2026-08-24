@@ -1,36 +1,174 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SiksaTech Platform
+
+A Turborepo-based monorepo powering [siksatech.in](https://siksatech.in) and [team.siksatech.in](https://team.siksatech.in).
+
+## Architecture
+
+```
+siksatech/
+├── apps/
+│   ├── web/                  ← siksatech.in
+│   │   ├── public website
+│   │   ├── student dashboard
+│   │   ├── parent dashboard
+│   │   ├── institution dashboard
+│   │   └── teacher dashboard
+│   │
+│   └── team/                 ← team.siksatech.in
+│       ├── team login
+│       ├── admin dashboard
+│       ├── students
+│       ├── institutions
+│       ├── curriculum
+│       ├── operations
+│       └── analytics
+│
+├── packages/
+│   ├── ui/                  ← shared components
+│   ├── auth/                ← shared authentication logic
+│   ├── database/            ← Supabase types/client
+│   └── config/              ← shared configuration
+│
+├── package.json
+├── turbo.json
+└── README.md
+```
+
+## Apps
+
+### web (`apps/web`)
+- **Domain:** `siksatech.in`
+- **Port:** 3000
+- **Purpose:** Public-facing platform for students, parents, schools, and colleges.
+- **Routes:** Home, Learn, Build, Store, Institutions, Verify, Enquiry, Auth, Student Dashboard.
+
+### team (`apps/team`)
+- **Domain:** `team.siksatech.in`
+- **Port:** 3001
+- **Purpose:** Internal admin portal for team operations.
+- **Routes:** Team Portal, Curriculum, Inventory, Reviews, Admin Dashboard.
+
+## Packages
+
+### `@siksatech/ui`
+Shared React components used across both apps.
+- `Navbar`
+- `Footer`
+- `SiksaTechLogo`
+
+### `@siksatech/auth`
+Shared authentication utilities.
+- Supabase client initialization
+- Login / Register / Logout helpers
+- Session management (`getCurrentUser`)
+
+### `@siksatech/database`
+Database layer and TypeScript types.
+- Supabase CRUD operations (`db` object)
+- Domain interfaces (`Banner`, `FAQ`, `Course`, `Project`, `Lead`, etc.)
+- Admin role definitions
+
+### `@siksatech/config`
+Shared configuration exports (Next.js config, etc.).
+
+## Implementation Plan
+
+### Phase 1: Monorepo Foundation ✅
+- [x] Initialize Turborepo with npm workspaces
+- [x] Create `apps/web` and `apps/team` directories
+- [x] Create `packages/ui`, `packages/auth`, `packages/database`, `packages/config`
+- [x] Set up shared `tsconfig.base.json` with path aliases
+- [x] Move public site pages to `apps/web`
+- [x] Move team portal pages to `apps/team`
+- [x] Extract shared components to `packages/ui`
+- [x] Extract database layer to `packages/database`
+- [x] Remove all dummy/seed/mock data from public site
+- [x] Remove admin portal exposure from public site
+- [x] Update README with architecture docs
+
+### Phase 2: Environment & Deployment
+- [ ] Configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in Vercel/Netlify for both apps
+- [ ] Set up `siksatech.in` domain pointing to `apps/web`
+- [ ] Set up `team.siksatech.in` domain pointing to `apps/team`
+- [ ] Enable branch protection on GitHub for `master` and `admin` (if needed)
+
+### Phase 3: CI/CD
+- [ ] Add GitHub Actions / Vercel integration
+- [ ] Run `turbo run build` on PRs
+- [ ] Run `turbo run lint` and `turbo run typecheck` on PRs
+
+### Phase 4: Feature Expansion
+- [ ] Add parent dashboard routes in `apps/web`
+- [ ] Add teacher dashboard routes in `apps/web`
+- [ ] Expand `packages/auth` with role-based access control (RBAC)
+- [ ] Add unit tests for `packages/database` and `packages/auth`
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js >= 18
+- npm >= 10
 
+### Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Development
+```bash
+# Run both apps simultaneously
+npm run dev
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# Or run individually
+npm run dev -- --filter=web
+npm run dev -- --filter=team
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Web app: http://localhost:3000
+- Team app: http://localhost:3001
 
-## Learn More
+### Build
+```bash
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Lint
+```bash
+npm run lint
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Typecheck
+```bash
+npm run typecheck
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Environment Variables
 
-## Deploy on Vercel
+Create `.env.local` in the repo root or inside each app:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Language:** TypeScript 5
+- **Styling:** Tailwind CSS 4
+- **Database:** Supabase
+- **Icons:** Lucide React
+- **Build System:** Turborepo
+- **Package Manager:** npm workspaces
+
+## Branch Strategy
+
+- `master` — Production-ready public site (`siksatech.in`)
+- `admin` — Production-ready team portal (`team.siksatech.in`)
+
+## Contributing
+
+1. Create a feature branch from the appropriate base (`master` for public, `admin` for team)
+2. Make your changes
+3. Run `npm run lint` and `npm run typecheck`
+4. Submit a PR

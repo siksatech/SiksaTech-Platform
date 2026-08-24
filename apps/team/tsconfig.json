@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@siksatech/ui": ["../../packages/ui/src/*"],
+      "@siksatech/auth": ["../../packages/auth/src/*"],
+      "@siksatech/database": ["../../packages/database/src/*"],
+      "@siksatech/config": ["../../packages/config/src/*"]
+    }
+  },
+  "include": ["src/**/*", "../../packages/**/*"],
+  "exclude": ["node_modules"]
+}
