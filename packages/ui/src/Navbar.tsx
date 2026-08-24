@@ -56,8 +56,8 @@ export default function Navbar() {
               <span className="text-[18px] font-extrabold tracking-wide text-slate-900">
                 SIKSA<span className="text-blue-600">TECH</span>
               </span>
-              <span className="text-[9px] font-medium tracking-[0.2em] text-slate-400 uppercase">
-                Build � Learn � Create
+              <span className="text-[9px] font-mono font-bold tracking-[0.2em] text-slate-400 uppercase">
+                BUILD &bull; LEARN &bull; CREATE
               </span>
             </div>
           </Link>

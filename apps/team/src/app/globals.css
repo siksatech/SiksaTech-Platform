@@ -2,12 +2,11 @@
 
 :root {
   --font-jakarta-sans: "Plus Jakarta Sans", sans-serif;
-  --color-primary-navy: #0F172A;
-  --color-secondary-white: #F8FAFC;
-  --color-accent-cyan: #06B6D4;
-  --color-accent-cyan-hover: #0891B2;
-  --color-text-muted: #94A3B8;
-  --color-border-slate: #334155;
-  --color-navy-light: #1E293B;
+  --color-obsidian: #0A0F1D;
   --color-navy-dark: #020617;
+  --color-navy-light: #0F172A;
+  --color-electric-blue: #2563EB;
+  --color-canvas-slate: #F8FAFC;
+  --color-text-muted: #94A3B8;
+  --color-border-slate: #1E293B;
 }
