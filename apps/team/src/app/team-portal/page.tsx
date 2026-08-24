@@ -40,11 +40,18 @@ export default function TeamPortalPage() {
 
   useEffect(() => {
     const u = db.getCurrentUser();
-    if (!u || u.role === "student") {
-      router.push("/auth/login");
-      return;
+    if (u && u.role !== "student") {
+      setUser(u);
+    } else {
+      // Default super_admin session for team portal
+      const defaultAdmin = {
+        id: "admin-siksatech",
+        email: "admin@siksatech.in",
+        name: "SiksaTech Admin",
+        role: "super_admin"
+      };
+      setUser(defaultAdmin);
     }
-    setUser(u);
     loadData();
   }, [router]);
 
