@@ -1,6 +1,11 @@
 @import "tailwindcss";
+@source "../../../packages/ui";
 @source "../../../packages/ui/src";
+@source "../../../packages";
 @source "../../..";
+@source "../..";
+@source "..";
+@source ".";
 
 :root {
   --font-jakarta-sans: "Plus Jakarta Sans", sans-serif;

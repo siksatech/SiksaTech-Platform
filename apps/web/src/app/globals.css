@@ -1,6 +1,11 @@
 @import "tailwindcss";
+@source "../../../packages/ui";
 @source "../../../packages/ui/src";
+@source "../../../packages";
 @source "../../..";
+@source "../..";
+@source "..";
+@source ".";
 
 @theme {
   --color-obsidian: #0A0F1D;
