@@ -14,17 +14,18 @@ export default function AuthCallback() {
       return;
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const client = supabase;
+    const { data: { subscription } } = client.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         const user = session.user;
-        const { data: profile } = await supabase
+        const { data: profile } = await client
           .from("profiles")
           .select("role")
           .eq("id", user.id)
           .single();
 
         if (!profile) {
-          await supabase.from("profiles").upsert({
+          await client.from("profiles").upsert({
             id: user.id,
             email: user.email!,
             full_name: user.user_metadata?.full_name || user.user_metadata?.name || "Student",
@@ -39,7 +40,7 @@ export default function AuthCallback() {
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    client.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         router.push("/dashboard/student");
       }

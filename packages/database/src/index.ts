@@ -30,6 +30,19 @@ export interface Course {
   classLevels?: string[];
 }
 
+export interface Lesson {
+  id: string;
+  courseId: string;
+  title: string;
+  moduleTitle: string;
+  contentMarkdown: string;
+  starterCode?: string;
+  solutionCode?: string;
+  lessonType: "theory" | "code" | "lab" | "project";
+  durationMinutes: number;
+  sortOrder: number;
+}
+
 export interface Project {
   id: string;
   title: string;

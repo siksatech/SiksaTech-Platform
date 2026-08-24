@@ -14,14 +14,23 @@ export default function Footer() {
     ],
     platform: [
       { label: "Project Showcase", path: "/build" },
+      { label: "Submit Build", path: "/build/submit" },
       { label: "For Institutions", path: "/institutions" },
+      { label: "Maker Community", path: "/community" },
       { label: "Hardware Store", path: "/store" },
-      { label: "Certificate Verify", path: "/verify/ST-2026-A101" }
+      { label: "Certificate Verify", path: "/verify" }
     ],
     company: [
       { label: "About SiksaTech", path: "/about" },
-      { label: "Privacy Policy", path: "/privacy" },
-      { label: "Terms of Service", path: "/terms" }
+      { label: "Privacy Policy", path: "/privacy-policy" },
+      { label: "Terms of Service", path: "/terms" },
+      { label: "Refund Policy", path: "/refund-policy" },
+      { label: "Cookie Policy", path: "/cookie-policy" },
+      { label: "Acceptable Use", path: "/acceptable-use" },
+      { label: "Community Guidelines", path: "/community-guidelines" },
+      { label: "Grievance Redressal", path: "/grievance" },
+      { label: "Shipping Policy", path: "/shipping-policy" },
+      { label: "Returns & Replacements", path: "/returns-replacements" }
     ]
   };
 

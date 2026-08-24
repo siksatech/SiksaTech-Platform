@@ -33,7 +33,9 @@ export default function Navbar() {
   const navLinks = [
     { label: "Learn", path: "/learn" },
     { label: "Build", path: "/build" },
+    { label: "Programs", path: "/programs" },
     { label: "For Institutions", path: "/institutions" },
+    { label: "Community", path: "/community" },
     { label: "Store", path: "/store" },
   ];
 
