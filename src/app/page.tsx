@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { db, Banner, FAQ, Competition, DEMO_PATHS } from "@/lib/db";
+import { db, Banner, FAQ, Competition, LearningPath, Project } from "@/lib/db";
 import {
   ArrowRight,
   ChevronDown,
@@ -41,11 +41,15 @@ export default function HomePage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [openFaq, setOpenFaq] = useState<string | null>(null);
   const [competitions, setCompetitions] = useState<Competition[]>([]);
+  const [paths, setPaths] = useState<LearningPath[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
 
   useEffect(() => {
     db.getBanners().then(setBanners);
     db.getFAQs().then(setFaqs);
     db.getCompetitions().then(setCompetitions);
+    db.getLearningPaths().then(setPaths);
+    db.getProjects(true).then(setProjects);
   }, []);
 
   // Auto-advance carousel
@@ -302,7 +306,7 @@ export default function HomePage() {
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-              {DEMO_PATHS.map((path) => {
+              {paths.map((path) => {
                 const Icon = pathIcons[path.id] || Cpu;
                 const colors = pathColors[path.id] || pathColors.explorer;
                 return (
@@ -378,52 +382,37 @@ export default function HomePage() {
 
               {/* Project preview cards */}
               <div className="space-y-4">
-                {[
-                  {
-                    title: "Smart Agriculture Monitor",
-                    student: "Aarav Sharma • Class 9",
-                    tags: ["Arduino", "IoT", "ESP8266"],
-                    difficulty: "Medium",
-                  },
-                  {
-                    title: "Autonomous Sorting Vehicle",
-                    student: "Priyanka Sen • B.Tech CSE",
-                    tags: ["OpenCV", "Raspberry Pi", "ROS"],
-                    difficulty: "Hard",
-                  },
-                  {
-                    title: "Smart Home Energy Auditor",
-                    student: "Kabir Mehta • Class 12",
-                    tags: ["ESP32", "Web Dashboard", "Current Sensing"],
-                    difficulty: "Medium",
-                  },
-                ].map((proj, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800 hover:border-slate-600 transition-all group cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="text-base font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
-                          {proj.title}
-                        </h4>
-                        <p className="text-xs text-slate-500">{proj.student}</p>
-                      </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        proj.difficulty === "Hard" ? "bg-red-900/40 text-red-400" : "bg-amber-900/40 text-amber-400"
-                      }`}>
-                        {proj.difficulty}
-                      </span>
-                    </div>
-                    <div className="flex gap-1.5 mt-3">
-                      {proj.tags.map((tag, i) => (
-                        <span key={i} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">
-                          {tag}
+                {projects.length === 0 ? (
+                  <p className="text-slate-400 text-sm">No projects yet. Be the first to submit a build.</p>
+                ) : (
+                  projects.slice(0, 3).map((proj, idx) => (
+                    <div
+                      key={proj.id}
+                      className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800 hover:border-slate-600 transition-all group cursor-pointer"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h4 className="text-base font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
+                            {proj.title}
+                          </h4>
+                          <p className="text-xs text-slate-500">{proj.creatorName} • {proj.studentLevel}</p>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          proj.difficulty === "Hard" ? "bg-red-900/40 text-red-400" : "bg-amber-900/40 text-amber-400"
+                        }`}>
+                          {proj.difficulty}
                         </span>
-                      ))}
+                      </div>
+                      <div className="flex gap-1.5 mt-3">
+                        {proj.technologies.slice(0, 3).map((tag, i) => (
+                          <span key={i} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>

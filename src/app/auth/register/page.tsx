@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { db, supabase, isRealSupabase } from "@/lib/db";
+import { supabase, isRealSupabase } from "@/lib/db";
 import { Cpu } from "lucide-react";
 
 export default function Register() {
@@ -43,7 +43,6 @@ export default function Register() {
         }
 
         if (data.user) {
-          // Upsert profile in DB
           const { error: profileError } = await supabase.from("profiles").upsert({
             id: data.user.id,
             email: email,
@@ -67,16 +66,8 @@ export default function Register() {
         setIsSubmitting(false);
       }
     } else {
-      // Mock Fallback
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      const res = await db.register(email, name, "student", { grade, institution });
+      alert("Platform is not configured. Please contact support.");
       setIsSubmitting(false);
-
-      if (res.success) {
-        router.push("/dashboard/student");
-      } else {
-        alert("Registration failed.");
-      }
     }
   };
 
@@ -90,14 +81,7 @@ export default function Register() {
       });
       if (error) alert("Google authentication failed: " + error.message);
     } else {
-      // Mock register & login
-      setIsSubmitting(true);
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      const res = await db.register("student@siksatech.in", "Google Student", "student", { grade: "Class 9", institution: "Google Mock Partner" });
-      setIsSubmitting(false);
-      if (res.success) {
-        router.push("/dashboard/student");
-      }
+      alert("Platform is not configured. Please contact support.");
     }
   };
 

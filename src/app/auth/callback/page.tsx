@@ -51,11 +51,7 @@ export default function AuthCallback() {
               router.push("/dashboard/student");
             } else {
               // Redirect based on existing role
-              if (profile.role === "admin" || profile.role === "siksatech_admin") {
-                router.push("/dashboard/admin");
-              } else {
-                router.push("/dashboard/student");
-              }
+              router.push("/dashboard/student");
             }
           } else {
             router.push("/auth/login");
@@ -65,8 +61,7 @@ export default function AuthCallback() {
           router.push("/auth/login");
         }
       } else {
-        // Fallback for mock sandbox environment
-        router.push("/dashboard/student");
+        router.push("/auth/login?error=not_configured");
       }
     };
 

@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { db, supabase, isRealSupabase } from "@/lib/db";
+import { supabase, isRealSupabase } from "@/lib/db";
 import { Cpu, ShieldCheck } from "lucide-react";
 
 export default function Login() {
@@ -39,31 +39,15 @@ export default function Login() {
             .single();
 
           setIsSubmitting(false);
-          if (profile && (profile.role === "admin" || profile.role === "siksatech_admin")) {
-            router.push("/dashboard/admin");
-          } else {
-            router.push("/dashboard/student");
-          }
+          router.push("/dashboard/student");
         }
       } catch (err: any) {
         alert("Unexpected error: " + err.message);
         setIsSubmitting(false);
       }
     } else {
-      // Mock Fallback
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      const res = await db.login(email);
+      alert("Platform is not configured. Please contact support.");
       setIsSubmitting(false);
-
-      if (res.success && res.user) {
-        if (res.user.role === "siksatech_admin") {
-          router.push("/dashboard/admin");
-        } else {
-          router.push("/dashboard/student");
-        }
-      } else {
-        alert("Login failed. Check credentials.");
-      }
     }
   };
 
@@ -77,14 +61,7 @@ export default function Login() {
       });
       if (error) alert("Google authentication failed: " + error.message);
     } else {
-      // Mock log in
-      setIsSubmitting(true);
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      const res = await db.login("student@siksatech.in");
-      setIsSubmitting(false);
-      if (res.success) {
-        router.push("/dashboard/student");
-      }
+      alert("Platform is not configured. Please contact support.");
     }
   };
 
@@ -158,19 +135,7 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Sandbox Credentials Info */}
-          {!isRealSupabase && (
-            <div className="p-4 rounded-lg border border-indigo-100 bg-indigo-50/30 space-y-2">
-              <div className="flex items-center gap-2 text-[10px] font-mono text-indigo-600 font-bold">
-                <ShieldCheck className="w-4 h-4" />
-                <span>SANDBOX MOCK MODE ACTIVE:</span>
-              </div>
-              <ul className="text-[9px] font-mono text-slate-500 space-y-1 pl-1">
-                <li>• Student Access: <strong className="text-slate-700">student@siksatech.in</strong> (any pwd)</li>
-                <li>• Admin Access: <strong className="text-slate-700">admin@siksatech.in</strong> (any pwd)</li>
-              </ul>
-            </div>
-          )}
+
 
           <div className="text-center text-xs text-slate-500 border-t border-slate-100 pt-4">
             Don't have an account?{" "}

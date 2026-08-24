@@ -37,10 +37,7 @@ export default function Navbar() {
     { label: "Store", path: "/store" },
   ];
 
-  const isAdmin = user?.role && user.role !== "student";
-
   return (
-    <nav
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
           ? "bg-white/95 backdrop-blur-md shadow-md border-b border-slate-100"
@@ -89,15 +86,6 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-3">
             {user ? (
               <div className="flex items-center gap-3">
-                {isAdmin && (
-                  <Link
-                    href="/team-portal"
-                    className="flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-bold tracking-wider text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all"
-                  >
-                    <LayoutDashboard className="w-3.5 h-3.5" />
-                    Admin
-                  </Link>
-                )}
                 <Link
                   href="/dashboard/student"
                   className="flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-bold tracking-wider text-blue-600 border border-blue-200 rounded-lg bg-blue-50 hover:bg-blue-100 transition-all"

@@ -122,29 +122,15 @@ export default function StudentDashboard() {
           console.error("Error loading Supabase data:", err);
         }
       } else {
-        // Fallback for local sandbox
         const currUser = db.getCurrentUser();
         if (!currUser) {
           router.push("/auth/login");
           return;
         }
         setUserProfile(currUser);
-
-        // Seed mock listings
-        const mockCourses = [
-          { id: "builder-c2", title: "Microcontroller Essentials (Sandbox)", path_level: "builder", description: "Learn variables and analog inputs on Arduino." }
-        ];
-        const mockLessons = [
-          { id: "builder-l1", course_id: "builder-c2", title: "Led Loop Setup", content: "# Led Pin Loop\nConfigure digital pulse inputs.", kit_steps: "Connect Pin 13 to ground via a resistor.", code_template: "void setup() {\n  pinMode(13, OUTPUT);\n}\nvoid loop() {\n  digitalWrite(13, HIGH);\n}", sequence_number: 1 }
-        ];
-        setCourses(mockCourses);
-        setLessons(mockLessons);
-
-        // Load mock submissions
-        const mockSubmits = [
-          { id: "MOCK-101", title: "Smart Agriculture Controller", description: "Reads crop humidity thresholds.", status: "approved", review_feedback: "Clean connection parameters. Approved." }
-        ];
-        setStudentProjects(mockSubmits);
+        setCourses([]);
+        setLessons([]);
+        setStudentProjects([]);
       }
       setLoading(false);
     };
@@ -153,11 +139,7 @@ export default function StudentDashboard() {
   }, [router]);
 
   const handleLogout = async () => {
-    if (isRealSupabase && supabase) {
-      await supabase.auth.signOut();
-    } else {
-      db.logout();
-    }
+    await db.logout();
     router.push("/");
   };
 
@@ -197,7 +179,6 @@ export default function StudentDashboard() {
           return;
         }
 
-        // Reload projects list
         const { data: projsList } = await supabase
           .from("student_projects")
           .select("*")
@@ -215,23 +196,7 @@ export default function StudentDashboard() {
         alert("Unexpected error: " + err.message);
       }
     } else {
-      // Sandbox fallback
-      const mockSubmit = {
-        id: `MOCK-${Math.floor(100 + Math.random() * 900)}`,
-        title: newTitle,
-        description: newDesc,
-        code_snippet: newCode,
-        schematic_diagram: newSchematic,
-        video_url: newVideoUrl,
-        status: "pending"
-      };
-      setStudentProjects([mockSubmit, ...studentProjects]);
-      setNewTitle("");
-      setNewDesc("");
-      setNewCode("");
-      setNewSchematic("");
-      setNewVideoUrl("");
-      alert("Project submitted in sandbox successfully! Pending Review.");
+      alert("Platform is not configured. Please contact support.");
     }
     setIsSubmittingProject(false);
     setActiveTab("projects");
@@ -435,7 +400,7 @@ export default function StudentDashboard() {
                     <h3 className="text-lg font-bold text-slate-900">{selectedLesson.title}</h3>
                   </div>
 
-                  {/* Markdown mock renderer */}
+                  {/* Lesson Content Renderer */}
                   <div className="text-xs text-slate-600 space-y-3 leading-relaxed">
                     <p className="font-semibold text-slate-800">Objectives & Concepts:</p>
                     <p>In this lesson, we calibrate dynamic signal delays. Students wire pins to capture values cleanly on their microcontrollers.</p>
