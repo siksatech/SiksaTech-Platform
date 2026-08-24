@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Navbar } from "@siksatech/ui";
-import { Footer } from "@siksatech/ui";
-import Link from "next/link";
+import { Navbar, Footer } from "@siksatech/ui";
 import { db } from "@siksatech/database";
 import {
-  ArrowRight, CheckCircle2, FlaskConical, Users, Trophy, Shield,
-  Globe, Zap, Building2, BookOpen, GraduationCap, Brain,
-  MessageSquare, Phone, Mail, Send
+  Building2, CheckCircle2, FlaskConical, Users, Trophy, Shield,
+  ArrowRight, Phone, Mail, Send, Sparkles, Clock, Check, Download,
+  Layers, School, Award, ChevronRight
 } from "lucide-react";
 
 export default function InstitutionsPage() {
@@ -17,7 +15,9 @@ export default function InstitutionsPage() {
     contactPerson: "",
     email: "",
     phone: "",
+    city: "",
     type: "school",
+    studentCount: "200-500",
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
@@ -33,7 +33,9 @@ export default function InstitutionsPage() {
       formData.phone,
       {
         institutionName: formData.institutionName,
+        city: formData.city,
         type: formData.type,
+        studentCount: formData.studentCount,
         message: formData.message,
       }
     );
@@ -41,298 +43,233 @@ export default function InstitutionsPage() {
     setLoading(false);
   };
 
+  const labTiers = [
+    {
+      name: "Starter Maker Nook",
+      target: "Primary & Middle Schools (Class 5–8)",
+      kitCount: "15 Shared Prototyping Stations",
+      highlights: ["Breadboards & Circuit Blocks", "Block Coding & Sensor Kits", "Teacher Pedagogy Training (10 Hrs)", "NEP 2020 Experiential Mapping"],
+      badge: "Fastest Setup"
+    },
+    {
+      name: "Flagship STEM Innovation Lab",
+      target: "K-12 Schools (Class 5–12)",
+      kitCount: "30 Dedicated Hardware Stations",
+      highlights: ["Arduino + ESP32 IoT Nodes", "3D Printing & Soldering Station", "Faculty Certification & LMS", "Annual Inter-School Hackathon"],
+      badge: "Most Popular",
+      popular: true
+    },
+    {
+      name: "Advanced Robotics & AI Center",
+      target: "Engineering Colleges & Polytechnic",
+      kitCount: "50 Pro Hardware Workstations",
+      highlights: ["Computer Vision & ROS Robots", "Edge AI Accelerators & Drones", "Industry Capstone Mentorship", "Placement Portfolio & Patents"],
+      badge: "Higher Ed"
+    }
+  ];
+
   return (
-    <>
+    <div className="flex flex-col min-h-screen bg-white text-slate-900">
       <Navbar />
+
       <main className="flex-1">
-        {/* Hero */}
-        <section className="bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 py-16 lg:py-24">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl">
-              <span className="inline-block text-xs font-bold tracking-widest text-emerald-300 uppercase mb-4">
-                For Schools & Colleges
-              </span>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-5">
-                Equip your institution with future-ready STEM infrastructure
-              </h1>
-              <p className="text-base text-emerald-200/80 leading-relaxed mb-8 max-w-2xl">
-                India&apos;s NEP 2020 mandates experiential, skills-based learning. But most schools lack
-                the labs, curriculum, and trained faculty to deliver it. SiksaTech bridges this gap
-                with turnkey STEM lab setups, structured project-based courses, and comprehensive teacher training.
-              </p>
-              <a
-                href="#inquiry"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-800 font-bold text-sm rounded-lg hover:bg-emerald-50 transition-all shadow-lg"
-              >
-                Request a Partnership
-                <ArrowRight className="w-4 h-4" />
-              </a>
-            </div>
-          </div>
-        </section>
+        {/* Business Hero */}
+        <section className="bg-[#0A0F1D] text-white py-16 sm:py-24 border-b border-slate-800 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px] opacity-10" />
 
-        {/* Why This Matters */}
-        <section className="py-16 lg:py-24 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-14">
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-5">
-                Why practical STEM matters for your students
-              </h2>
-              <p className="text-base text-slate-600 leading-relaxed">
-                Research consistently shows that students who engage in hands-on, project-based learning
-                demonstrate significantly higher retention, deeper understanding, and stronger critical
-                thinking skills compared to lecture-only methods.
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                {
-                  stat: "85%",
-                  label: "Higher retention through experiential learning vs. lecture-based methods",
-                  source: "National Training Laboratories",
-                },
-                {
-                  stat: "3×",
-                  label: "Improvement in problem-solving ability in STEM-active students",
-                  source: "CBSE Academic Report 2024",
-                },
-                {
-                  stat: "70%",
-                  label: "Of future jobs will require STEM literacy that current curricula don't address",
-                  source: "World Economic Forum",
-                },
-              ].map((item, idx) => (
-                <div key={idx} className="text-center p-6 rounded-xl bg-slate-50 border border-slate-200">
-                  <p className="text-4xl font-extrabold text-emerald-600 mb-2">{item.stat}</p>
-                  <p className="text-sm text-slate-700 font-medium mb-2">{item.label}</p>
-                  <p className="text-[11px] text-slate-400 italic">— {item.source}</p>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="grid lg:grid-cols-12 gap-12 items-center">
+              <div className="lg:col-span-7 space-y-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/40 text-blue-400 text-xs font-mono font-bold uppercase tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5" /> Turnkey STEM &amp; Tinkering Infrastructure
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* What We Offer */}
-        <section className="py-16 lg:py-24 bg-slate-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-14">
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-4">
-                What your institution gets
-              </h2>
-              <p className="text-base text-slate-600">
-                End-to-end partnership — from lab infrastructure to student outcomes.
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  icon: FlaskConical,
-                  title: "Complete Lab Setup",
-                  desc: "Workstations, hardware kits, tools, safety equipment, and organized storage — installed and configured by our team.",
-                },
-                {
-                  icon: BookOpen,
-                  title: "Structured Curriculum",
-                  desc: "Age-appropriate, project-based courses aligned with CBSE/ICSE syllabi and NEP 2020 competencies.",
-                },
-                {
-                  icon: Users,
-                  title: "Teacher Training",
-                  desc: "Intensive 2-day faculty workshops covering STEM pedagogy, hardware handling, and guided project mentorship techniques.",
-                },
-                {
-                  icon: Trophy,
-                  title: "Events & Competitions",
-                  desc: "Inter-school hackathons, maker fairs, and science exhibitions organized at your campus or regionally.",
-                },
-                {
-                  icon: GraduationCap,
-                  title: "Student Certifications",
-                  desc: "Verifiable digital certificates for students who complete project tracks — valuable for college applications.",
-                },
-                {
-                  icon: Brain,
-                  title: "Ongoing Support",
-                  desc: "Dedicated account manager, quarterly curriculum updates, and helpdesk support for hardware troubleshooting.",
-                },
-              ].map((item, idx) => (
-                <div key={idx} className="bg-white rounded-xl p-6 border border-slate-200 hover:shadow-md hover:border-emerald-200 transition-all group">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <item.icon className="w-5 h-5 text-emerald-600" />
-                  </div>
-                  <h3 className="text-base font-bold text-slate-900 mb-2">{item.title}</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* How It Works */}
-        <section className="py-16 lg:py-24 bg-white">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-extrabold text-slate-900 text-center mb-14">
-              How the partnership works
-            </h2>
-
-            <div className="space-y-8">
-              {[
-                {
-                  step: "01",
-                  title: "Inquiry & Assessment",
-                  desc: "Submit your interest. Our team evaluates your existing infrastructure, student demographics, and learning goals.",
-                },
-                {
-                  step: "02",
-                  title: "Custom Program Design",
-                  desc: "We design a tailored STEM curriculum matching your board affiliation, available space, and budget requirements.",
-                },
-                {
-                  step: "03",
-                  title: "Lab Installation & Training",
-                  desc: "Our engineers set up the lab hardware and conduct a hands-on faculty training workshop at your campus.",
-                },
-                {
-                  step: "04",
-                  title: "Launch & Ongoing Support",
-                  desc: "Students begin guided project work. We provide ongoing mentorship, quarterly reviews, and curriculum updates.",
-                },
-              ].map((item, idx) => (
-                <div key={idx} className="flex gap-5">
-                  <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center">
-                    <span className="text-lg font-extrabold text-emerald-700">{item.step}</span>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-slate-900 mb-1">{item.title}</h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Inquiry Form */}
-        <section id="inquiry" className="py-16 lg:py-24 bg-slate-50">
-          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-10">
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-3">
-                Start a conversation
-              </h2>
-              <p className="text-base text-slate-600">
-                Tell us about your institution and we&apos;ll get back within 48 hours.
-              </p>
-            </div>
-
-            {submitted ? (
-              <div className="bg-white rounded-2xl border border-emerald-200 p-8 text-center">
-                <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-600" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Thank you!</h3>
-                <p className="text-sm text-slate-600">
-                  We&apos;ve received your inquiry. Our partnerships team will reach out within 48 hours.
+                <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                  Turn Your Campus Into a Regional Innovation Hub
+                </h1>
+                <p className="text-sm sm:text-base text-slate-300 max-w-xl leading-relaxed">
+                  Equip your school or college with turnkey hardware labs, NEP 2020 aligned experiential curricula, faculty upskilling, and verifiable student maker portfolios.
                 </p>
+
+                <div className="grid grid-cols-3 gap-4 pt-2">
+                  <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-xl">
+                    <p className="text-lg sm:text-2xl font-extrabold text-blue-400">100%</p>
+                    <p className="text-[11px] text-slate-400">NEP 2020 Aligned</p>
+                  </div>
+                  <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-xl">
+                    <p className="text-lg sm:text-2xl font-extrabold text-white">48 Hrs</p>
+                    <p className="text-[11px] text-slate-400">Proposal SLA</p>
+                  </div>
+                  <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-xl">
+                    <p className="text-lg sm:text-2xl font-extrabold text-emerald-400">Turnkey</p>
+                    <p className="text-[11px] text-slate-400">Kits + Teacher Training</p>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-5">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Institution Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.institutionName}
-                      onChange={(e) => setFormData({ ...formData, institutionName: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                      placeholder="Delhi Public School"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Contact Person</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.contactPerson}
-                      onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                      placeholder="Dr. Arun Sharma"
-                    />
-                  </div>
-                </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Email</label>
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                      placeholder="principal@school.edu"
-                    />
+              {/* Lead Capture Box */}
+              <div className="lg:col-span-5 bg-white text-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-2xl space-y-4">
+                {submitted ? (
+                  <div className="text-center py-8 space-y-3">
+                    <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
+                    <h3 className="text-lg font-bold text-slate-900">Institutional Inquiry Received</h3>
+                    <p className="text-xs text-slate-600">
+                      Our Academic Partnership Director will send a tailored lab blueprint and budget proposal to your email within 24 business hours.
+                    </p>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Phone</label>
-                    <input
-                      type="tel"
-                      required
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                      placeholder="+91 98765 43210"
-                    />
-                  </div>
-                </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-3.5">
+                    <div className="border-b border-slate-100 pb-2">
+                      <h3 className="text-base font-bold text-slate-900">Request Institutional Proposal</h3>
+                      <p className="text-xs text-slate-500">Includes complete lab equipment list, sample syllabus, and budget estimates.</p>
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Institution Type</label>
-                  <div className="flex gap-3">
-                    {["school", "college"].map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, type })}
-                        className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border-2 transition-all ${
-                          formData.type === type
-                            ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                            : "border-slate-200 text-slate-500 hover:border-slate-300"
-                        }`}
-                      >
-                        {type === "school" ? "School (K–12)" : "College / University"}
-                      </button>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">School / College Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.institutionName}
+                        onChange={(e) => setFormData({ ...formData, institutionName: e.target.value })}
+                        placeholder="e.g. St. Xavier's Senior Secondary"
+                        className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">Contact Person</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.contactPerson}
+                          onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+                          placeholder="Principal / HOD"
+                          className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">Phone Number</label>
+                        <input
+                          type="tel"
+                          required
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          placeholder="+91 98765 43210"
+                          className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">Email Address</label>
+                        <input
+                          type="email"
+                          required
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          placeholder="admin@school.edu.in"
+                          className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">Institution Type</label>
+                        <select
+                          value={formData.type}
+                          onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                          className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="school">K-12 School (CBSE/ICSE/State)</option>
+                          <option value="college">Engineering / Science College</option>
+                          <option value="training_center">Vocational STEM Center</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                    >
+                      <Send className="w-3.5 h-3.5" /> {loading ? "Generating Proposal..." : "Get Free Lab Blueprint & Quotation"}
+                    </button>
+                  </form>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Turnkey Lab Blueprints */}
+        <section className="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <span className="text-[11px] font-mono font-bold tracking-widest text-blue-600 uppercase">
+              Modular Lab Packages
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+              Choose the Right STEM Lab Setup for Your Students
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600">
+              Each package includes hardware stations, teacher lesson plans, safety compliance, and annual competition access.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {labTiers.map((tier, idx) => (
+              <div
+                key={idx}
+                className={`bg-white rounded-2xl p-6 sm:p-8 flex flex-col justify-between space-y-6 transition-all ${
+                  tier.popular
+                    ? "border-2 border-blue-600 shadow-xl shadow-blue-600/10 relative"
+                    : "border border-slate-200 shadow-sm hover:shadow-md"
+                }`}
+              >
+                {tier.popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-blue-600 text-white font-mono text-[10px] font-bold uppercase rounded-full tracking-wider shadow">
+                    Most Recommended
+                  </span>
+                )}
+
+                <div className="space-y-4">
+                  <div>
+                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-700 rounded uppercase">
+                      {tier.badge}
+                    </span>
+                    <h3 className="text-lg font-bold text-slate-900 mt-2">{tier.name}</h3>
+                    <p className="text-xs text-slate-500">{tier.target}</p>
+                  </div>
+
+                  <p className="text-xs font-bold text-blue-600 pb-2 border-b border-slate-100">
+                    {tier.kitCount}
+                  </p>
+
+                  <ul className="space-y-2 text-xs text-slate-700">
+                    {tier.highlights.map((h, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <Check className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                        <span>{h}</span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Message (Optional)</label>
-                  <textarea
-                    rows={3}
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all resize-none"
-                    placeholder="Tell us about your current STEM infrastructure, number of students, etc."
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20"
+                <a
+                  href="#contact"
+                  className={`block text-center py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${
+                    tier.popular
+                      ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/20"
+                      : "bg-slate-100 hover:bg-slate-200 text-slate-800"
+                  }`}
                 >
-                  {loading ? "Sending..." : "Submit Inquiry"}
-                  <Send className="w-4 h-4" />
-                </button>
-              </form>
-            )}
+                  Request Blueprint &rarr;
+                </a>
+              </div>
+            ))}
           </div>
         </section>
       </main>
+
       <Footer />
-    </>
+    </div>
   );
 }
