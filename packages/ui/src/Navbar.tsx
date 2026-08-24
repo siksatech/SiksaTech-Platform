@@ -18,6 +18,11 @@ export default function Navbar() {
     setUser(db.getCurrentUser());
   }, [pathname]);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll);
@@ -49,15 +54,15 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-[72px] sm:h-[80px]">
-          {/* Logo & Brand Name (Enlarged with natural proportions) */}
-          <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
-            <SiksaTechLogo size={52} className="h-11 sm:h-13 w-auto object-contain" />
-            <span className="text-[22px] sm:text-[24px] font-black tracking-wider text-slate-900 leading-none">
+          {/* Brand Logo & Name */}
+          <Link href="/" className="flex items-center gap-3.5 group flex-shrink-0">
+            <SiksaTechLogo size={56} className="h-12 sm:h-14 w-auto object-contain" />
+            <span className="text-[22px] sm:text-[25px] font-black tracking-wider text-slate-900 leading-none">
               SIKSA<span className="text-blue-600">TECH</span>
             </span>
           </Link>
 
-          {/* Desktop Navigation Links (Visible on Large Screens >= 1024px to prevent collision) */}
+          {/* Desktop Navigation Links (>= 1024px) */}
           <div className="hidden lg:flex items-center gap-1 xl:gap-2">
             {navLinks.map((link) => {
               const isActive = pathname === link.path;
@@ -65,7 +70,7 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   href={link.path}
-                  className={`relative px-3 xl:px-4 py-2 text-xs xl:text-sm font-bold tracking-wide rounded-xl whitespace-nowrap transition-all ${
+                  className={`relative px-3.5 xl:px-4 py-2 text-xs xl:text-sm font-bold tracking-wide rounded-xl whitespace-nowrap transition-all ${
                     isActive
                       ? "text-blue-600 bg-blue-50/80"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -80,13 +85,13 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Desktop User CTAs (Visible on >= 1024px) */}
-          <div className="hidden lg:flex items-center gap-2.5 xl:gap-3.5 flex-shrink-0">
+          {/* Desktop User CTAs (>= 1024px) */}
+          <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
             {user ? (
               <div className="flex items-center gap-2">
                 <Link
                   href="/dashboard/student"
-                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-blue-600 border border-blue-200 rounded-xl bg-blue-50 hover:bg-blue-100 transition-all whitespace-nowrap"
+                  className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-xl bg-blue-50 hover:bg-blue-100 transition-all whitespace-nowrap"
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
                   Dashboard
@@ -103,13 +108,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/auth/login"
-                  className="px-3.5 py-2 text-xs xl:text-sm font-bold text-slate-700 hover:text-slate-900 transition-all whitespace-nowrap"
+                  className="px-4 py-2 text-xs xl:text-sm font-bold text-slate-700 hover:text-slate-900 transition-all whitespace-nowrap"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-4 xl:px-5 py-2.5 text-xs xl:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-md shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap"
+                  className="px-5 py-2.5 text-xs xl:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-md shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap"
                 >
                   Get Started
                 </Link>
@@ -117,7 +122,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile & Tablet Controls (< 1024px) */}
+          {/* Mobile / Tablet Controls (< 1024px) */}
           <div className="lg:hidden flex items-center gap-2">
             <Link
               href="/store"
@@ -137,13 +142,9 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer Menu (< 1024px) */}
-      <div
-        className={`lg:hidden overflow-hidden transition-all duration-300 ${
-          isOpen ? "max-h-[520px] opacity-100 border-t border-slate-200" : "max-h-0 opacity-0"
-        }`}
-      >
-        <div className="bg-white px-4 pt-3 pb-6 space-y-2">
+      {/* Mobile Drawer Menu (Conditionally rendered when isOpen === true to prevent ghost spacing) */}
+      {isOpen && (
+        <div className="lg:hidden bg-white border-t border-slate-200 px-4 pt-3 pb-6 space-y-2 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
           {navLinks.map((link) => {
             const isActive = pathname === link.path;
             return (
@@ -201,7 +202,7 @@ export default function Navbar() {
             )}
           </div>
         </div>
-      </div>
+      )}
     </nav>
   );
 }
