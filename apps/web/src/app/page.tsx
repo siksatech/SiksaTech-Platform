@@ -3,7 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Navbar, Footer } from "@siksatech/ui";
-import { db, Banner, FAQ, Competition, LearningPath, Project } from "@siksatech/database";
+import {
+  db, Banner, FAQ, Competition, LearningPath, Project,
+  DEMO_BANNERS, DEMO_FAQS, DEMO_COMPETITIONS, DEMO_PATHS, DEMO_PROJECTS
+} from "@siksatech/database";
 import {
   ArrowRight,
   ChevronDown,
@@ -32,20 +35,20 @@ import {
 } from "lucide-react";
 
 export default function HomePage() {
-  const [banners, setBanners] = useState<Banner[]>([]);
+  const [banners, setBanners] = useState<Banner[]>(DEMO_BANNERS);
   const [activeBanner, setActiveBanner] = useState(0);
-  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [faqs, setFaqs] = useState<FAQ[]>(DEMO_FAQS);
   const [openFaq, setOpenFaq] = useState<string | null>(null);
-  const [competitions, setCompetitions] = useState<Competition[]>([]);
-  const [paths, setPaths] = useState<LearningPath[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [competitions, setCompetitions] = useState<Competition[]>(DEMO_COMPETITIONS);
+  const [paths, setPaths] = useState<LearningPath[]>(DEMO_PATHS);
+  const [projects, setProjects] = useState<Project[]>(DEMO_PROJECTS);
 
   useEffect(() => {
-    db.getBanners().then(setBanners);
-    db.getFAQs().then(setFaqs);
-    db.getCompetitions().then(setCompetitions);
-    db.getLearningPaths().then(setPaths);
-    db.getProjects(true).then(setProjects);
+    db.getBanners().then((b) => { if (b && b.length > 0) setBanners(b); });
+    db.getFAQs().then((f) => { if (f && f.length > 0) setFaqs(f); });
+    db.getCompetitions().then((c) => { if (c && c.length > 0) setCompetitions(c); });
+    db.getLearningPaths().then((p) => { if (p && p.length > 0) setPaths(p); });
+    db.getProjects(true).then((prj) => { if (prj && prj.length > 0) setProjects(prj); });
   }, []);
 
   // Auto-advance carousel
