@@ -12,9 +12,6 @@ import {
   BookOpen, 
   Package, 
   LogOut, 
-  CheckCircle, 
-  AlertTriangle, 
-  FileCode, 
   Compass, 
   Terminal, 
   Award,
@@ -243,7 +240,7 @@ export default function PortfolioReviews() {
                           </p>
                           {sub.schematic_diagram && (
                             <p className="text-[11px] text-slate-500 italic bg-white border border-slate-200 p-3 rounded-lg">
-                              Wiring: "{sub.schematic_diagram}"
+                              Wiring: &quot;{sub.schematic_diagram}&quot;
                             </p>
                           )}
                         </div>

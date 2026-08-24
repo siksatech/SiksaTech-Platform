@@ -1,9 +1,8 @@
 "use client";
 
-import { Navbar } from "@siksatech/ui";
-import { Footer } from "@siksatech/ui";
+import { Navbar, Footer } from "@siksatech/ui";
 import Link from "next/link";
-import { Cpu, Award, Users, ShieldAlert, GraduationCap, School } from "lucide-react";
+import { Cpu, Award, Users, GraduationCap, School } from "lucide-react";
 
 export default function Programs() {
   const schoolWorkshops = [

@@ -1,5 +1,5 @@
 import { Navbar, Footer } from "@siksatech/ui";
-import { Truck, Package, Clock, ShieldCheck, MapPin, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Truck, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {

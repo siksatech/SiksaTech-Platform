@@ -4,9 +4,7 @@ import { useState, useEffect } from "react";
 import { Navbar, Footer } from "@siksatech/ui";
 import { db, StoreKit } from "@siksatech/database";
 import {
-  ShoppingCart, Package, Tag, Check, Star,
-  ArrowRight, Filter, ShieldCheck, Truck, RotateCcw,
-  Sparkles, CheckCircle2
+  Check, Star, ShieldCheck, Truck, RotateCcw, CheckCircle2
 } from "lucide-react";
 import Link from "next/link";
 

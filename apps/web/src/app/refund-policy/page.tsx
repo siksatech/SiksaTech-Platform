@@ -1,6 +1,5 @@
 import { Navbar, Footer } from "@siksatech/ui";
-import { RefreshCw, CheckCircle2, AlertCircle, Clock, ShieldCheck, HelpCircle, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { RefreshCw, Clock, ShieldCheck } from "lucide-react";
 
 export const metadata = {
   title: "Refund & Cancellation Policy | SiksaTech (Consumer Protection Aligned)",

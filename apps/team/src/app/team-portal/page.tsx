@@ -49,22 +49,7 @@ export default function TeamPortalDashboard() {
   const [projectForm, setProjectForm] = useState({ title: "", description: "", problemStatement: "", studentLevel: "Builder (Class 8–10)", difficulty: "Medium" as const, creatorName: "", creatorSchool: "", skills: "ESP32, IoT, C++", technologies: "Arduino IDE, FreeRTOS", components: "ESP32, DHT22, OLED", isFeatured: true });
   const [eventForm, setEventForm] = useState({ title: "", description: "", date: "", location: "", type: "hackathon" as Competition["type"], status: "upcoming" as Competition["status"] });
   const [kitForm, setKitForm] = useState({ name: "", description: "", price: 0, category: "explorer" as StoreKit["category"], features: "" });
-  const [certForm, setCertForm] = useState({ id: `ST-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`, studentName: "", programName: "Builder Path - Embedded IoT", achievement: "Built an autonomous solar monitoring station.", skillsVerified: "ESP32, MicroPython, I2C" });
-
-  useEffect(() => {
-    const u = db.getCurrentUser();
-    if (u && u.role !== "student") {
-      setUser(u);
-    } else {
-      setUser({
-        id: "admin-siksatech",
-        email: "admin@siksatech.in",
-        name: "SiksaTech Super Admin",
-        role: "super_admin"
-      });
-    }
-    loadData();
-  }, [router]);
+  const [certForm, setCertForm] = useState({ id: "ST-2026-1001", studentName: "", programName: "Builder Path - Embedded IoT", achievement: "Built an autonomous solar monitoring station.", skillsVerified: "ESP32, MicroPython, I2C" });
 
   const loadData = async () => {
     const [b, f, crs, prj, c, s, l, certs] = await Promise.all([
@@ -87,7 +72,22 @@ export default function TeamPortalDashboard() {
     setCertificates(certs);
   };
 
-  const tabs: { id: AdminTab; label: string; icon: any }[] = [
+  useEffect(() => {
+    const u = db.getCurrentUser();
+    if (u && u.role !== "student") {
+      setUser(u);
+    } else {
+      setUser({
+        id: "admin-siksatech",
+        email: "admin@siksatech.in",
+        name: "SiksaTech Super Admin",
+        role: "super_admin"
+      });
+    }
+    loadData();
+  }, [router]);
+
+  const tabs: { id: AdminTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "banners", label: "Banners (21:7)", icon: ImageIcon },
     { id: "courses", label: "Courses & Tracks", icon: BookOpen },

@@ -13,7 +13,7 @@ import {
 export default function LearnPage() {
   const [paths, setPaths] = useState<LearningPath[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ name?: string; email?: string; role?: string } | null>(null);
 
   // Intake step
   const [step, setStep] = useState<"intake" | "browse">("intake");
@@ -24,7 +24,10 @@ export default function LearnPage() {
   useEffect(() => {
     db.getLearningPaths().then(setPaths);
     db.getCourses().then(setCourses);
-    setUser(db.getCurrentUser());
+    const currentUser = db.getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+    }
   }, []);
 
   const classOptions = [
@@ -49,7 +52,7 @@ export default function LearnPage() {
     setStep("browse");
   };
 
-  const pathIcons: Record<string, any> = {
+  const pathIcons: Record<string, React.ComponentType<{ className?: string }>> = {
     explorer: BookOpen,
     builder: Terminal,
     creator: Hammer,

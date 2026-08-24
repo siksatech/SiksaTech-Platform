@@ -138,7 +138,7 @@ export default function Login() {
 
 
           <div className="text-center text-xs text-slate-500 border-t border-slate-100 pt-4">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link href="/auth/register" className="text-indigo-600 font-semibold hover:underline">
               Create student profile
             </Link>

@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Navbar, Footer } from "@siksatech/ui";
 import {
-  db, Banner, FAQ, Competition, LearningPath, Project,
-  DEMO_BANNERS, DEMO_FAQS, DEMO_COMPETITIONS, DEMO_PATHS, DEMO_PROJECTS
+  db, Banner, FAQ, LearningPath, Project,
+  DEMO_BANNERS, DEMO_FAQS, DEMO_PATHS, DEMO_PROJECTS
 } from "@siksatech/database";
 import {
   ArrowRight,
@@ -15,23 +15,8 @@ import {
   Terminal,
   Hammer,
   Cpu,
-  Zap,
-  Users,
-  School,
-  Trophy,
-  Calendar,
-  MapPin,
-  Sparkles,
   GraduationCap,
-  Wrench,
-  Lightbulb,
-  Target,
   Building2,
-  FlaskConical,
-  Rocket,
-  Shield,
-  Globe,
-  CheckCircle2,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -39,14 +24,12 @@ export default function HomePage() {
   const [activeBanner, setActiveBanner] = useState(0);
   const [faqs, setFaqs] = useState<FAQ[]>(DEMO_FAQS);
   const [openFaq, setOpenFaq] = useState<string | null>(null);
-  const [competitions, setCompetitions] = useState<Competition[]>(DEMO_COMPETITIONS);
   const [paths, setPaths] = useState<LearningPath[]>(DEMO_PATHS);
   const [projects, setProjects] = useState<Project[]>(DEMO_PROJECTS);
 
   useEffect(() => {
     db.getBanners().then((b) => { if (b && b.length > 0) setBanners(b); });
     db.getFAQs().then((f) => { if (f && f.length > 0) setFaqs(f); });
-    db.getCompetitions().then((c) => { if (c && c.length > 0) setCompetitions(c); });
     db.getLearningPaths().then((p) => { if (p && p.length > 0) setPaths(p); });
     db.getProjects(true).then((prj) => { if (prj && prj.length > 0) setProjects(prj); });
   }, []);
@@ -64,7 +47,7 @@ export default function HomePage() {
     setActiveBanner(idx);
   }, []);
 
-  const pathIcons: Record<string, any> = {
+  const pathIcons: Record<string, React.ComponentType<{ className?: string }>> = {
     explorer: BookOpen,
     builder: Terminal,
     creator: Hammer,

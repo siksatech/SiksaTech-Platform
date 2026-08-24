@@ -1,5 +1,5 @@
 import { Navbar, Footer } from "@siksatech/ui";
-import { ShieldCheck, Lock, Eye, FileText, UserCheck, AlertCircle, Scale, Database } from "lucide-react";
+import { ShieldCheck, UserCheck, Scale } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {

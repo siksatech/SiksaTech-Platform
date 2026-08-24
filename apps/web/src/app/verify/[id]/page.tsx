@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { Navbar } from "@siksatech/ui";
-import { Footer } from "@siksatech/ui";
+import { Navbar, Footer } from "@siksatech/ui";
 import Link from "next/link";
 import { db, Certificate } from "@siksatech/database";
-import { ShieldCheck, ShieldAlert, ArrowLeft, Search, CheckCircle } from "lucide-react";
+import { ShieldCheck, ShieldAlert, ArrowLeft, Search } from "lucide-react";
 
 export default function VerifyCertificate({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -77,12 +76,12 @@ export default function VerifyCertificate({ params }: { params: Promise<{ id: st
                 <div className="border-t border-emerald-500/10 pt-4 space-y-2">
                   <span className="text-text-muted block">Achievement Details:</span>
                   <p className="text-secondary-white leading-relaxed italic bg-navy-dark/40 p-4 border border-border-slate rounded">
-                    "{certificate.achievement}"
+                    &quot;{certificate.achievement}&quot;
                   </p>
                 </div>
 
                 <div className="space-y-2.5">
-                  <span className="text-text-muted block">Verified Hardware & Coding Capabilities:</span>
+                  <span className="text-text-muted block">Verified Hardware &amp; Coding Capabilities:</span>
                   <div className="flex flex-wrap gap-2">
                     {certificate.skillsVerified.map((skill, idx) => (
                       <span key={idx} className="px-3 py-1 rounded bg-emerald-500/15 border border-emerald-500/30 text-xs text-emerald-300">
@@ -103,7 +102,7 @@ export default function VerifyCertificate({ params }: { params: Promise<{ id: st
                 <div className="space-y-1">
                   <h3 className="text-sm font-bold text-red-400 uppercase tracking-widest">ID NOT FOUND IN REGISTRY</h3>
                   <p className="text-xs text-text-muted max-w-sm mx-auto leading-relaxed">
-                    The certificate identifier **{certId}** could not be verified. Verify that the spelling is exactly as written on the certificate.
+                    The certificate identifier <strong className="text-secondary-white">{certId}</strong> could not be verified. Verify that the spelling is exactly as written on the certificate.
                   </p>
                 </div>
               </div>
@@ -120,11 +119,11 @@ export default function VerifyCertificate({ params }: { params: Promise<{ id: st
                 value={searchId}
                 onChange={(e) => setSearchId(e.target.value)}
                 placeholder="e.g. ST-2026-B202"
-                className="flex-grow px-4 py-3 rounded border border-border-slate bg-navy-dark text-xs text-secondary-white focus:outline-none focus:border-accent-cyan"
+                className="flex-grow px-4 py-3 rounded border border-border-slate bg-navy-dark text-xs text-secondary-white focus:outline-none focus:border-accent-cyan font-mono uppercase"
               />
               <button
                 type="submit"
-                className="px-5 py-3 bg-accent-cyan hover:bg-accent-cyan-hover text-navy-dark rounded text-xs font-bold tracking-widest transition-technical flex items-center gap-1.5"
+                className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold tracking-widest transition-technical flex items-center gap-1.5"
               >
                 <Search className="w-4 h-4" /> QUERY
               </button>
@@ -134,7 +133,7 @@ export default function VerifyCertificate({ params }: { params: Promise<{ id: st
           <div className="text-center pt-2">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-xs font-bold text-accent-cyan tracking-widest hover:underline"
+              className="inline-flex items-center gap-2 text-xs font-bold text-blue-400 tracking-widest hover:underline"
             >
               <ArrowLeft className="w-4 h-4" /> RETURN TO PLATFORM
             </Link>

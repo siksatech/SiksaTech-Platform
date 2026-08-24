@@ -496,7 +496,7 @@ export default function StudentDashboard() {
                           <div className="flex justify-between items-start gap-4">
                             <div>
                               <h4 className="text-sm font-bold text-slate-900">{proj.title}</h4>
-                              <span className="text-[10px] text-slate-400 font-mono block">Submitted: {new Date(proj.created_at || Date.now()).toLocaleDateString()}</span>
+                              <span className="text-[10px] text-slate-400 font-mono block">Submitted: {proj.created_at ? new Date(proj.created_at).toLocaleDateString() : "Recently"}</span>
                             </div>
                             
                             <span className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase border ${
@@ -515,7 +515,7 @@ export default function StudentDashboard() {
                           {proj.review_feedback && (
                             <div className="p-4 bg-slate-50 rounded-lg border border-slate-150 text-[11px] text-slate-600 space-y-1">
                               <span className="text-[9px] font-bold text-slate-800 uppercase block tracking-wider">Reviewer Feedback:</span>
-                              <p className="italic">"{proj.review_feedback}"</p>
+                              <p className="italic">&quot;{proj.review_feedback}&quot;</p>
                             </div>
                           )}
                         </div>
@@ -657,7 +657,7 @@ export default function StudentDashboard() {
                           </div>
                           <h4 className="text-base font-bold text-slate-900">Program Achievement: {p.title}</h4>
                           <p className="text-xs text-slate-550 leading-relaxed">
-                            Issued to {userProfile?.name} for submitting and demonstrating the physical build prototype: "{p.description.slice(0,100)}..."
+                            Issued to {userProfile?.name} for submitting and demonstrating the physical build prototype: &quot;{p.description.slice(0,100)}...&quot;
                           </p>
                         </div>
 

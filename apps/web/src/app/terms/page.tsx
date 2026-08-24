@@ -1,5 +1,5 @@
 import { Navbar, Footer } from "@siksatech/ui";
-import { Shield, BookOpen, Award, CheckCircle, Scale, AlertTriangle, FileText, Lock } from "lucide-react";
+import { Shield, Award, Scale } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {

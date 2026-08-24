@@ -1,5 +1,5 @@
 import { Navbar, Footer } from "@siksatech/ui";
-import { RotateCcw, Wrench, ShieldCheck, CheckCircle2, AlertTriangle, Cpu, Truck } from "lucide-react";
+import { RotateCcw, Wrench, ShieldCheck, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {

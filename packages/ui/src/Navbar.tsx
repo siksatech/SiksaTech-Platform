@@ -53,16 +53,16 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[80px]">
+        <div className="flex items-center justify-between h-[60px]">
           {/* Brand Logo & Name */}
-          <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
-            <SiksaTechLogo size={48} className="h-11 sm:h-12 w-auto object-contain" />
-            <span className="text-[21px] sm:text-[22px] font-bold tracking-tight text-slate-900 leading-none">
+          <Link href="/" className="flex items-center gap-2.5 group flex-shrink-0">
+            <SiksaTechLogo size={44} className="h-9 sm:h-10 w-auto object-contain" />
+            <span className="text-[18px] sm:text-[20px] font-bold tracking-tight text-slate-900 leading-none">
               SIKSA<span className="text-blue-600">TECH</span>
             </span>
           </Link>
 
-          {/* Desktop Navigation Links (Synchronized 14px Font & Sizing) */}
+          {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center gap-1 lg:gap-2">
             {navLinks.map((link) => {
               const isActive = pathname === link.path;
@@ -70,7 +70,7 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   href={link.path}
-                  className={`relative px-3.5 py-2 text-[14px] font-semibold tracking-normal rounded-lg whitespace-nowrap transition-colors ${
+                  className={`relative px-3 py-1.5 text-[13px] font-semibold tracking-normal rounded-lg whitespace-nowrap transition-colors ${
                     isActive
                       ? "text-blue-600 bg-blue-50/70"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -85,13 +85,13 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Desktop User CTAs (Synchronized 14px Font & Heights) */}
-          <div className="hidden md:flex items-center gap-2.5 lg:gap-3 flex-shrink-0">
+          {/* Desktop User CTAs */}
+          <div className="hidden md:flex items-center gap-2 lg:gap-3 flex-shrink-0">
             {user ? (
               <div className="flex items-center gap-2">
                 <Link
                   href="/dashboard/student"
-                  className="flex items-center gap-1.5 px-3.5 py-2 text-[14px] font-semibold text-blue-600 border border-blue-200 rounded-lg bg-blue-50 hover:bg-blue-100 transition-all whitespace-nowrap"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-blue-600 border border-blue-200 rounded-lg bg-blue-50 hover:bg-blue-100 transition-all whitespace-nowrap"
                 >
                   <LayoutDashboard className="w-4 h-4" />
                   <span>Dashboard</span>
@@ -108,13 +108,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/auth/login"
-                  className="px-4 py-2 text-[14px] font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap"
+                  className="px-3.5 py-1.5 text-[13px] font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-4.5 py-2 text-[14px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap"
+                  className="px-4 py-1.5 text-[13px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap"
                 >
                   Get Started
                 </Link>
