@@ -1,89 +1,92 @@
-"use client";
-
-import { Navbar } from "@siksatech/ui";
-import { Footer } from "@siksatech/ui";
+import { Navbar, Footer } from "@siksatech/ui";
+import { Cpu, Compass, ShieldCheck, Heart, Award, Sparkles, BookOpen, Layers, Lightbulb, Users } from "lucide-react";
 import Link from "next/link";
-import { Cpu, Compass, ShieldCheck, Heart } from "lucide-react";
+
+export const metadata = {
+  title: "About SiksaTech | India's Hands-On STEM Engineering Platform",
+  description: "Learn about SiksaTech — our Sanskrit roots, Build-First educational philosophy, NEP 2020 alignment, and mission to foster practical technology creators.",
+};
 
 export default function About() {
   return (
-    <div className="flex flex-col min-h-screen bg-primary-navy text-secondary-white">
+    <div className="flex flex-col min-h-screen bg-white text-slate-900">
       <Navbar />
 
-      {/* Header Banner */}
-      <section className="py-16 border-b border-border-slate/40 tech-grid-fine">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <span className="text-[10px] font-mono tracking-widest text-accent-cyan uppercase">Our Roots & Vision</span>
-          <h1 className="text-4xl font-extrabold tracking-tight text-secondary-white">The SiksaTech Story</h1>
-          <p className="text-sm text-text-muted max-w-xl mx-auto leading-relaxed">
-            SiksaTech unifies Indian cultural foundations of wisdom and responsibility with global scaling technical capabilities.
-          </p>
-        </div>
-      </section>
-
-      {/* Main Philosophy Copy */}
-      <section className="py-16 flex-grow">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-12">
-          
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold tracking-tight text-secondary-white">What does \"Siksa\" mean?</h2>
-            <p className="text-sm text-text-muted leading-relaxed">
-              In Sanskrit, **Siksa (शिक्षा)** represents knowledge, education, and instructional discipline. Combined with **Tech**, it forms SiksaTech: the intersection of **Knowledge, Technology, Wisdom, and Responsibility**. We believe technology is not merely a tool for utility—it is a responsibility to create, optimize, and build safely.
+      <main className="flex-1">
+        {/* Header Hero */}
+        <section className="bg-slate-900 text-white py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+          <div className="max-w-4xl mx-auto text-center space-y-5 relative z-10">
+            <span className="inline-block px-3.5 py-1 rounded-full bg-blue-900/60 border border-blue-700 text-blue-400 text-xs font-bold uppercase tracking-widest">
+              Roots &bull; Philosophy &bull; Engineering Vision
+            </span>
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+              Technology is Better Understood When You Build It
+            </h1>
+            <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+              SiksaTech bridges the gap between rote theoretical schooling and real-world engineering through physical prototyping, embedded electronics, and practical computer science.
             </p>
           </div>
+        </section>
 
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold tracking-tight text-secondary-white">The \"Build-First\" Mindset</h2>
-            <p className="text-sm text-text-muted leading-relaxed">
-              We reject the conventional "screen-only" coding centers. Understanding a system requires writing code, wiring terminals, testing signals on breadboards, and debugging compile errors. We teach students to understand technology from its foundational roots, making them creators rather than consumers.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
-            <div className="p-6 rounded bg-navy-light/40 border border-border-slate space-y-3">
-              <div className="w-10 h-10 rounded bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center">
-                <Compass className="w-5 h-5 text-accent-cyan" />
-              </div>
-              <h4 className="text-sm font-bold text-secondary-white">Our Mission</h4>
-              <p className="text-xs text-text-muted leading-relaxed">
-                To build true technical capability across schools and colleges in India, transitioning students from theoretical learners to practical makers.
+        {/* Brand Meaning & Cultural Foundation */}
+        <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-16">
+          <div className="grid md:grid-cols-2 gap-10 items-center">
+            <div className="space-y-4">
+              <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">The Brand Ethos</span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+                What does &ldquo;Siksa&rdquo; mean?
+              </h2>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                In classical Sanskrit, <strong>Siksa (शिक्षा)</strong> represents the science of learning, instructional discipline, and the pursuit of foundational wisdom. Combined with <strong>Tech</strong>, it embodies our sacred promise: <em>Knowledge + Technology + Responsibility</em>.
+              </p>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                We believe engineering is not merely an economic trade; it is a civic duty to solve genuine physical problems—clean water, energy conservation, agriculture, and intelligent automation.
               </p>
             </div>
-            <div className="p-6 rounded bg-navy-light/40 border border-border-slate space-y-3">
-              <div className="w-10 h-10 rounded bg-accent-cyan/10 border border-accent-cyan/20 flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5 text-accent-cyan" />
-              </div>
-              <h4 className="text-sm font-bold text-secondary-white">Our Values</h4>
-              <p className="text-xs text-text-muted leading-relaxed">
-                Integrity in curriculum design, focus on core engineering physics, and safety in physical fabrication.
-              </p>
+
+            <div className="bg-slate-50 p-8 rounded-2xl border border-slate-200 space-y-4 shadow-sm">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-500" /> Our 5 Core Pillars
+              </h3>
+              <ul className="space-y-2.5 text-xs text-slate-700">
+                <li className="flex items-start gap-2"><strong>1. Nobility:</strong> Respect for learners, educators, and the dignity of engineering labor.</li>
+                <li className="flex items-start gap-2"><strong>2. Real Hardware:</strong> Physical breadboards, real ICs, and microcontrollers over screen simulations.</li>
+                <li className="flex items-start gap-2"><strong>3. Verifiable Competence:</strong> Skills measured by working builds rather than multiple-choice exams.</li>
+                <li className="flex items-start gap-2"><strong>4. Child Data Privacy:</strong> Complete architectural compliance with India&apos;s DPDP Act 2023.</li>
+                <li className="flex items-start gap-2"><strong>5. NEP 2020 Alignment:</strong> Experiential learning, vocational skills, and cross-disciplinary inquiry.</li>
+              </ul>
             </div>
           </div>
 
-          {/* CTA Box */}
-          <div className="p-8 rounded-lg border border-border-slate bg-navy-dark text-center space-y-6">
-            <h3 className="text-lg font-bold">Interested in joining our community?</h3>
-            <p className="text-xs text-text-muted max-w-lg mx-auto leading-relaxed">
-              Explore our progressive syllabus or set up a consultation call to establish a SiksaTech laboratory program at your campus.
-            </p>
-            <div className="flex justify-center gap-4">
-              <Link
-                href="/learn"
-                className="px-6 py-3 text-xs font-bold tracking-widest bg-accent-cyan hover:bg-accent-cyan-hover text-navy-dark rounded transition-technical"
-              >
-                BROWSE PATHS
-              </Link>
-              <Link
-                href="/enquiry/student"
-                className="px-6 py-3 text-xs font-bold tracking-widest border border-border-slate hover:border-accent-cyan text-secondary-white rounded transition-technical"
-              >
-                SUBMIT ENQUIRY
-              </Link>
+          {/* Educational Progression */}
+          <div className="border-t border-slate-200 pt-14 space-y-8">
+            <div className="text-center max-w-2xl mx-auto space-y-2">
+              <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">The 8-Stage Pathway</span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">Our Experiential Learning Framework</h2>
+              <p className="text-xs text-slate-600">Every SiksaTech lesson guides students through an authentic engineering loop:</p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+              {[
+                { stage: "01", name: "Discover", desc: "Identify real-world challenges & physics principles" },
+                { stage: "02", name: "Understand", desc: "Deconstruct circuits & logic architecture" },
+                { stage: "03", name: "Experiment", desc: "Test sensory inputs & breadboard wiring" },
+                { stage: "04", name: "Build", desc: "Assemble working physical prototypes" },
+                { stage: "05", name: "Test", desc: "Debug firmware loops & signal noise" },
+                { stage: "06", name: "Improve", desc: "Optimize power consumption & CAD chassis" },
+                { stage: "07", name: "Solve", desc: "Deploy in community or campus environments" },
+                { stage: "08", name: "Innovate", desc: "Showcase in Maker Sprints & hackathons" }
+              ].map((step, idx) => (
+                <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                  <span className="text-xs font-mono font-bold text-blue-600">{step.stage}</span>
+                  <h4 className="text-sm font-bold text-slate-900">{step.name}</h4>
+                  <p className="text-[11px] text-slate-500 leading-snug">{step.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
-
-        </div>
-      </section>
+        </section>
+      </main>
 
       <Footer />
     </div>
