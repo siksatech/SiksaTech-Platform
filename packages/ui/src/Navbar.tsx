@@ -53,11 +53,11 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[70px]">
+        <div className="flex items-center justify-between h-[80px]">
           {/* Brand Logo & Name */}
           <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
-            <SiksaTechLogo size={42} className="h-10 w-auto object-contain" />
-            <span className="text-[20px] font-bold tracking-tight text-slate-900 leading-none">
+            <SiksaTechLogo size={48} className="h-11 sm:h-12 w-auto object-contain" />
+            <span className="text-[21px] sm:text-[22px] font-bold tracking-tight text-slate-900 leading-none">
               SIKSA<span className="text-blue-600">TECH</span>
             </span>
           </Link>
