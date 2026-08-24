@@ -48,24 +48,24 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[72px]">
-          {/* Logo & Brand Name */}
+        <div className="flex items-center justify-between h-[72px] sm:h-[80px]">
+          {/* Logo & Brand Name (Enlarged with natural proportions) */}
           <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
-            <SiksaTechLogo size={46} className="h-10 sm:h-11 w-auto" />
-            <span className="text-[20px] sm:text-[22px] font-black tracking-wider text-slate-900 leading-none">
+            <SiksaTechLogo size={52} className="h-11 sm:h-13 w-auto object-contain" />
+            <span className="text-[22px] sm:text-[24px] font-black tracking-wider text-slate-900 leading-none">
               SIKSA<span className="text-blue-600">TECH</span>
             </span>
           </Link>
 
-          {/* Desktop Navigation Links (Visible on Tablet & Desktop >= 768px) */}
-          <div className="hidden md:flex items-center gap-1 lg:gap-2">
+          {/* Desktop Navigation Links (Visible on Large Screens >= 1024px to prevent collision) */}
+          <div className="hidden lg:flex items-center gap-1 xl:gap-2">
             {navLinks.map((link) => {
               const isActive = pathname === link.path;
               return (
                 <Link
                   key={link.path}
                   href={link.path}
-                  className={`relative px-3 lg:px-4 py-2 text-xs lg:text-sm font-bold tracking-wide rounded-lg transition-all ${
+                  className={`relative px-3 xl:px-4 py-2 text-xs xl:text-sm font-bold tracking-wide rounded-xl whitespace-nowrap transition-all ${
                     isActive
                       ? "text-blue-600 bg-blue-50/80"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -80,13 +80,13 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Desktop User CTAs (Visible on Tablet & Desktop >= 768px) */}
-          <div className="hidden md:flex items-center gap-2 lg:gap-3 flex-shrink-0">
+          {/* Desktop User CTAs (Visible on >= 1024px) */}
+          <div className="hidden lg:flex items-center gap-2.5 xl:gap-3.5 flex-shrink-0">
             {user ? (
               <div className="flex items-center gap-2">
                 <Link
                   href="/dashboard/student"
-                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-blue-600 border border-blue-200 rounded-xl bg-blue-50 hover:bg-blue-100 transition-all"
+                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-blue-600 border border-blue-200 rounded-xl bg-blue-50 hover:bg-blue-100 transition-all whitespace-nowrap"
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
                   Dashboard
@@ -103,13 +103,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/auth/login"
-                  className="px-3.5 py-2 text-xs lg:text-sm font-bold text-slate-700 hover:text-slate-900 transition-all"
+                  className="px-3.5 py-2 text-xs xl:text-sm font-bold text-slate-700 hover:text-slate-900 transition-all whitespace-nowrap"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-4 lg:px-5 py-2.5 text-xs lg:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-md shadow-blue-600/20 hover:shadow-blue-600/30"
+                  className="px-4 xl:px-5 py-2.5 text-xs xl:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-md shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap"
                 >
                   Get Started
                 </Link>
@@ -117,8 +117,8 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Controls (Only on Screen < 768px) */}
-          <div className="md:hidden flex items-center gap-1.5">
+          {/* Mobile & Tablet Controls (< 1024px) */}
+          <div className="lg:hidden flex items-center gap-2">
             <Link
               href="/store"
               className="p-2 text-slate-600 hover:text-blue-600 rounded-lg"
@@ -128,7 +128,7 @@ export default function Navbar() {
             </Link>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100"
+              className="p-2.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors"
               aria-label="Toggle navigation menu"
             >
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -137,10 +137,10 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer Menu (< 768px) */}
+      {/* Mobile Drawer Menu (< 1024px) */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ${
-          isOpen ? "max-h-[500px] opacity-100 border-t border-slate-200" : "max-h-0 opacity-0"
+        className={`lg:hidden overflow-hidden transition-all duration-300 ${
+          isOpen ? "max-h-[520px] opacity-100 border-t border-slate-200" : "max-h-0 opacity-0"
         }`}
       >
         <div className="bg-white px-4 pt-3 pb-6 space-y-2">
@@ -151,7 +151,7 @@ export default function Navbar() {
                 key={link.path}
                 href={link.path}
                 onClick={() => setIsOpen(false)}
-                className={`block px-4 py-2.5 text-sm font-bold rounded-xl transition-all ${
+                className={`block px-4 py-3 text-sm font-bold rounded-xl transition-all ${
                   isActive
                     ? "text-blue-600 bg-blue-50"
                     : "text-slate-700 hover:bg-slate-50"
@@ -168,14 +168,14 @@ export default function Navbar() {
                 <Link
                   href="/dashboard/student"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-blue-600 border border-blue-200 rounded-xl bg-blue-50"
+                  className="flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-blue-600 border border-blue-200 rounded-xl bg-blue-50"
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
                   Dashboard
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-red-600 border border-red-200 rounded-xl bg-red-50"
+                  className="flex items-center justify-center gap-1.5 py-3 text-xs font-bold text-red-600 border border-red-200 rounded-xl bg-red-50"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   Logout
@@ -186,14 +186,14 @@ export default function Navbar() {
                 <Link
                   href="/auth/login"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center py-2.5 text-xs font-bold text-slate-700 border border-slate-200 rounded-xl bg-slate-50"
+                  className="flex items-center justify-center py-3 text-xs font-bold text-slate-700 border border-slate-200 rounded-xl bg-slate-50"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/register"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center py-2.5 text-xs font-bold text-white bg-blue-600 rounded-xl shadow"
+                  className="flex items-center justify-center py-3 text-xs font-bold text-white bg-blue-600 rounded-xl shadow"
                 >
                   Get Started
                 </Link>

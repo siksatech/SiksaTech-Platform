@@ -81,7 +81,7 @@ export default function HomePage() {
            ============================ */}
         <section className="relative overflow-hidden bg-[#0A0F1D]">
           {banners.length > 0 && (
-            <div className="relative w-full aspect-[16/9] sm:aspect-[21/7] max-h-[580px]">
+            <div className="relative w-full h-[400px] sm:h-[440px] md:h-[480px] lg:h-[500px]">
               {banners.map((banner, idx) => (
                 <div
                   key={banner.id}
