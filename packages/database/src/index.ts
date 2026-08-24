@@ -833,6 +833,100 @@ export const db = {
     return DEMO_PROJECTS.find(p => p.id === id) || null;
   },
 
+  saveProject: async (project: Omit<Project, "id"> & { id?: string }): Promise<{ success: boolean; data?: Project }> => {
+    const projId = project.id || `proj-${Date.now()}`;
+    if (isRealSupabase && supabase) {
+      const { error } = await supabase.from("projects").upsert([{
+        id: projId,
+        title: project.title,
+        description: project.description,
+        problem_statement: project.problemStatement,
+        student_level: project.studentLevel,
+        difficulty: project.difficulty,
+        skills: project.skills,
+        technologies: project.technologies,
+        components: project.components,
+        learning_objectives: project.learningObjectives,
+        creator_name: project.creatorName,
+        creator_school: project.creatorSchool,
+        creator_grade: project.creatorGrade,
+        is_featured: project.isFeatured ?? true,
+        steps: project.steps || [],
+        code_snippet: project.codeSnippet || "",
+        schematic: project.schematic || "",
+        image_url: project.imageUrl || ""
+      }]);
+      if (error) return { success: false };
+    }
+    const fullProject = { id: projId, ...project } as Project;
+    return { success: true, data: fullProject };
+  },
+
+  deleteProject: async (id: string): Promise<boolean> => {
+    if (!isRealSupabase || !supabase) return false;
+    const { error } = await supabase.from("projects").delete().eq("id", id);
+    return !error;
+  },
+
+  saveCourse: async (course: Course): Promise<{ success: boolean }> => {
+    if (!isRealSupabase || !supabase) return { success: false };
+    const { error } = await supabase.from("courses").upsert([{
+      id: course.id,
+      learning_path_id: course.learningPathId,
+      title: course.title,
+      description: course.description,
+      difficulty: course.difficulty,
+      duration: course.duration,
+      modules_count: course.modulesCount,
+      skills: course.skills,
+      class_levels: course.classLevels || []
+    }]);
+    return { success: !error };
+  },
+
+  deleteCourse: async (id: string): Promise<boolean> => {
+    if (!isRealSupabase || !supabase) return false;
+    const { error } = await supabase.from("courses").delete().eq("id", id);
+    return !error;
+  },
+
+  saveCertificate: async (cert: Certificate): Promise<{ success: boolean }> => {
+    if (!isRealSupabase || !supabase) return { success: false };
+    const { error } = await supabase.from("certificates").upsert([{
+      id: cert.id,
+      student_name: cert.studentName,
+      program_name: cert.programName,
+      achievement: cert.achievement,
+      issued_date: cert.issuedDate,
+      skills_verified: cert.skillsVerified,
+      verification_hash: `0x${Math.random().toString(16).substring(2, 10)}`
+    }]);
+    return { success: !error };
+  },
+
+  deleteCertificate: async (id: string): Promise<boolean> => {
+    if (!isRealSupabase || !supabase) return false;
+    const { error } = await supabase.from("certificates").delete().eq("id", id);
+    return !error;
+  },
+
+  getCertificates: async (): Promise<Certificate[]> => {
+    if (isRealSupabase && supabase) {
+      const { data, error } = await supabase.from("certificates").select("*").order("created_at", { ascending: false });
+      if (!error && data && data.length > 0) {
+        return data.map((d: any) => ({
+          id: d.id,
+          studentName: d.student_name,
+          programName: d.program_name,
+          achievement: d.achievement,
+          issuedDate: d.issued_date,
+          skillsVerified: d.skills_verified || []
+        }));
+      }
+    }
+    return Object.values(DEMO_CERTIFICATES);
+  },
+
   verifyCertificate: async (id: string): Promise<Certificate | null> => {
     if (isRealSupabase && supabase) {
       const { data, error } = await supabase.from("certificates").select("*").eq("id", id).single();
