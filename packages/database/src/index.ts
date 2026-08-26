@@ -92,8 +92,15 @@ export {
   enrollUserInCourse,
   getCourseProgress,
   markLessonCompleted,
+  getAssessmentForCourse,
+  gradeAssessment,
+  verifyCertificate,
+  issueCertificate,
+  DEMO_ASSESSMENT,
 } from "./queries";
 export type { CourseModule, Enrollment, LessonProgress } from "./queries/learning";
+export type { Assessment, AssessmentQuestion, AssessmentSubmissionResult } from "./queries/assessments";
+export type { VerifiableCertificate } from "./queries/certificates";
 
 // ─── Legacy Mock Data (Fallbacks) ────────────────────────────────────────────
 // Used when Supabase credentials are not configured (development / demo mode)

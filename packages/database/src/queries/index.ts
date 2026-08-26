@@ -3,3 +3,5 @@
  */
 export * from "./profiles";
 export * from "./learning";
+export * from "./assessments";
+export * from "./certificates";

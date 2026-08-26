@@ -147,6 +147,30 @@ export default function CourseDetailPage() {
                     </div>
                   </div>
                 ))}
+
+                {/* Final Assessment Card */}
+                <div className="bg-slate-900 text-white rounded-xl border border-slate-800 p-5 shadow-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-md bg-blue-600 text-white flex items-center justify-center text-xs">★</span>
+                      Final Verification &amp; Certification Exam
+                    </h3>
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold">
+                      Pass Score: 75%
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 pl-8 leading-relaxed">
+                    Test your mastery of hardware wiring, firmware logic, and calibration formulas to earn your verifiable SiksaTech credential.
+                  </p>
+                  <div className="pl-8 pt-1">
+                    <Link
+                      href={`/learn/${courseId}/assessment`}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-all shadow-md shadow-blue-900/30"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" /> Take Certification Exam <ChevronRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
 
