@@ -9,3 +9,4 @@ export * from "./store";
 export * from "./projects";
 export * from "./blogs";
 export * from "./institutions";
+export * from "./programs";

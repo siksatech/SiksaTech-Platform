@@ -111,6 +111,11 @@ export {
   submitInstitutionInquiry,
   getPartnerInstitutions,
   DEMO_INSTITUTIONS,
+  getEducationalPrograms,
+  getActiveCompetitions,
+  registerCompetitionTeam,
+  DEMO_PROGRAMS_LIST,
+  DEMO_HACKATHON,
 } from "./queries";
 export type { CourseModule, Enrollment, LessonProgress } from "./queries/learning";
 export type { Assessment, AssessmentQuestion, AssessmentSubmissionResult } from "./queries/assessments";
@@ -119,6 +124,7 @@ export type { ProductItem, ShippingAddress, OrderItemPayload, OrderRecord } from
 export type { StudentProjectSubmission } from "./queries/projects";
 export type { BlogItem } from "./queries/blogs";
 export type { InstitutionInquiryPayload, InstitutionRecord } from "./queries/institutions";
+export type { ProgramItem, CompetitionItem, ProblemStatement, TeamRegistrationPayload } from "./queries/programs";
 
 // ─── Legacy Mock Data (Fallbacks) ────────────────────────────────────────────
 // Used when Supabase credentials are not configured (development / demo mode)
