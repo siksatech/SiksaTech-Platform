@@ -102,20 +102,12 @@ export default function Navbar() {
                 </button>
               </div>
             ) : (
-              <>
-                <Link
-                  href="/auth/login"
-                  className="px-4 py-2 text-[14px] font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap inline-flex items-center justify-center"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/auth/register"
-                  className="px-5 py-2 text-[14px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap inline-flex items-center justify-center"
-                >
-                  Get Started
-                </Link>
-              </>
+              <Link
+                href="/auth/login"
+                className="px-5 py-2.5 text-[14px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap inline-flex items-center justify-center min-h-[42px]"
+              >
+                Login / Get Started
+              </Link>
             )}
           </div>
 
@@ -180,22 +172,13 @@ export default function Navbar() {
                 </button>
               </>
             ) : (
-              <>
-                <Link
-                  href="/auth/login"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center py-2.5 text-[14px] font-semibold text-slate-700 border border-slate-200 rounded-lg bg-slate-50"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/auth/register"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center py-2.5 text-[14px] font-semibold text-white bg-blue-600 rounded-lg shadow-sm"
-                >
-                  Get Started
-                </Link>
-              </>
+              <Link
+                href="/auth/login"
+                onClick={() => setIsOpen(false)}
+                className="col-span-2 flex items-center justify-center py-3 text-[14px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm min-h-[44px]"
+              >
+                Login / Get Started
+              </Link>
             )}
           </div>
         </div>

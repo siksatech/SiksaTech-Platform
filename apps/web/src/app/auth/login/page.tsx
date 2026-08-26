@@ -4,27 +4,28 @@ import { Suspense, useActionState } from "react";
 import { Navbar, Footer } from "@siksatech/ui";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { createBrowserClient, isRealSupabase } from "@siksatech/database";
+import { createBrowserClient, isRealSupabase, db } from "@siksatech/database";
 import { loginWithEmail } from "../actions";
 import { Cpu, AlertCircle, Loader2 } from "lucide-react";
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get("redirect") ?? "/dashboard";
+  const redirectPath = searchParams.get("redirect") ?? "/dashboard/student";
   const errorParam = searchParams.get("error");
 
   const [state, formAction, isPending] = useActionState(loginWithEmail, { error: null });
 
   const handleGoogleLogin = async () => {
     if (!isRealSupabase) {
-      alert("Authentication is not configured. Please contact support.");
+      await db.login("student@siksatech.in", "student");
+      window.location.href = redirectPath === "/dashboard" ? "/dashboard/student" : redirectPath;
       return;
     }
     const supabase = createBrowserClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`,
+        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath === "/dashboard" ? "/dashboard/student" : redirectPath)}`,
       },
     });
     if (error) alert("Google authentication failed: " + error.message);
