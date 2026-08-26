@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { db, createBrowserClient, isRealSupabase } from "@siksatech/database";
+import {
+  db,
+  createBrowserClient,
+  isRealSupabase,
+  DEMO_COURSES,
+  DEMO_PROJECTS,
+  DEMO_CERTIFICATES
+} from "@siksatech/database";
 import { Navbar } from "@siksatech/ui";
 import { Footer } from "@siksatech/ui";
 import { 
@@ -123,15 +130,33 @@ export default function StudentDashboard() {
           console.error("Error loading Supabase data:", err);
         }
       } else {
-        const currUser = db.getCurrentUser();
-        if (!currUser) {
-          router.push("/auth/login");
-          return;
-        }
+        const currUser = db.getCurrentUser() || {
+          id: "demo-student-01",
+          name: "Aarav Sharma",
+          email: "student@siksatech.in",
+          grade: "Class 9",
+          institution: "Delhi Public School, Vasant Kunj",
+          role: "student"
+        };
         setUserProfile(currUser);
-        setCourses([]);
-        setLessons([]);
-        setStudentProjects([]);
+        setCourses(DEMO_COURSES.map((c) => ({
+          id: c.id,
+          title: c.title,
+          description: c.description,
+          difficulty: c.difficulty,
+          duration: c.duration,
+          modules_count: c.modulesCount
+        })));
+        setLessons([
+          {
+            id: "lesson-01",
+            title: "Capacitive Moisture Sensing on ESP32",
+            sequence_number: 1,
+            starter_code: "// SiksaTech Breadboard Telemetry\nvoid setup() {\n  Serial.begin(115200);\n}\nvoid loop() {\n  int val = analogRead(34);\n  Serial.println(val);\n  delay(500);\n}",
+            course_id: "course-builder-01"
+          }
+        ]);
+        setStudentProjects(DEMO_PROJECTS);
       }
       setLoading(false);
     };
