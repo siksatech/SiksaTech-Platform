@@ -53,10 +53,10 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[60px]">
+        <div className="flex items-center justify-between h-[80px]">
           {/* Brand Logo */}
           <Link href="/" className="flex items-center group flex-shrink-0" aria-label="SiksaTech Home">
-            <SiksaTechLogo className="h-7 sm:h-8 w-auto text-slate-900 group-hover:text-blue-600 transition-colors" />
+            <SiksaTechLogo className="h-8 sm:h-9 w-auto text-slate-900 group-hover:text-blue-600 transition-colors" />
           </Link>
 
           {/* Desktop Navigation Links */}
@@ -67,7 +67,7 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   href={link.path}
-                  className={`relative px-3 py-1.5 text-[13px] font-semibold tracking-normal rounded-lg whitespace-nowrap transition-colors ${
+                  className={`relative px-4 py-2 text-[14px] font-semibold tracking-normal rounded-lg whitespace-nowrap transition-colors ${
                     isActive
                       ? "text-blue-600 bg-blue-50/70"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -105,13 +105,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/auth/login"
-                  className="px-3.5 py-1.5 text-[13px] font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap"
+                  className="px-4 py-2 text-[14px] font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-4 py-1.5 text-[13px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap"
+                  className="px-5 py-2 text-[14px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap"
                 >
                   Get Started
                 </Link>
