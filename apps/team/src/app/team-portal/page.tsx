@@ -223,12 +223,9 @@ export default function TeamPortalDashboard() {
     <div className="min-h-screen bg-slate-900 text-white flex">
       {/* Sidebar */}
       <aside className="w-64 bg-slate-950 border-r border-slate-800 flex flex-col flex-shrink-0">
-        <div className="p-5 border-b border-slate-800 flex items-center gap-3">
-          <SiksaTechLogo size={32} />
-          <div>
-            <h1 className="text-sm font-extrabold text-white">SIKSA<span className="text-blue-500">TECH</span></h1>
-            <p className="text-[10px] text-slate-400 font-mono">Platform Operating OS</p>
-          </div>
+        <div className="p-5 border-b border-slate-800 space-y-1.5">
+          <SiksaTechLogo className="h-6 w-auto text-white" />
+          <p className="text-[10px] text-slate-400 font-mono tracking-wider">Platform Operating OS</p>
         </div>
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">

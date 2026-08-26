@@ -54,12 +54,9 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-[60px]">
-          {/* Brand Logo & Name */}
-          <Link href="/" className="flex items-center gap-2.5 group flex-shrink-0">
-            <SiksaTechLogo size={44} className="h-9 sm:h-10 w-auto object-contain" />
-            <span className="text-[18px] sm:text-[20px] font-bold tracking-tight text-slate-900 leading-none">
-              SIKSA<span className="text-blue-600">TECH</span>
-            </span>
+          {/* Brand Logo */}
+          <Link href="/" className="flex items-center group flex-shrink-0" aria-label="SiksaTech Home">
+            <SiksaTechLogo className="h-7 sm:h-8 w-auto text-slate-900 group-hover:text-blue-600 transition-colors" />
           </Link>
 
           {/* Desktop Navigation Links */}

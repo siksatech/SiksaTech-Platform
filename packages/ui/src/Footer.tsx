@@ -59,11 +59,8 @@ export default function Footer() {
           
           {/* Brand & Mission Column (Span 4 on Desktop) */}
           <div className="md:col-span-12 lg:col-span-4 space-y-6">
-            <Link href="/" className="inline-flex items-center gap-3 group">
-              <SiksaTechLogo size={44} className="h-10 w-auto object-contain flex-shrink-0" />
-              <span className="text-[22px] font-black tracking-wider text-white leading-none">
-                SIKSA<span className="text-blue-500">TECH</span>
-              </span>
+            <Link href="/" className="inline-flex items-center group" aria-label="SiksaTech Home">
+              <SiksaTechLogo className="h-8 sm:h-9 w-auto text-white group-hover:text-blue-400 transition-colors" />
             </Link>
 
             <p className="text-sm text-slate-400 leading-relaxed max-w-sm">

@@ -72,11 +72,11 @@ export default function TeamLogin() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="flex justify-center mb-4">
-          <SiksaTechLogo size={48} />
+        <div className="flex justify-center mb-6">
+          <SiksaTechLogo className="h-9 sm:h-10 w-auto text-white" />
         </div>
         <h2 className="text-2xl font-extrabold tracking-tight text-white">
-          SiksaTech Team Operating System
+          Team Operating System
         </h2>
         <p className="mt-2 text-xs text-slate-400">
           Internal operations, curriculum, events, and platform governance
