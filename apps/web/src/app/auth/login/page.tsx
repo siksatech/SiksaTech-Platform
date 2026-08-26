@@ -23,6 +23,20 @@ function LoginForm() {
   const [otpSent, setOtpSent] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState<string | null>(null);
+  const [resendTimer, setResendTimer] = useState(0);
+
+  const startCooldown = () => {
+    setResendTimer(60);
+    const interval = setInterval(() => {
+      setResendTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const handleGoogleLogin = async () => {
     if (!isRealSupabase) {
@@ -46,6 +60,8 @@ function LoginForm() {
       setOtpError("Please enter your email address.");
       return;
     }
+    if (resendTimer > 0) return;
+
     setOtpLoading(true);
     setOtpError(null);
 
@@ -53,6 +69,7 @@ function LoginForm() {
       setTimeout(() => {
         setOtpSent(true);
         setOtpLoading(false);
+        startCooldown();
       }, 500);
       return;
     }
@@ -70,6 +87,7 @@ function LoginForm() {
       setOtpError(error.message);
     } else {
       setOtpSent(true);
+      startCooldown();
     }
     setOtpLoading(false);
   };
@@ -320,13 +338,29 @@ function LoginForm() {
                 )}
               </button>
 
-              <button
-                type="button"
-                onClick={() => setOtpSent(false)}
-                className="w-full text-center text-xs text-slate-500 hover:text-slate-800 cursor-pointer"
-              >
-                Wrong email or didn&apos;t receive code? Try again
-              </button>
+              <div className="flex items-center justify-between text-xs pt-1">
+                <button
+                  type="button"
+                  onClick={() => setOtpSent(false)}
+                  className="text-slate-500 hover:text-slate-800 underline cursor-pointer"
+                >
+                  Change email
+                </button>
+                {resendTimer > 0 ? (
+                  <span className="text-slate-400 font-mono">
+                    Resend in {resendTimer}s
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    disabled={otpLoading}
+                    className="text-blue-600 font-bold hover:underline cursor-pointer"
+                  >
+                    Resend Code
+                  </button>
+                )}
+              </div>
             </form>
           )}
         </div>
