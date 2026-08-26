@@ -2,158 +2,339 @@
 
 import { useState } from "react";
 import { Navbar, Footer } from "@siksatech/ui";
-import { db } from "@siksatech/database";
-import { Upload, Code2, Cpu, Wrench, CheckCircle2, ArrowRight } from "lucide-react";
+import {
+  submitStudentBuild,
+  createBrowserClient,
+  isRealSupabase
+} from "@siksatech/database";
+import {
+  Upload, Code2, Cpu, Wrench, CheckCircle2, ArrowRight,
+  ArrowLeft, Sparkles, Loader2
+} from "lucide-react";
 import Link from "next/link";
 
 export default function SubmitBuildPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     problemStatement: "",
     description: "",
-    technologies: "Arduino, ESP32, Python",
-    components: "Soil Sensor, Relay, LCD Display",
+    studentLevel: "Builder (Class 8–10)",
+    difficulty: "Medium" as "Easy" | "Medium" | "Hard",
+    skills: "Embedded C++, IoT, Sensor Calibration",
+    technologies: "Arduino, ESP32, FreeRTOS",
+    components: "Soil Sensor, 5V Relay, 1602 LCD Display",
+    schematicDiagram: "",
     codeSnippet: "",
-    demoUrl: "",
+    videoUrl: "",
     creatorName: "",
     creatorSchool: "",
     creatorGrade: "Class 9"
   });
 
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await db.submitLead("student", formData.creatorName, "build-submission@siksatech.in", "", {
-      type: "project_submission",
+    if (!formData.title || !formData.creatorName || !formData.description) {
+      alert("Please fill in the project title, your name, and description.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    let supabase;
+    let studentId: string | null = null;
+
+    if (isRealSupabase) {
+      try {
+        supabase = createBrowserClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) studentId = user.id;
+      } catch (err) {
+        console.error("Auth context lookup:", err);
+      }
+    }
+
+    const res = await submitStudentBuild(supabase, {
+      student_id: studentId,
+      creator_name: formData.creatorName,
+      creator_school: formData.creatorSchool,
+      creator_grade: formData.creatorGrade,
       title: formData.title,
-      problemStatement: formData.problemStatement,
       description: formData.description,
-      technologies: formData.technologies,
-      components: formData.components,
-      codeSnippet: formData.codeSnippet,
-      demoUrl: formData.demoUrl,
-      creatorSchool: formData.creatorSchool,
-      creatorGrade: formData.creatorGrade
+      problem_statement: formData.problemStatement,
+      student_level: formData.studentLevel,
+      difficulty: formData.difficulty,
+      skills: formData.skills.split(",").map((s) => s.trim()).filter(Boolean),
+      technologies: formData.technologies.split(",").map((t) => t.trim()).filter(Boolean),
+      components: formData.components.split(",").map((c) => c.trim()).filter(Boolean),
+      schematic_diagram: formData.schematicDiagram,
+      code_snippet: formData.codeSnippet,
+      video_url: formData.videoUrl
     });
-    setSubmitted(true);
+
+    if (res.success) {
+      setSubmitted(true);
+    } else {
+      alert("Submission error: " + (res.error || "Please try again"));
+    }
+    setIsSubmitting(false);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Navbar />
 
-      <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
+      <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto w-full">
+        <Link
+          href="/build"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Project Showcase
+        </Link>
+
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">
             <Upload className="w-4 h-4" /> Student Maker Showcase
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900 mb-2">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">
             Submit Your Hardware Build
           </h1>
-          <p className="text-sm text-slate-500 max-w-md mx-auto">
-            Get your prototype reviewed by SiksaTech hardware mentors and featured in the public showcase.
+          <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+            Get your physical circuit schematics and firmware reviewed by SiksaTech mentors to earn verifiable credentials.
           </p>
         </div>
 
         {submitted ? (
-          <div className="bg-white p-8 rounded-2xl border border-emerald-200 shadow-sm text-center space-y-4">
-            <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
-            <h2 className="text-xl font-bold text-slate-900">Prototype Submitted for Review!</h2>
-            <p className="text-xs text-slate-600 max-w-md mx-auto">
-              Our engineering review panel will evaluate your schematics, test logic, and code. Once approved, your project will appear in the Build Showcase and issue your verified project badge.
-            </p>
-            <Link href="/build" className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-blue-700 transition-all">
-              View Build Showcase <ArrowRight className="w-4 h-4" />
-            </Link>
+          <div className="bg-white p-8 sm:p-10 rounded-3xl border border-emerald-200 shadow-xl text-center space-y-5">
+            <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+              <CheckCircle2 className="w-10 h-10" />
+            </div>
+            <div>
+              <h2 className="text-xl font-extrabold text-slate-900">Build Submitted for Mentor Review</h2>
+              <p className="text-xs text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">
+                Our academic engineering mentors will verify your breadboard connections and code. Once approved, your project will appear in the public showcase!
+              </p>
+            </div>
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/build"
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all inline-flex items-center gap-2"
+              >
+                Browse Gallery <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Project Title</label>
-              <input
-                type="text"
-                required
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="e.g. Autonomous Plant Health Sentinel"
-                className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
+                1. Project Identity &amp; Narrative
+              </h3>
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Creator Name</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+                  Project Title *
+                </label>
                 <input
                   type="text"
+                  name="title"
                   required
-                  value={formData.creatorName}
-                  onChange={(e) => setFormData({ ...formData, creatorName: e.target.value })}
-                  placeholder="Your full name"
-                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g. Solar Telemetry Weather Station"
+                  value={formData.title}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">School / College</label>
-                <input
-                  type="text"
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+                  Problem Statement (What issue does this build solve?) *
+                </label>
+                <textarea
+                  name="problemStatement"
                   required
-                  value={formData.creatorSchool}
-                  onChange={(e) => setFormData({ ...formData, creatorSchool: e.target.value })}
-                  placeholder="Delhi Public School"
-                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                  placeholder="e.g. Farmers lack low-cost local soil telemetry, leading to crop damage."
+                  value={formData.problemStatement}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+                  Detailed Solution Description *
+                </label>
+                <textarea
+                  name="description"
+                  required
+                  rows={4}
+                  placeholder="Describe your architecture, sensor logic, and operational flow."
+                  value={formData.description}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Problem Statement</label>
-              <textarea
-                rows={2}
-                required
-                value={formData.problemStatement}
-                onChange={(e) => setFormData({ ...formData, problemStatement: e.target.value })}
-                placeholder="What real-world problem does your hardware solve?"
-                className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              />
-            </div>
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+              <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
+                2. Hardware &amp; Firmware Specs
+              </h3>
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Technologies Used (Comma-separated)</label>
-                <input
-                  type="text"
-                  value={formData.technologies}
-                  onChange={(e) => setFormData({ ...formData, technologies: e.target.value })}
-                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+                    Student Level *
+                  </label>
+                  <select
+                    name="studentLevel"
+                    value={formData.studentLevel}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-blue-600"
+                  >
+                    <option value="Explorer (Class 5–7)">Explorer (Class 5–7)</option>
+                    <option value="Builder (Class 8–10)">Builder (Class 8–10)</option>
+                    <option value="Creator (Class 11–12)">Creator (Class 11–12)</option>
+                    <option value="Engineer (College)">Engineer (College)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+                    Build Difficulty *
+                  </label>
+                  <select
+                    name="difficulty"
+                    value={formData.difficulty}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-blue-600"
+                  >
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Hardware Components (BOM)</label>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+                  Components &amp; Sensors Used (comma separated)
+                </label>
                 <input
                   type="text"
+                  name="components"
+                  placeholder="e.g. Arduino Uno, DHT22, 1602 LCD, 5V Relay"
                   value={formData.components}
-                  onChange={(e) => setFormData({ ...formData, components: e.target.value })}
-                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-blue-600 font-mono"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+                  Wiring &amp; Breadboard Guide
+                </label>
+                <textarea
+                  name="schematicDiagram"
+                  rows={3}
+                  placeholder="e.g. Pin A0 -> Moisture Sensor Signal, Pin D13 -> Relay Trigger"
+                  value={formData.schematicDiagram}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-600"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+                  Firmware Code Snippet (C++ / Python)
+                </label>
+                <textarea
+                  name="codeSnippet"
+                  rows={6}
+                  placeholder="// Paste your Arduino sketch or MicroPython script here"
+                  value={formData.codeSnippet}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-mono text-blue-900 bg-slate-50 focus:outline-none focus:border-blue-600"
+                  spellCheck={false}
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Firmware / Source Code (C++/Python)</label>
-              <textarea
-                rows={5}
-                value={formData.codeSnippet}
-                onChange={(e) => setFormData({ ...formData, codeSnippet: e.target.value })}
-                placeholder="void setup() { ... }"
-                className="w-full px-3.5 py-2.5 font-mono text-xs bg-slate-900 text-slate-200 border border-slate-700 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              />
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+              <h3 className="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">
+                3. Creator Credentials
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="creatorName"
+                    required
+                    placeholder="e.g. Aarav Sharma"
+                    value={formData.creatorName}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+                    School / College
+                  </label>
+                  <input
+                    type="text"
+                    name="creatorSchool"
+                    placeholder="e.g. DPS Vasant Kunj"
+                    value={formData.creatorSchool}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700">
+                    Class / Year
+                  </label>
+                  <input
+                    type="text"
+                    name="creatorGrade"
+                    placeholder="e.g. Class 9"
+                    value={formData.creatorGrade}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+              </div>
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md transition-all flex items-center justify-center gap-2"
+              disabled={isSubmitting}
+              className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 min-h-[44px]"
             >
-              <Upload className="w-4 h-4" /> Submit Build for Mentor Certification
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> SUBMITTING BUILD...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" /> SUBMIT PROTOTYPE FOR REVIEW
+                </>
+              )}
             </button>
           </form>
         )}

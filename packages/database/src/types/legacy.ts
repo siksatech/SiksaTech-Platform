@@ -57,6 +57,7 @@ export interface Project {
   codeSnippet?: string;
   schematic?: string;
   imageUrl?: string;
+  videoUrl?: string;
 }
 
 export interface ProjectStep {
