@@ -67,7 +67,7 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   href={link.path}
-                  className={`relative px-4 py-2 text-[14px] font-semibold tracking-normal rounded-lg whitespace-nowrap transition-colors ${
+                  className={`relative px-4 py-2 text-[14px] font-semibold tracking-normal rounded-lg whitespace-nowrap transition-colors inline-flex items-center ${
                     isActive
                       ? "text-blue-600 bg-blue-50/70"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -105,13 +105,13 @@ export default function Navbar() {
               <>
                 <Link
                   href="/auth/login"
-                  className="px-4 py-2 text-[14px] font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap"
+                  className="px-4 py-2 text-[14px] font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors whitespace-nowrap inline-flex items-center justify-center"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-5 py-2 text-[14px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap"
+                  className="px-5 py-2 text-[14px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap inline-flex items-center justify-center"
                 >
                   Get Started
                 </Link>

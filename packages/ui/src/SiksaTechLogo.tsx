@@ -21,7 +21,7 @@ export default function SiksaTechLogo({
 
   return (
     <span
-      className={`select-none inline-block ${className}`}
+      className={`select-none inline-flex items-center leading-none ${className}`}
       style={{ fontFamily: "'Rostex', sans-serif", ...style }}
       aria-label="SiksaTech Logo"
       role="img"
