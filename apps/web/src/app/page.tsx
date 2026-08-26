@@ -17,6 +17,13 @@ import {
   Cpu,
   GraduationCap,
   Building2,
+  CheckCircle2,
+  Lightbulb,
+  Code,
+  Microscope,
+  Network,
+  Wrench,
+  Users
 } from "lucide-react";
 
 export default function HomePage() {
@@ -39,7 +46,7 @@ export default function HomePage() {
     if (banners.length <= 1) return;
     const timer = setInterval(() => {
       setActiveBanner((prev) => (prev + 1) % banners.length);
-    }, 5000);
+    }, 7000);
     return () => clearInterval(timer);
   }, [banners.length]);
 
@@ -48,308 +55,312 @@ export default function HomePage() {
   }, []);
 
   const pathIcons: Record<string, React.ComponentType<{ className?: string }>> = {
-    explorer: BookOpen,
-    builder: Terminal,
+    explorer: Microscope,
+    builder: Code,
     creator: Hammer,
     engineer: Cpu,
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white text-slate-900">
+    <div className="flex flex-col min-h-screen bg-white text-slate-900 selection:bg-blue-100">
       <Navbar />
 
       <main className="flex-1">
+        
         {/* ============================
-            SECTION 1: BANNER CAROUSEL (Responsive 21:7 / 16:9)
+            1. ELEGANT HERO SECTION
            ============================ */}
-        <section className="relative overflow-hidden bg-[#0A0F1D]">
-          {banners.length > 0 && (
-            <div className="relative w-full h-[400px] sm:h-[440px] md:h-[480px] lg:h-[500px]">
-              {banners.map((banner, idx) => (
-                <div
-                  key={banner.id}
-                  className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out ${
-                    idx === activeBanner ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-                  }`}
-                  style={{
-                    background: banner.bgColor || "linear-gradient(135deg, #0A0F1D 0%, #0F172A 50%, #1E293B 100%)",
-                  }}
-                >
-                  <div className="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px] opacity-10" />
+        <section className="relative w-full min-h-[80vh] flex items-center overflow-hidden bg-slate-50 border-b border-slate-200">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(37,99,235,0.05)_0%,transparent_50%)]" />
+          
+          <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 relative z-10 py-20 lg:py-0">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+              
+              {/* Hero Content */}
+              <div className="space-y-8 max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100">
+                  <span className="flex h-2 w-2 rounded-full bg-blue-600"></span>
+                  <span className="text-xs font-semibold text-blue-700 uppercase tracking-wider">
+                    Empowering Next-Gen Innovators
+                  </span>
+                </div>
+                
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.15] tracking-tight">
+                  <span className="font-rostex block mb-2">SIKSATECH</span>
+                  Learn, Build, and Apply Engineering.
+                </h1>
+                
+                <p className="text-lg sm:text-xl text-slate-600 leading-relaxed">
+                  A trusted platform providing schools and students with industrial-grade STEM kits, structured curricula, and a supportive maker ecosystem. From Class 5 through college.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                  <Link
+                    href="/learn"
+                    className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base rounded-xl transition-all shadow-sm hover:shadow-md"
+                  >
+                    Start Learning
+                    <ArrowRight className="w-5 h-5" />
+                  </Link>
+                  <Link
+                    href="/institutions"
+                    className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-semibold text-base rounded-xl transition-all"
+                  >
+                    For Schools & Institutions
+                  </Link>
+                </div>
+              </div>
 
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-                      <div className="max-w-2xl space-y-3 sm:space-y-4">
-                        <span className="inline-block px-3 py-1 bg-blue-500/20 border border-blue-400/40 text-blue-400 text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase rounded-full">
-                          Featured Learning Track
-                        </span>
-                        <h1 className="text-xl sm:text-3xl lg:text-5xl font-extrabold text-white leading-tight tracking-tight">
-                          {banner.title}
-                        </h1>
-                        <p className="text-xs sm:text-base lg:text-lg text-slate-300 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl">
-                          {banner.subtitle}
-                        </p>
-                        <div className="pt-2">
-                          <Link
-                            href={banner.ctaLink}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-blue-600/30 hover:scale-[1.02]"
-                          >
-                            {banner.ctaText}
-                            <ArrowRight className="w-4 h-4" />
-                          </Link>
-                        </div>
+              {/* Hero Visual / Carousel */}
+              <div className="relative h-[400px] sm:h-[500px] w-full rounded-2xl overflow-hidden shadow-2xl border border-slate-200/50 bg-slate-900">
+                {banners.length > 0 ? (
+                  banners.map((banner, idx) => (
+                    <div
+                      key={banner.id}
+                      className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                        idx === activeBanner ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                      }`}
+                      style={{
+                        background: banner.bgColor || "#0F172A",
+                      }}
+                    >
+                      <div className="absolute inset-0 flex flex-col justify-end p-8 sm:p-12 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent">
+                        <span className="text-blue-400 font-mono text-xs uppercase tracking-widest mb-3">Featured Showcase</span>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">{banner.title}</h2>
+                        <p className="text-sm sm:text-base text-slate-300 mb-6 max-w-md">{banner.subtitle}</p>
+                        <Link href={banner.ctaLink} className="inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-blue-400 transition-colors">
+                          {banner.ctaText} <ArrowRight className="w-4 h-4" />
+                        </Link>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Dot Indicators */}
-              {banners.length > 1 && (
-                <div className="absolute bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+                  ))
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-slate-500">Loading Showcase...</div>
+                )}
+                
+                {/* Carousel Indicators */}
+                <div className="absolute top-6 right-6 z-20 flex gap-2">
                   {banners.map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => goToBanner(idx)}
-                      className={`rounded-full transition-all duration-300 ${
-                        idx === activeBanner ? "w-6 h-2 bg-blue-500" : "w-2 h-2 bg-white/40 hover:bg-white/70"
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        idx === activeBanner ? "w-8 bg-blue-500" : "w-4 bg-white/30 hover:bg-white/60"
                       }`}
-                      aria-label={`Go to slide ${idx + 1}`}
+                      aria-label={`Showcase slide ${idx + 1}`}
                     />
                   ))}
                 </div>
-              )}
+              </div>
+
             </div>
-          )}
+          </div>
         </section>
 
         {/* ============================
-            SECTION 2: DUAL AUDIENCE SELECTOR
+            2. TRUST & CREDIBILITY
            ============================ */}
-        <section className="py-16 sm:py-24 bg-[#F8FAFC] border-b border-slate-200">
+        <section className="py-12 bg-white border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-              <span className="text-[11px] font-mono font-bold tracking-widest text-blue-600 uppercase">
-                Tailored STEM Pathways
-              </span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                Where Do You Fit in the SiksaTech Ecosystem?
+            <p className="text-center text-sm font-medium text-slate-500 uppercase tracking-widest mb-8">
+              Trusted by Educators and Institutions Nationwide
+            </p>
+            <div className="flex flex-wrap justify-center items-center gap-8 sm:gap-16 opacity-60 grayscale">
+               {/* Placeholders for partner logos */}
+               <div className="flex items-center gap-2 font-bold text-xl text-slate-700"><Building2 className="w-6 h-6"/> EduTech Alliance</div>
+               <div className="flex items-center gap-2 font-bold text-xl text-slate-700"><Users className="w-6 h-6"/> STEM Foundation</div>
+               <div className="flex items-center gap-2 font-bold text-xl text-slate-700"><GraduationCap className="w-6 h-6"/> National Schools</div>
+               <div className="flex items-center gap-2 font-bold text-xl text-slate-700"><BookOpen className="w-6 h-6"/> Innovation Labs</div>
+            </div>
+          </div>
+        </section>
+
+        {/* ============================
+            3. AUDIENCE PATHWAYS (Elegant Cards)
+           ============================ */}
+        <section className="py-20 sm:py-28 bg-[#F8FAFC]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Designed for Every Step of the Journey
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                Choose your learning gateway to discover customized curricula, hardware kits, and turnkey institutional programs.
+              <p className="text-base sm:text-lg text-slate-600">
+                Whether you are a student exploring robotics at home, or a school aiming to implement NEP 2020 aligned innovation labs, we have a structured path for you.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              
               <Link
                 href="/learn"
-                className="group p-6 sm:p-8 bg-white border border-slate-200 hover:border-blue-500 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-blue-600/5 transition-all space-y-4 relative overflow-hidden"
+                className="group flex flex-col bg-white rounded-2xl border border-slate-200 p-8 sm:p-10 hover:shadow-xl hover:border-blue-300 transition-all"
               >
-                <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
-                  <GraduationCap className="w-6 h-6" />
+                <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 mb-6">
+                  <Lightbulb className="w-7 h-7" />
                 </div>
-                <div className="space-y-1.5">
-                  <span className="font-mono text-[10px] font-bold tracking-wider text-blue-600 uppercase">For Learners</span>
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900">I&apos;m a Student / Parent</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    Explore hands-on coding, robotics, and circuit kits tailored for Class 5 up to College engineering.
-                  </p>
-                </div>
-                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 group-hover:translate-x-1 transition-transform">
-                  Explore Learning Tracks <ChevronRight className="w-4 h-4" />
+                <h3 className="text-2xl font-bold text-slate-900 mb-3">For Students & Parents</h3>
+                <p className="text-slate-600 mb-8 flex-1 leading-relaxed">
+                  Access hands-on project kits, step-by-step curricula, and a community of young makers. Turn theoretical physics and math into functional engineering projects.
+                </p>
+                <div className="flex items-center gap-2 font-semibold text-blue-600 group-hover:translate-x-1 transition-transform">
+                  Explore Learning Tracks <ArrowRight className="w-4 h-4" />
                 </div>
               </Link>
 
               <Link
                 href="/institutions"
-                className="group p-6 sm:p-8 bg-white border border-slate-200 hover:border-blue-500 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-blue-600/5 transition-all space-y-4 relative overflow-hidden"
+                className="group flex flex-col bg-slate-900 rounded-2xl border border-slate-800 p-8 sm:p-10 hover:shadow-xl hover:border-blue-500 transition-all"
               >
-                <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-900 group-hover:scale-110 transition-transform">
-                  <Building2 className="w-6 h-6" />
+                <div className="w-14 h-14 rounded-xl bg-slate-800 flex items-center justify-center text-white mb-6">
+                  <Building2 className="w-7 h-7" />
                 </div>
-                <div className="space-y-1.5">
-                  <span className="font-mono text-[10px] font-bold tracking-wider text-slate-500 uppercase">For Educators</span>
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900">I&apos;m a School / College</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    Set up turnkey STEM innovation labs, train faculty, and align curriculum with NEP 2020 experiential standards.
-                  </p>
-                </div>
-                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 group-hover:translate-x-1 transition-transform">
-                  Institutional Lab Blueprints <ChevronRight className="w-4 h-4" />
+                <h3 className="text-2xl font-bold text-white mb-3">For Schools & Educators</h3>
+                <p className="text-slate-400 mb-8 flex-1 leading-relaxed">
+                  Deploy complete turnkey STEM innovation labs. We provide the hardware, the pedagogy, and the faculty training needed to bring 21st-century skills to your classrooms.
+                </p>
+                <div className="flex items-center gap-2 font-semibold text-white group-hover:translate-x-1 transition-transform">
+                  View Institutional Plans <ArrowRight className="w-4 h-4" />
                 </div>
               </Link>
+
             </div>
           </div>
         </section>
 
         {/* ============================
-            SECTION 3: 4 LEARNING PATHWAYS
+            4. OUR PRODUCTS / HARDWARE
            ============================ */}
-        <section className="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
-            <span className="text-[11px] font-mono font-bold tracking-widest text-blue-600 uppercase">Structured Pedagogy</span>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              4 Progressive Engineering Tracks
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-600">
-              Moving learners systematically from graphical logic to embedded microcontroller hardware and AI systems.
-            </p>
-          </div>
+        <section className="py-20 sm:py-28 bg-white border-t border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              
+              {/* Image / Graphic */}
+              <div className="relative rounded-2xl overflow-hidden bg-slate-100 aspect-square sm:aspect-[4/3] flex items-center justify-center border border-slate-200">
+                 <div className="absolute inset-0 bg-[url('/stem_lab_setup.jpg')] bg-cover bg-center opacity-90" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent" />
+                 <div className="absolute bottom-6 left-6 text-white">
+                    <p className="font-semibold text-lg">Industrial-Grade Hardware</p>
+                    <p className="text-sm opacity-80">Safe, modular, and built for learning.</p>
+                 </div>
+              </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {paths.map((p) => {
-              const Icon = pathIcons[p.id] || BookOpen;
-              return (
-                <div
-                  key={p.id}
-                  className="bg-white border border-slate-200 hover:border-blue-500 p-6 rounded-2xl shadow-sm hover:shadow-xl hover:shadow-blue-600/5 transition-all flex flex-col justify-between space-y-5"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[10px] font-bold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md border border-slate-200 uppercase">
-                        {p.targetAges}
-                      </span>
-                      <Icon className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <h3 className="text-base font-bold text-slate-900">{p.title}</h3>
-                    <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">{p.description}</p>
-                  </div>
-
-                  <div className="space-y-3 pt-3 border-t border-slate-100">
-                    <div className="flex flex-wrap gap-1">
-                      {p.skills.slice(0, 3).map((skill: string, tIdx: number) => (
-                        <span key={tIdx} className="text-[10px] font-mono px-2 py-0.5 bg-blue-50 text-blue-700 rounded border border-blue-100">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                    <Link
-                      href={`/learn?path=${p.id}`}
-                      className="block text-center py-2.5 bg-slate-900 hover:bg-blue-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all"
-                    >
-                      View Syllabus &rarr;
-                    </Link>
-                  </div>
+              {/* Content */}
+              <div className="space-y-8">
+                <div>
+                  <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
+                    Hardware Engineered for Education
+                  </h2>
+                  <p className="text-lg text-slate-600 leading-relaxed">
+                    We replace fragile toys with real-world technology. Our kits feature robust, custom-designed PCBs utilizing Arduino, ESP32, and Raspberry Pi architectures—ensuring a seamless transition from the classroom to industry.
+                  </p>
                 </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* ============================
-            SECTION 4: 8-STAGE EXPERIENTIAL FRAMEWORK
-           ============================ */}
-        <section className="py-16 sm:py-24 bg-[#0A0F1D] text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            <div className="text-center max-w-2xl mx-auto space-y-3">
-              <span className="text-[11px] font-mono font-bold tracking-widest text-blue-400 uppercase">
-                The Build-First Methodology
-              </span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-                Our 8-Stage Experiential Learning Loop
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-400">
-                Every SiksaTech lesson is structured around authentic engineering iteration:
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {[
-                { stage: "01", name: "Discover", desc: "Identify real physics & engineering problems" },
-                { stage: "02", name: "Understand", desc: "Deconstruct schematics and signal paths" },
-                { stage: "03", name: "Experiment", desc: "Test sensory telemetry on breadboards" },
-                { stage: "04", name: "Build", desc: "Assemble functional physical prototypes" },
-                { stage: "05", name: "Test", desc: "Debug firmware loops & voltage drops" },
-                { stage: "06", name: "Improve", desc: "Optimize battery draw & structural CAD" },
-                { stage: "07", name: "Solve", desc: "Deploy working solutions in the real world" },
-                { stage: "08", name: "Innovate", desc: "Present builds at Maker Sprints" },
-              ].map((step, idx) => (
-                <div key={idx} className="p-5 bg-slate-900/80 border border-slate-800 rounded-xl space-y-2 hover:border-blue-500/50 transition-all">
-                  <span className="font-mono text-xs font-bold text-blue-400">{step.stage}</span>
-                  <h4 className="text-sm font-bold text-white">{step.name}</h4>
-                  <p className="text-[11px] text-slate-400 leading-snug">{step.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ============================
-            SECTION 5: STUDENT BUILD SHOWCASE
-           ============================ */}
-        <section className="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div className="space-y-2">
-              <span className="text-[11px] font-mono font-bold tracking-widest text-blue-600 uppercase">Student Inventions</span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                What SiksaTech Makers Are Building
-              </h2>
-            </div>
-            <Link href="/build" className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline">
-              View All Showcase Projects <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {projects.slice(0, 3).map((proj) => (
-              <div key={proj.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all space-y-4 flex flex-col justify-between">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-700 rounded border border-blue-100 uppercase">
-                      {proj.studentLevel}
-                    </span>
-                    <span className="text-xs font-bold text-slate-400">{proj.difficulty}</span>
-                  </div>
-                  <h3 className="text-base font-bold text-slate-900">{proj.title}</h3>
-                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">{proj.problemStatement}</p>
-                </div>
-
-                <div className="space-y-3 pt-3 border-t border-slate-100">
-                  <p className="text-[11px] text-slate-500 font-medium">By {proj.creatorName} &bull; {proj.creatorSchool || "Maker"}</p>
-                  <Link href={`/build`} className="block text-center py-2 bg-slate-50 hover:bg-blue-50 text-blue-600 font-bold text-xs rounded-lg border border-slate-200 hover:border-blue-200 transition-all">
-                    View Project Schematics &rarr;
+                
+                <ul className="space-y-6">
+                  {[
+                    { icon: Wrench, title: "Modular & Scalable", desc: "Start with snap-fit basics, progress to complex breadboard prototyping." },
+                    { icon: CheckCircle2, title: "Safety First", desc: "Short-circuit protected boards designed specifically for student use." },
+                    { icon: BookOpen, title: "Integrated Pedagogy", desc: "Hardware that perfectly aligns with our structured, step-by-step curriculum." }
+                  ].map((feature, fIdx) => (
+                    <li key={fIdx} className="flex gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0 text-blue-600">
+                        <feature.icon className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-lg">{feature.title}</h4>
+                        <p className="text-slate-600 leading-relaxed">{feature.desc}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                
+                <div className="pt-2">
+                  <Link href="/store" className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white font-semibold rounded-xl transition-colors">
+                    Browse Educational Kits
                   </Link>
                 </div>
               </div>
-            ))}
+
+            </div>
           </div>
         </section>
 
         {/* ============================
-            SECTION 6: FAQS & COMMUNITY
+            5. CURRICULUM PROGRESSION
            ============================ */}
-        <section className="py-16 sm:py-24 bg-[#F8FAFC] border-t border-slate-200">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            <div className="text-center space-y-2">
-              <span className="text-[11px] font-mono font-bold tracking-widest text-blue-600 uppercase">Clear Answers</span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Frequently Asked Questions
+        <section className="py-20 sm:py-28 bg-[#0A0F1D] text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+            <div className="text-center max-w-3xl mx-auto space-y-4">
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                A Structured Path to Mastery
               </h2>
+              <p className="text-lg text-slate-400">
+                Our curriculum isn't random projects. It's a carefully engineered progression that builds foundational knowledge before introducing complex systems.
+              </p>
             </div>
 
-            <div className="space-y-3">
-              {faqs.map((faq) => {
-                const isOpen = openFaq === faq.id;
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {paths.map((p, idx) => {
+                const Icon = pathIcons[p.id] || BookOpen;
                 return (
-                  <div key={faq.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                    <button
-                      onClick={() => setOpenFaq(isOpen ? null : faq.id)}
-                      className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-bold text-xs sm:text-sm text-slate-900 hover:text-blue-600 transition-colors"
-                    >
-                      <span>{faq.question}</span>
-                      <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-                    </button>
-                    {isOpen && (
-                      <div className="px-4 pb-5 sm:px-5 sm:pb-6 text-xs sm:text-sm text-slate-600 border-t border-slate-100 pt-3 leading-relaxed">
-                        {faq.answer}
-                      </div>
-                    )}
+                  <div key={p.id} className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 flex flex-col hover:bg-slate-800 transition-colors">
+                    <div className="w-12 h-12 rounded-xl bg-slate-700 flex items-center justify-center text-white mb-6">
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      <span className="text-xs font-semibold text-blue-400 uppercase tracking-wider">Level 0{idx + 1}</span>
+                      <h3 className="text-xl font-bold text-white">{p.title}</h3>
+                      <p className="text-sm text-slate-400 leading-relaxed">{p.description}</p>
+                    </div>
+                    <div className="mt-6 pt-6 border-t border-slate-700">
+                      <Link href={`/learn?path=${p.id}`} className="inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-blue-400 transition-colors">
+                        View Curriculum <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
         </section>
+
+        {/* ============================
+            6. METHODOLOGY (8-STAGE)
+           ============================ */}
+        <section className="py-20 bg-slate-50 border-t border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+             <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-16 shadow-sm text-center space-y-12">
+                <div className="max-w-3xl mx-auto space-y-4">
+                  <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight font-rostex">
+                    THE EXPERIENTIAL LOOP
+                  </h2>
+                  <p className="text-lg text-slate-600">
+                    We believe in learning by doing. Every SiksaTech lesson follows an authentic 8-stage engineering process, ensuring students don't just consume information, but actively apply it.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-6 relative">
+                  {[
+                    { stage: "01", name: "Discover" },
+                    { stage: "02", name: "Understand" },
+                    { stage: "03", name: "Experiment" },
+                    { stage: "04", name: "Build" },
+                    { stage: "05", name: "Test" },
+                    { stage: "06", name: "Improve" },
+                    { stage: "07", name: "Solve" },
+                    { stage: "08", name: "Innovate" },
+                  ].map((step, idx) => (
+                    <div key={idx} className="flex flex-col items-center">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-500 font-semibold flex items-center justify-center mb-3">
+                        {step.stage}
+                      </div>
+                      <h4 className="font-semibold text-sm text-slate-900">{step.name}</h4>
+                    </div>
+                  ))}
+                </div>
+             </div>
+          </div>
+        </section>
+
       </main>
 
       <Footer />
