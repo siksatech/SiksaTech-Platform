@@ -8,7 +8,6 @@
  */
 
 import { Suspense, useActionState } from "react";
-import { createBrowserClient, isRealSupabase, db } from "@siksatech/database";
 import { SiksaTechLogo } from "@siksatech/ui";
 import { useSearchParams } from "next/navigation";
 import { AlertCircle, Loader2, ShieldAlert } from "lucide-react";
@@ -18,22 +17,6 @@ function TeamLoginForm() {
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
   const [state, formAction, isPending] = useActionState(teamLogin, { error: null });
-
-  const handleGoogleLogin = async () => {
-    if (!isRealSupabase) {
-      await db.login("admin@siksatech.in", "admin");
-      window.location.href = "/team-portal";
-      return;
-    }
-    const supabase = createBrowserClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) alert("Google authentication failed: " + error.message);
-  };
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl p-7 space-y-5">
@@ -52,24 +35,6 @@ function TeamLoginForm() {
           {state.error}
         </div>
       )}
-
-      {/* Google login */}
-      <button
-        type="button"
-        onClick={handleGoogleLogin}
-        className="w-full flex items-center justify-center py-3 bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-slate-600 text-xs font-bold text-slate-300 rounded-lg transition-all cursor-pointer min-h-[44px]"
-      >
-        <svg className="w-4 h-4 mr-2.5" viewBox="0 0 24 24">
-          <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.859-3.578-7.859-8s3.529-8 7.859-8c2.46 0 4.105 1.025 5.047 1.926l3.227-3.104C18.28 1.844 15.49 1 12.24 1 5.92 1 1 5.92 1 12.24s4.92 11.24 11.24 11.24c6.6 0 11-4.64 11-11.24 0-.756-.08-1.334-.18-1.955H12.24z" />
-        </svg>
-        CONTINUE WITH GOOGLE
-      </button>
-
-      <div className="relative flex items-center">
-        <div className="flex-grow border-t border-slate-800" />
-        <span className="flex-shrink mx-4 text-[10px] font-mono text-slate-600 uppercase">or email</span>
-        <div className="flex-grow border-t border-slate-800" />
-      </div>
 
       {/* Email login form */}
       <form action={formAction} className="space-y-4">

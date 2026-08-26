@@ -1,226 +1,431 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  db, Banner, FAQ, Competition, StoreKit, Lead, Course, Project, Certificate,
-  ADMIN_ROLES, AdminRole
+  createBrowserClient,
+  isRealSupabase,
+  db,
+  Course,
+  Certificate,
 } from "@siksatech/database";
 import {
-  LayoutDashboard, ImageIcon, HelpCircle, BookOpen, Trophy, ShoppingBag,
-  Users, Settings, LogOut, Plus, Trash2, Edit3, Eye, Check, X, Shield,
-  ChevronRight, AlertTriangle, ArrowUpRight, Search, Filter, Sparkles,
-  FolderGit2, Award, CheckCircle2, FileText, RefreshCw
+  LayoutDashboard,
+  ImageIcon,
+  HelpCircle,
+  BookOpen,
+  Trophy,
+  ShoppingBag,
+  Users,
+  LogOut,
+  Plus,
+  Trash2,
+  Check,
+  X,
+  ArrowUpRight,
+  Sparkles,
+  FolderGit2,
+  Award,
+  CheckCircle2,
+  Package,
+  Truck,
+  Shield,
+  Loader2,
+  RefreshCw,
+  School,
+  ExternalLink,
 } from "lucide-react";
-import SiksaTechLogo from "@siksatech/ui/src/SiksaTechLogo";
-import Link from "next/link";
+import { SiksaTechLogo } from "@siksatech/ui";
 
-type AdminTab = "dashboard" | "banners" | "faqs" | "courses" | "projects" | "events" | "store" | "leads" | "certificates";
+type AdminTab =
+  | "dashboard"
+  | "courses"
+  | "projects"
+  | "certificates"
+  | "store"
+  | "orders"
+  | "events"
+  | "leads"
+  | "users"
+  | "banners"
+  | "faqs";
 
 export default function TeamPortalDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  // Data states
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [competitions, setCompetitions] = useState<Competition[]>([]);
-  const [storeKits, setStoreKits] = useState<StoreKit[]>([]);
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  // Live Data states
+  const [courses, setCourses] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [certificates, setCertificates] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [competitions, setCompetitions] = useState<any[]>([]);
+  const [inquiries, setInquiries] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [banners, setBanners] = useState<any[]>([]);
+  const [faqs, setFaqs] = useState<any[]>([]);
 
-  // Form states
-  const [showBannerForm, setShowBannerForm] = useState(false);
-  const [showFaqForm, setShowFaqForm] = useState(false);
+  // Form toggles
   const [showCourseForm, setShowCourseForm] = useState(false);
   const [showProjectForm, setShowProjectForm] = useState(false);
-  const [showEventForm, setShowEventForm] = useState(false);
-  const [showKitForm, setShowKitForm] = useState(false);
   const [showCertForm, setShowCertForm] = useState(false);
+  const [showKitForm, setShowKitForm] = useState(false);
+  const [showCompForm, setShowCompForm] = useState(false);
+  const [showBannerForm, setShowBannerForm] = useState(false);
+  const [showFaqForm, setShowFaqForm] = useState(false);
 
-  // Form data
-  const [bannerForm, setBannerForm] = useState({ title: "", subtitle: "", ctaText: "", ctaLink: "/learn", bgColor: "linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0F172A 100%)" });
-  const [faqForm, setFaqForm] = useState({ question: "", answer: "", category: "general" as FAQ["category"] });
-  const [courseForm, setCourseForm] = useState({ id: "", title: "", description: "", learningPathId: "explorer", difficulty: "Beginner" as const, duration: "6 Weeks", modulesCount: 6, skills: "Circuits, Logic, Breadboarding" });
-  const [projectForm, setProjectForm] = useState({ title: "", description: "", problemStatement: "", studentLevel: "Builder (Class 8–10)", difficulty: "Medium" as const, creatorName: "", creatorSchool: "", skills: "ESP32, IoT, C++", technologies: "Arduino IDE, FreeRTOS", components: "ESP32, DHT22, OLED", isFeatured: true });
-  const [eventForm, setEventForm] = useState({ title: "", description: "", date: "", location: "", type: "hackathon" as Competition["type"], status: "upcoming" as Competition["status"] });
-  const [kitForm, setKitForm] = useState({ name: "", description: "", price: 0, category: "explorer" as StoreKit["category"], features: "" });
-  const [certForm, setCertForm] = useState({ id: "ST-2026-1001", studentName: "", programName: "Builder Path - Embedded IoT", achievement: "Built an autonomous solar monitoring station.", skillsVerified: "ESP32, MicroPython, I2C" });
+  // Form states
+  const [courseForm, setCourseForm] = useState({
+    id: "",
+    title: "",
+    description: "",
+    learning_path_id: "explorer",
+    difficulty: "Beginner",
+    duration: "6 Weeks",
+    skills: "Circuits, Logic, Breadboarding",
+  });
 
-  const loadData = async () => {
-    const [b, f, crs, prj, c, s, l, certs] = await Promise.all([
-      db.getBanners(),
-      db.getFAQs(),
-      db.getCourses(),
-      db.getProjects(),
-      db.getCompetitions(),
-      db.getStoreKits(),
-      db.getLeads(),
-      db.getCertificates()
-    ]);
-    setBanners(b);
-    setFaqs(f);
-    setCourses(crs);
-    setProjects(prj);
-    setCompetitions(c);
-    setStoreKits(s);
-    setLeads(l);
-    setCertificates(certs);
-  };
+  const [projectForm, setProjectForm] = useState({
+    title: "",
+    description: "",
+    problem_statement: "",
+    student_level: "Builder (Class 8–10)",
+    difficulty: "Medium",
+    creator_name: "",
+    creator_school: "",
+    skills: "ESP32, IoT, C++",
+    technologies: "Arduino IDE, FreeRTOS",
+    components: "ESP32, DHT22, OLED",
+    is_featured: true,
+  });
+
+  const [certForm, setCertForm] = useState({
+    id: `ST-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+    student_name: "",
+    program_name: "Builder Path - Embedded IoT & Sensors",
+    achievement: "Successfully built an autonomous solar telemetry monitoring station.",
+    skills_verified: "ESP32, MicroPython, I2C Protocol",
+  });
+
+  const [kitForm, setKitForm] = useState({
+    slug: "",
+    title: "",
+    description: "",
+    price_inr: 2499,
+    category: "builder",
+    stock_count: 50,
+    features: "Original Microcontroller, 15+ Precision Sensors, I2C LCD",
+  });
+
+  const [compForm, setCompForm] = useState({
+    slug: "",
+    title: "",
+    description: "",
+    competition_type: "hackathon",
+    status: "active",
+    prize_pool_inr: 100000,
+  });
+
+  const [bannerForm, setBannerForm] = useState({
+    title: "",
+    subtitle: "",
+    cta_text: "",
+    cta_link: "/learn",
+  });
+
+  const [faqForm, setFaqForm] = useState({
+    question: "",
+    answer: "",
+    category: "general",
+  });
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    if (!isRealSupabase) {
+      const [b, f, crs, prj, c, s, l, certs] = await Promise.all([
+        db.getBanners(),
+        db.getFAQs(),
+        db.getCourses(),
+        db.getProjects(),
+        db.getCompetitions(),
+        db.getStoreKits(),
+        db.getLeads(),
+        db.getCertificates(),
+      ]);
+      setBanners(b);
+      setFaqs(f);
+      setCourses(crs);
+      setProjects(prj);
+      setCompetitions(c);
+      setProducts(s);
+      setInquiries(l);
+      setCertificates(certs);
+      setLoading(false);
+      return;
+    }
+
+    const supabase = createBrowserClient();
+    try {
+      const [
+        { data: crs },
+        { data: prj },
+        { data: certs },
+        { data: prods },
+        { data: ords },
+        { data: comps },
+        { data: inqs },
+        { data: profs },
+      ] = await Promise.all([
+        supabase.from("courses").select("*").order("sort_order"),
+        supabase.from("student_projects").select("*").order("created_at", { ascending: false }),
+        supabase.from("certificates").select("*").order("created_at", { ascending: false }),
+        supabase.from("products").select("*").order("created_at", { ascending: false }),
+        supabase.from("orders").select("*, order_items(*)").order("created_at", { ascending: false }),
+        supabase.from("competitions").select("*, competition_teams(*)").order("created_at", { ascending: false }),
+        supabase.from("institution_inquiries").select("*").order("created_at", { ascending: false }),
+        supabase.from("profiles").select("*, user_roles(*, role:roles(*))").order("created_at", { ascending: false }),
+      ]);
+
+      if (crs) setCourses(crs);
+      if (prj) setProjects(prj);
+      if (certs) setCertificates(certs);
+      if (prods) setProducts(prods);
+      if (ords) setOrders(ords);
+      if (comps) setCompetitions(comps);
+      if (inqs) setInquiries(inqs);
+      if (profs) setProfiles(profs);
+    } catch (err) {
+      console.error("Error fetching live database records:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    setUser({
-      id: "admin-siksatech",
-      email: "admin@siksatech.in",
-      name: "SiksaTech Super Admin",
-      role: "super_admin"
-    });
-    loadData();
-  }, [router]);
+    async function init() {
+      if (isRealSupabase) {
+        const supabase = createBrowserClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: prof } = await (supabase as any)
+            .from("profiles")
+            .select("*, user_roles(role:roles(*))")
+            .eq("id", user.id)
+            .maybeSingle();
 
-  const tabs: { id: AdminTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+          setUser({
+            id: user.id,
+            email: user.email,
+            name: prof?.full_name || user.email?.split("@")[0] || "Admin",
+            role: prof?.role || "super_admin",
+          });
+        }
+      } else {
+        const local = db.getCurrentUser();
+        setUser(local || { name: "SiksaTech Super Admin", email: "admin@siksatech.in", role: "super_admin" });
+      }
+      loadData();
+    }
+    init();
+  }, [loadData]);
+
+  const handleLogout = async () => {
+    if (isRealSupabase) {
+      const supabase = createBrowserClient();
+      await supabase.auth.signOut();
+    } else {
+      db.logout();
+    }
+    router.push("/login");
+  };
+
+  // ─── Live Course Operations ──────────────────────────────────────────────
+  const handleSaveCourse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setActionLoading(true);
+    const courseId = courseForm.id.trim() || `course-${courseForm.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+    const skillsArray = courseForm.skills.split(",").map(s => s.trim()).filter(Boolean);
+
+    if (isRealSupabase) {
+      const supabase = createBrowserClient();
+      const { error } = await (supabase as any).from("courses").upsert({
+        id: courseId,
+        title: courseForm.title.trim(),
+        description: courseForm.description.trim(),
+        learning_path_id: courseForm.learning_path_id,
+        difficulty: courseForm.difficulty,
+        duration: courseForm.duration,
+        skills: skillsArray,
+        is_published: true,
+      });
+      if (error) alert("Error saving course: " + error.message);
+    } else {
+      await db.saveCourse({
+        id: courseId,
+        title: courseForm.title,
+        description: courseForm.description,
+        learningPathId: courseForm.learning_path_id,
+        difficulty: courseForm.difficulty as any,
+        duration: courseForm.duration,
+        modulesCount: 6,
+        skills: skillsArray,
+      });
+    }
+
+    setShowCourseForm(false);
+    setActionLoading(false);
+    loadData();
+  };
+
+  const handleDeleteCourse = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this course?")) return;
+    if (isRealSupabase) {
+      const supabase = createBrowserClient();
+      await (supabase as any).from("courses").delete().eq("id", id);
+    } else {
+      await db.deleteCourse(id);
+    }
+    loadData();
+  };
+
+  // ─── Live Project Moderation ─────────────────────────────────────────────
+  const handleApproveProject = async (id: string, isApproved: boolean) => {
+    if (isRealSupabase) {
+      const supabase = createBrowserClient();
+      await (supabase as any)
+        .from("student_projects")
+        .update({ status: isApproved ? "approved" : "rejected" })
+        .eq("id", id);
+    }
+    loadData();
+  };
+
+  const handleToggleFeaturedProject = async (id: string, currentFeatured: boolean) => {
+    if (isRealSupabase) {
+      const supabase = createBrowserClient();
+      await (supabase as any)
+        .from("student_projects")
+        .update({ is_featured: !currentFeatured })
+        .eq("id", id);
+    }
+    loadData();
+  };
+
+  // ─── Live Hardware Store Operations ──────────────────────────────────────
+  const handleSaveProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setActionLoading(true);
+    const slug = kitForm.slug.trim() || kitForm.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const featuresArray = kitForm.features.split(",").map(f => f.trim()).filter(Boolean);
+
+    if (isRealSupabase) {
+      const supabase = createBrowserClient();
+      const { error } = await (supabase as any).from("products").upsert({
+        slug,
+        title: kitForm.title.trim(),
+        description: kitForm.description.trim(),
+        price_inr: Number(kitForm.price_inr),
+        category: kitForm.category,
+        stock_count: Number(kitForm.stock_count),
+        is_in_stock: Number(kitForm.stock_count) > 0,
+        features: featuresArray,
+        is_published: true,
+      }, { onConflict: "slug" });
+      if (error) alert("Error saving kit: " + error.message);
+    }
+
+    setShowKitForm(false);
+    setActionLoading(false);
+    loadData();
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this hardware product?")) return;
+    if (isRealSupabase) {
+      const supabase = createBrowserClient();
+      await (supabase as any).from("products").delete().eq("id", id);
+    }
+    loadData();
+  };
+
+  // ─── Live Order Management ───────────────────────────────────────────────
+  const handleUpdateOrderStatus = async (orderId: string, status: string, trackingNumber?: string) => {
+    if (isRealSupabase) {
+      const supabase = createBrowserClient();
+      const updateData: any = { status };
+      if (trackingNumber) updateData.tracking_number = trackingNumber;
+      await (supabase as any).from("orders").update(updateData).eq("id", orderId);
+    }
+    loadData();
+  };
+
+  // ─── Live Certificate Issuance ───────────────────────────────────────────
+  const handleIssueCertificate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setActionLoading(true);
+    const certId = certForm.id.trim();
+    const skillsArray = certForm.skills_verified.split(",").map(s => s.trim()).filter(Boolean);
+    const verificationHash = `sha256-${Math.random().toString(36).substring(2)}-${Date.now()}`;
+
+    if (isRealSupabase) {
+      const supabase = createBrowserClient();
+      const { error } = await (supabase as any).from("certificates").insert({
+        id: certId,
+        student_name: certForm.student_name.trim(),
+        program_name: certForm.program_name.trim(),
+        achievement: certForm.achievement.trim(),
+        skills_verified: skillsArray,
+        verification_hash: verificationHash,
+        issued_date: new Date().toISOString().split("T")[0],
+        issuer_name: "SiksaTech Academic Council",
+      });
+      if (error) alert("Error issuing certificate: " + error.message);
+    }
+
+    setShowCertForm(false);
+    setCertForm({
+      id: `ST-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      student_name: "",
+      program_name: "Builder Path - Embedded IoT & Sensors",
+      achievement: "Successfully built an autonomous solar telemetry monitoring station.",
+      skills_verified: "ESP32, MicroPython, I2C Protocol",
+    });
+    setActionLoading(false);
+    loadData();
+  };
+
+  const handleDeleteCertificate = async (id: string) => {
+    if (!confirm("Are you sure you want to revoke this certificate?")) return;
+    if (isRealSupabase) {
+      const supabase = createBrowserClient();
+      await supabase.from("certificates").delete().eq("id", id);
+    }
+    loadData();
+  };
+
+  const tabs: { id: AdminTab; label: string; icon: any; count?: number }[] = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "banners", label: "Banners (21:7)", icon: ImageIcon },
-    { id: "courses", label: "Courses & Tracks", icon: BookOpen },
-    { id: "projects", label: "Build Showcase", icon: FolderGit2 },
-    { id: "certificates", label: "Certificate Registry", icon: Award },
-    { id: "events", label: "Competitions", icon: Trophy },
-    { id: "store", label: "Hardware Store", icon: ShoppingBag },
-    { id: "leads", label: "Leads & Grievances", icon: Users },
-    { id: "faqs", label: "Homepage FAQs", icon: HelpCircle },
+    { id: "courses", label: "Curriculum & Tracks", icon: BookOpen, count: courses.length },
+    { id: "projects", label: "Build Showcase Moderation", icon: FolderGit2, count: projects.length },
+    { id: "store", label: "Hardware Kits & Stock", icon: ShoppingBag, count: products.length },
+    { id: "orders", label: "Orders & Shipping", icon: Truck, count: orders.length },
+    { id: "certificates", label: "Certificate Registry", icon: Award, count: certificates.length },
+    { id: "events", label: "Hackathons & Sprints", icon: Trophy, count: competitions.length },
+    { id: "leads", label: "School Inquiries & Leads", icon: School, count: inquiries.length },
+    { id: "users", label: "Users & Staff Roles", icon: Users, count: profiles.length },
   ];
 
-  const handleLogout = () => {
-    db.logout();
-    router.push("/auth/login");
-  };
-
-  // Banner Actions
-  const addBanner = async () => {
-    await db.saveBanner({ ...bannerForm, isActive: true, sortOrder: banners.length + 1 });
-    setShowBannerForm(false);
-    setBannerForm({ title: "", subtitle: "", ctaText: "", ctaLink: "/learn", bgColor: "linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0F172A 100%)" });
-    loadData();
-  };
-  const removeBanner = async (id: string) => {
-    await db.deleteBanner(id);
-    loadData();
-  };
-
-  // FAQ Actions
-  const addFaq = async () => {
-    await db.saveFAQ({ ...faqForm, sortOrder: faqs.length + 1 });
-    setShowFaqForm(false);
-    setFaqForm({ question: "", answer: "", category: "general" });
-    loadData();
-  };
-  const removeFaq = async (id: string) => {
-    await db.deleteFAQ(id);
-    loadData();
-  };
-
-  // Course Actions
-  const addCourse = async () => {
-    const newCourse: Course = {
-      id: courseForm.id || `crs-${Date.now()}`,
-      learningPathId: courseForm.learningPathId,
-      title: courseForm.title,
-      description: courseForm.description,
-      difficulty: courseForm.difficulty,
-      duration: courseForm.duration,
-      modulesCount: Number(courseForm.modulesCount),
-      skills: courseForm.skills.split(",").map(s => s.trim())
-    };
-    await db.saveCourse(newCourse);
-    setShowCourseForm(false);
-    loadData();
-  };
-  const removeCourse = async (id: string) => {
-    await db.deleteCourse(id);
-    loadData();
-  };
-
-  // Project Actions
-  const addProject = async () => {
-    await db.saveProject({
-      title: projectForm.title,
-      description: projectForm.description,
-      problemStatement: projectForm.problemStatement,
-      studentLevel: projectForm.studentLevel,
-      difficulty: projectForm.difficulty,
-      creatorName: projectForm.creatorName,
-      creatorSchool: projectForm.creatorSchool,
-      skills: projectForm.skills.split(",").map(s => s.trim()),
-      technologies: projectForm.technologies.split(",").map(s => s.trim()),
-      components: projectForm.components.split(",").map(s => s.trim()),
-      learningObjectives: ["Circuit building", "Firmware logic"],
-      isFeatured: projectForm.isFeatured
-    });
-    setShowProjectForm(false);
-    loadData();
-  };
-  const removeProject = async (id: string) => {
-    await db.deleteProject(id);
-    loadData();
-  };
-
-  // Certificate Actions
-  const addCertificate = async () => {
-    await db.saveCertificate({
-      id: certForm.id,
-      studentName: certForm.studentName,
-      programName: certForm.programName,
-      achievement: certForm.achievement,
-      issuedDate: new Date().toISOString().split("T")[0],
-      skillsVerified: certForm.skillsVerified.split(",").map(s => s.trim())
-    });
-    setShowCertForm(false);
-    setCertForm({ id: `ST-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`, studentName: "", programName: "Builder Path - Embedded IoT", achievement: "Built an autonomous solar monitoring station.", skillsVerified: "ESP32, MicroPython, I2C" });
-    loadData();
-  };
-  const removeCertificate = async (id: string) => {
-    await db.deleteCertificate(id);
-    loadData();
-  };
-
-  // Event Actions
-  const addEvent = async () => {
-    await db.saveCompetition(eventForm);
-    setShowEventForm(false);
-    loadData();
-  };
-  const removeEvent = async (id: string) => {
-    await db.deleteCompetition(id);
-    loadData();
-  };
-
-  // Kit Actions
-  const addKit = async () => {
-    await db.saveStoreKit({
-      ...kitForm,
-      features: kitForm.features.split(",").map(f => f.trim()),
-      inStock: true,
-      stockCount: 50
-    });
-    setShowKitForm(false);
-    loadData();
-  };
-  const removeKit = async (id: string) => {
-    await db.deleteStoreKit(id);
-    loadData();
-  };
-
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-950 border-r border-slate-800 flex flex-col flex-shrink-0">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex selection:bg-blue-600 selection:text-white font-sans">
+      {/* Left Sidebar */}
+      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0">
         <div className="p-5 border-b border-slate-800 space-y-1.5">
-          <SiksaTechLogo className="h-6 w-auto text-white" />
-          <p className="text-[10px] text-slate-400 font-mono tracking-wider">Platform Operating OS</p>
+          <SiksaTechLogo className="h-6 w-auto brightness-0 invert" />
+          <p className="text-[10px] text-slate-400 font-mono tracking-wider uppercase">Team Operations OS</p>
         </div>
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -231,27 +436,36 @@ export default function TeamPortalDashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   active
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                     : "text-slate-400 hover:text-white hover:bg-slate-800/60"
                 }`}
               >
-                <Icon className="w-4 h-4" />
-                {tab.label}
+                <div className="flex items-center gap-2.5">
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.label}</span>
+                </div>
+                {typeof tab.count === "number" && tab.count > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                    active ? "bg-blue-700 text-white" : "bg-slate-800 text-slate-400"
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
               </button>
             );
           })}
         </nav>
 
         <div className="p-4 border-t border-slate-800 space-y-2">
-          <div className="text-xs text-slate-400">
-            <p className="font-bold text-white truncate">{user?.name || "Admin"}</p>
+          <div className="text-xs">
+            <p className="font-bold text-white truncate">{user?.name || "Super Admin"}</p>
             <p className="text-[10px] text-emerald-400 uppercase font-mono">{user?.role || "super_admin"}</p>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-2 bg-slate-800 hover:bg-red-900/60 text-slate-300 hover:text-white rounded-lg text-xs font-bold transition-all"
+            className="w-full flex items-center justify-center gap-2 py-2 bg-slate-800 hover:bg-red-900/40 hover:text-red-300 text-slate-400 rounded-lg text-xs font-bold transition-all cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" /> Sign Out
           </button>
@@ -259,154 +473,149 @@ export default function TeamPortalDashboard() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col bg-slate-900 overflow-y-auto">
-        <header className="h-16 border-b border-slate-800 px-8 flex items-center justify-between bg-slate-950/60 backdrop-blur-md">
+      <main className="flex-1 flex flex-col bg-slate-950 overflow-y-auto">
+        <header className="h-16 border-b border-slate-800 px-8 flex items-center justify-between bg-slate-900/60 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-3">
-            <span className="text-sm font-bold text-white capitalize">{activeTab.replace("_", " ")}</span>
-            <span className="px-2 py-0.5 rounded-full bg-blue-900/60 text-blue-400 text-[10px] font-mono border border-blue-800">
-              Live Supabase Sync
+            <h1 className="text-sm font-bold text-white capitalize">{activeTab.replace("_", " ")}</h1>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 text-[10px] font-mono border border-emerald-800 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Live Connected DB
             </span>
           </div>
-          <a
-            href="https://siksatech.in"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-slate-400 hover:text-white flex items-center gap-1 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 transition-all"
-          >
-            View Live Site <ArrowUpRight className="w-3.5 h-3.5 text-blue-400" />
-          </a>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={loadData}
+              disabled={loading}
+              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all cursor-pointer"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-blue-400" : ""}`} />
+            </button>
+            <a
+              href="https://siksatech.in"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-slate-300 hover:text-white flex items-center gap-1.5 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 transition-all font-semibold"
+            >
+              <span>Public Portal</span>
+              <ExternalLink className="w-3.5 h-3.5 text-blue-400" />
+            </a>
+          </div>
         </header>
 
         <div className="p-8 max-w-7xl w-full mx-auto space-y-6">
-          {/* DASHBOARD OVERVIEW */}
+          {loading && (
+            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs text-blue-400 flex items-center gap-2 font-mono">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Syncing latest records from Supabase tables...
+            </div>
+          )}
+
+          {/* 1. DASHBOARD OVERVIEW */}
           {activeTab === "dashboard" && (
             <div className="space-y-6">
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { label: "Active Banners", count: banners.length, icon: ImageIcon, color: "text-blue-400" },
                   { label: "Published Courses", count: courses.length, icon: BookOpen, color: "text-emerald-400" },
-                  { label: "Showcase Projects", count: projects.length, icon: FolderGit2, color: "text-purple-400" },
-                  { label: "Verified Certs", count: certificates.length, icon: Award, color: "text-amber-400" }
-                ].map((stat, i) => (
-                  <div key={i} className="bg-slate-950 border border-slate-800 p-5 rounded-xl space-y-2">
-                    <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                    <p className="text-2xl font-extrabold text-white">{stat.count}</p>
-                    <p className="text-xs text-slate-400">{stat.label}</p>
-                  </div>
-                ))}
+                  { label: "Hardware Builds", count: projects.length, icon: FolderGit2, color: "text-purple-400" },
+                  { label: "Hardware Kits in Store", count: products.length, icon: ShoppingBag, color: "text-blue-400" },
+                  { label: "Customer Orders", count: orders.length, icon: Truck, color: "text-amber-400" },
+                  { label: "Issued Certificates", count: certificates.length, icon: Award, color: "text-emerald-400" },
+                  { label: "Active Hackathons", count: competitions.length, icon: Trophy, color: "text-amber-400" },
+                  { label: "School Inquiries", count: inquiries.length, icon: School, color: "text-purple-400" },
+                  { label: "Registered Users", count: profiles.length, icon: Users, color: "text-blue-400" },
+                ].map((stat, i) => {
+                  const Icon = stat.icon;
+                  return (
+                    <div key={i} className="bg-slate-900 border border-slate-800 p-5 rounded-xl space-y-2">
+                      <Icon className={`w-5 h-5 ${stat.color}`} />
+                      <p className="text-2xl font-extrabold text-white">{stat.count}</p>
+                      <p className="text-xs text-slate-400">{stat.label}</p>
+                    </div>
+                  );
+                })}
               </div>
 
-              <div className="bg-slate-950 border border-slate-800 p-6 rounded-2xl space-y-4">
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-400" /> Quick Administrative Actions
+                  <Sparkles className="w-4 h-4 text-amber-400" /> Operational Shortcuts
                 </h3>
-                <div className="grid sm:grid-cols-3 gap-3 text-xs">
-                  <button onClick={() => { setActiveTab("banners"); setShowBannerForm(true); }} className="p-3 bg-slate-900 border border-slate-800 hover:border-blue-500 rounded-xl text-left space-y-1">
-                    <p className="font-bold text-white">+ Add 21:7 Banner</p>
-                    <p className="text-[11px] text-slate-400">Update homepage top carousel</p>
-                  </button>
-                  <button onClick={() => { setActiveTab("courses"); setShowCourseForm(true); }} className="p-3 bg-slate-900 border border-slate-800 hover:border-emerald-500 rounded-xl text-left space-y-1">
-                    <p className="font-bold text-white">+ Add New Course</p>
+                <div className="grid sm:grid-cols-4 gap-3 text-xs">
+                  <button onClick={() => { setActiveTab("courses"); setShowCourseForm(true); }} className="p-3 bg-slate-950 border border-slate-800 hover:border-emerald-500 rounded-xl text-left space-y-1 cursor-pointer">
+                    <p className="font-bold text-white">+ Create Course</p>
                     <p className="text-[11px] text-slate-400">Publish new syllabus module</p>
                   </button>
-                  <button onClick={() => { setActiveTab("certificates"); setShowCertForm(true); }} className="p-3 bg-slate-900 border border-slate-800 hover:border-amber-500 rounded-xl text-left space-y-1">
+                  <button onClick={() => { setActiveTab("store"); setShowKitForm(true); }} className="p-3 bg-slate-950 border border-slate-800 hover:border-blue-500 rounded-xl text-left space-y-1 cursor-pointer">
+                    <p className="font-bold text-white">+ Add Hardware Kit</p>
+                    <p className="text-[11px] text-slate-400">Update store catalog & stock</p>
+                  </button>
+                  <button onClick={() => { setActiveTab("certificates"); setShowCertForm(true); }} className="p-3 bg-slate-950 border border-slate-800 hover:border-amber-500 rounded-xl text-left space-y-1 cursor-pointer">
                     <p className="font-bold text-white">+ Issue Certificate</p>
-                    <p className="text-[11px] text-slate-400">Generate verified credential</p>
+                    <p className="text-[11px] text-slate-400">Grant cryptographic credential</p>
+                  </button>
+                  <button onClick={() => { setActiveTab("projects"); }} className="p-3 bg-slate-950 border border-slate-800 hover:border-purple-500 rounded-xl text-left space-y-1 cursor-pointer">
+                    <p className="font-bold text-white">Review Student Builds</p>
+                    <p className="text-[11px] text-slate-400">{projects.filter(p => p.status === "pending").length} Pending approval</p>
                   </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* BANNERS TAB */}
-          {activeTab === "banners" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-400">Homepage Banners adhere to a fixed 21:7 aspect ratio.</p>
-                <button onClick={() => setShowBannerForm(!showBannerForm)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-md hover:bg-blue-500">
-                  <Plus className="w-4 h-4" /> Add Banner
-                </button>
-              </div>
-
-              {showBannerForm && (
-                <div className="bg-slate-950 border border-blue-500/40 p-6 rounded-2xl space-y-4">
-                  <h3 className="text-sm font-bold text-white">Create New Banner</h3>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <input value={bannerForm.title} onChange={e => setBannerForm({ ...bannerForm, title: e.target.value })} placeholder="Banner Title" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                    <input value={bannerForm.subtitle} onChange={e => setBannerForm({ ...bannerForm, subtitle: e.target.value })} placeholder="Subtitle" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <input value={bannerForm.ctaText} onChange={e => setBannerForm({ ...bannerForm, ctaText: e.target.value })} placeholder="Button Label (e.g. Explore Tracks)" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                    <input value={bannerForm.ctaLink} onChange={e => setBannerForm({ ...bannerForm, ctaLink: e.target.value })} placeholder="CTA URL (e.g. /learn)" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={addBanner} className="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg">Save Banner</button>
-                    <button onClick={() => setShowBannerForm(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-lg">Cancel</button>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid gap-3">
-                {banners.map((b) => (
-                  <div key={b.id} className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-bold text-white">{b.title}</h4>
-                      <p className="text-xs text-slate-400">{b.subtitle} &bull; Link: {b.ctaLink}</p>
-                    </div>
-                    <button onClick={() => removeBanner(b.id)} className="p-2 text-slate-400 hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* COURSES TAB */}
+          {/* 2. COURSES TAB */}
           {activeTab === "courses" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-400">Manage learning pathways and interactive curriculum tracks.</p>
-                <button onClick={() => setShowCourseForm(!showCourseForm)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-md hover:bg-blue-500">
-                  <Plus className="w-4 h-4" /> Add Course
+                <p className="text-xs text-slate-400">Manage curriculum pathways and interactive hardware lessons in `courses` table.</p>
+                <button onClick={() => setShowCourseForm(!showCourseForm)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-md hover:bg-blue-500 cursor-pointer">
+                  <Plus className="w-4 h-4" /> Add Course Track
                 </button>
               </div>
 
               {showCourseForm && (
-                <div className="bg-slate-950 border border-blue-500/40 p-6 rounded-2xl space-y-4">
+                <form onSubmit={handleSaveCourse} className="bg-slate-900 border border-blue-500/40 p-6 rounded-2xl space-y-4">
                   <h3 className="text-sm font-bold text-white">Create New Course Track</h3>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <input value={courseForm.title} onChange={e => setCourseForm({ ...courseForm, title: e.target.value })} placeholder="Course Title" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                    <select value={courseForm.learningPathId} onChange={e => setCourseForm({ ...courseForm, learningPathId: e.target.value })} className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white">
-                      <option value="explorer">Explorer (Class 5–7)</option>
-                      <option value="builder">Builder (Class 8–10)</option>
+                    <input required value={courseForm.title} onChange={e => setCourseForm({ ...courseForm, title: e.target.value })} placeholder="Course Title (e.g. ESP32 Cloud Telemetry)" className="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white" />
+                    <select value={courseForm.learning_path_id} onChange={e => setCourseForm({ ...courseForm, learning_path_id: e.target.value })} className="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white">
+                      <option value="explorer">Explorer (Class 6–8)</option>
+                      <option value="builder">Builder (Class 9–10)</option>
                       <option value="creator">Creator (Class 11–12)</option>
                       <option value="engineer">Engineer (College)</option>
                     </select>
                   </div>
-                  <textarea value={courseForm.description} onChange={e => setCourseForm({ ...courseForm, description: e.target.value })} placeholder="Description" rows={2} className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
+                  <textarea required value={courseForm.description} onChange={e => setCourseForm({ ...courseForm, description: e.target.value })} placeholder="Comprehensive course syllabus summary..." rows={2} className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white" />
                   <div className="grid sm:grid-cols-3 gap-4">
-                    <input value={courseForm.duration} onChange={e => setCourseForm({ ...courseForm, duration: e.target.value })} placeholder="Duration (e.g. 6 Weeks)" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                    <input type="number" value={courseForm.modulesCount} onChange={e => setCourseForm({ ...courseForm, modulesCount: Number(e.target.value) })} placeholder="Modules Count" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                    <input value={courseForm.skills} onChange={e => setCourseForm({ ...courseForm, skills: e.target.value })} placeholder="Skills (comma separated)" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
+                    <input value={courseForm.duration} onChange={e => setCourseForm({ ...courseForm, duration: e.target.value })} placeholder="Duration (e.g. 6 Weeks)" className="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white" />
+                    <select value={courseForm.difficulty} onChange={e => setCourseForm({ ...courseForm, difficulty: e.target.value })} className="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white">
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advanced">Advanced</option>
+                    </select>
+                    <input value={courseForm.skills} onChange={e => setCourseForm({ ...courseForm, skills: e.target.value })} placeholder="Skills (comma separated)" className="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white" />
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={addCourse} className="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg">Save Course</button>
-                    <button onClick={() => setShowCourseForm(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-lg">Cancel</button>
+                    <button type="submit" disabled={actionLoading} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-lg cursor-pointer">
+                      {actionLoading ? "Saving..." : "Save Course"}
+                    </button>
+                    <button type="button" onClick={() => setShowCourseForm(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-lg cursor-pointer">Cancel</button>
                   </div>
-                </div>
+                </form>
               )}
 
               <div className="grid sm:grid-cols-2 gap-4">
                 {courses.map((crs) => (
-                  <div key={crs.id} className="p-5 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
+                  <div key={crs.id} className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 bg-blue-900/60 text-blue-400 text-[10px] font-bold uppercase rounded border border-blue-800">{crs.difficulty}</span>
-                      <button onClick={() => removeCourse(crs.id)} className="text-slate-500 hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
+                      <span className="px-2 py-0.5 bg-blue-950 text-blue-400 text-[10px] font-bold uppercase rounded border border-blue-800">{crs.difficulty || "Beginner"}</span>
+                      <button onClick={() => handleDeleteCourse(crs.id)} className="text-slate-500 hover:text-red-400 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
                     </div>
                     <h4 className="text-sm font-bold text-white">{crs.title}</h4>
                     <p className="text-xs text-slate-400 line-clamp-2">{crs.description}</p>
-                    <div className="flex items-center gap-4 text-[11px] text-slate-500 pt-1 border-t border-slate-800">
-                      <span>{crs.duration}</span>
-                      <span>{crs.modulesCount} Modules</span>
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-800">
+                      <span>{crs.duration || "6 Weeks"}</span>
+                      <span className="font-mono text-emerald-400">{crs.learning_path_id}</span>
                     </div>
                   </div>
                 ))}
@@ -414,90 +623,215 @@ export default function TeamPortalDashboard() {
             </div>
           )}
 
-          {/* PROJECTS TAB */}
+          {/* 3. PROJECTS / BUILD SHOWCASE MODERATION */}
           {activeTab === "projects" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-400">Curate projects displayed on the public Build Showcase (`/build`).</p>
-                <button onClick={() => setShowProjectForm(!showProjectForm)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-md hover:bg-blue-500">
-                  <Plus className="w-4 h-4" /> Add Project
+                <p className="text-xs text-slate-400">Review student hardware submissions and feature approved builds on `/build` gallery.</p>
+              </div>
+
+              <div className="grid gap-4">
+                {projects.map((p) => {
+                  const isApproved = p.status === "approved";
+                  return (
+                    <div key={p.id} className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                              isApproved ? "bg-emerald-950 text-emerald-400 border border-emerald-800" : "bg-amber-950 text-amber-400 border border-amber-800"
+                            }`}>
+                              {p.status || "pending"}
+                            </span>
+                            <span className="text-xs text-purple-400 font-mono">{p.student_level}</span>
+                          </div>
+                          <h4 className="text-sm font-bold text-white mt-1">{p.title}</h4>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {!isApproved ? (
+                            <button
+                              onClick={() => handleApproveProject(p.id, true)}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Check className="w-3.5 h-3.5" /> Approve & Publish
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleApproveProject(p.id, false)}
+                              className="px-3 py-1.5 bg-slate-800 hover:bg-red-900/60 text-slate-300 hover:text-red-200 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <X className="w-3.5 h-3.5" /> Unpublish
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleToggleFeaturedProject(p.id, p.is_featured)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                              p.is_featured ? "bg-amber-950 text-amber-400 border-amber-700" : "bg-slate-800 text-slate-400 border-slate-700"
+                            }`}
+                          >
+                            ⭐ {p.is_featured ? "Featured" : "Feature"}
+                          </button>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-300">{p.description || p.problem_statement}</p>
+                      <div className="text-[11px] text-slate-500 flex items-center gap-4">
+                        <span>Creator: <b className="text-slate-300">{p.creator_name}</b> ({p.creator_school || "Maker"})</span>
+                        {p.technologies && <span>Stack: {Array.isArray(p.technologies) ? p.technologies.join(", ") : p.technologies}</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 4. STORE PRODUCTS & HARDWARE KITS */}
+          {activeTab === "store" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-slate-400">Manage STEM prototyping kits, pricing, and live inventory in `products` table.</p>
+                <button onClick={() => setShowKitForm(!showKitForm)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-md hover:bg-blue-500 cursor-pointer">
+                  <Plus className="w-4 h-4" /> Add Hardware Kit
                 </button>
               </div>
 
-              {showProjectForm && (
-                <div className="bg-slate-950 border border-blue-500/40 p-6 rounded-2xl space-y-4">
-                  <h3 className="text-sm font-bold text-white">Feature a Student Project</h3>
+              {showKitForm && (
+                <form onSubmit={handleSaveProduct} className="bg-slate-900 border border-blue-500/40 p-6 rounded-2xl space-y-4">
+                  <h3 className="text-sm font-bold text-white">Add Hardware Kit Product</h3>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <input value={projectForm.title} onChange={e => setProjectForm({ ...projectForm, title: e.target.value })} placeholder="Project Title" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                    <input value={projectForm.creatorName} onChange={e => setProjectForm({ ...projectForm, creatorName: e.target.value })} placeholder="Creator Full Name" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
+                    <input required value={kitForm.title} onChange={e => setKitForm({ ...kitForm, title: e.target.value })} placeholder="Kit Name (e.g. Creator IoT ESP32 Kit)" className="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white" />
+                    <input required type="number" value={kitForm.price_inr} onChange={e => setKitForm({ ...kitForm, price_inr: Number(e.target.value) })} placeholder="Price in INR (₹)" className="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white" />
                   </div>
-                  <textarea value={projectForm.problemStatement} onChange={e => setProjectForm({ ...projectForm, problemStatement: e.target.value })} placeholder="Problem Statement" rows={2} className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
+                  <textarea required value={kitForm.description} onChange={e => setKitForm({ ...kitForm, description: e.target.value })} placeholder="Product features, sensors included, and target audience..." rows={2} className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white" />
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <input value={projectForm.skills} onChange={e => setProjectForm({ ...projectForm, skills: e.target.value })} placeholder="Skills (comma separated)" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                    <input value={projectForm.components} onChange={e => setProjectForm({ ...projectForm, components: e.target.value })} placeholder="Hardware Components (BOM)" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
+                    <select value={kitForm.category} onChange={e => setKitForm({ ...kitForm, category: e.target.value })} className="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white">
+                      <option value="explorer">Explorer Track Kit</option>
+                      <option value="builder">Builder Track Kit</option>
+                      <option value="creator">Creator Track Kit</option>
+                      <option value="engineer">Engineer Track Kit</option>
+                      <option value="component">Component / Sensor Pack</option>
+                    </select>
+                    <input type="number" value={kitForm.stock_count} onChange={e => setKitForm({ ...kitForm, stock_count: Number(e.target.value) })} placeholder="Initial Stock Quantity" className="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white" />
                   </div>
+                  <input value={kitForm.features} onChange={e => setKitForm({ ...kitForm, features: e.target.value })} placeholder="Key features (comma separated)" className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white" />
                   <div className="flex gap-2">
-                    <button onClick={addProject} className="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg">Publish Project</button>
-                    <button onClick={() => setShowProjectForm(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-lg">Cancel</button>
+                    <button type="submit" disabled={actionLoading} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-lg cursor-pointer">
+                      {actionLoading ? "Saving..." : "Save Product"}
+                    </button>
+                    <button type="button" onClick={() => setShowKitForm(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-lg cursor-pointer">Cancel</button>
                   </div>
-                </div>
+                </form>
               )}
 
               <div className="grid sm:grid-cols-2 gap-4">
-                {projects.map((p) => (
-                  <div key={p.id} className="p-5 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                {products.map((p) => (
+                  <div key={p.id} className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-purple-400 uppercase">{p.studentLevel}</span>
-                      <button onClick={() => removeProject(p.id)} className="text-slate-500 hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
+                      <span className="text-xs font-bold text-emerald-400">₹{p.price_inr}</span>
+                      <button onClick={() => handleDeleteProduct(p.id)} className="text-slate-500 hover:text-red-400 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
                     </div>
                     <h4 className="text-sm font-bold text-white">{p.title}</h4>
-                    <p className="text-xs text-slate-400 line-clamp-2">{p.problemStatement}</p>
-                    <p className="text-[11px] text-slate-500 pt-1">By {p.creatorName} &bull; {p.creatorSchool || "Maker"}</p>
+                    <p className="text-xs text-slate-400 line-clamp-2">{p.description}</p>
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-800">
+                      <span>Stock: <b className="text-slate-300">{p.stock_count || 0} units</b></span>
+                      <span className="font-mono text-purple-400 capitalize">{p.category}</span>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* CERTIFICATES TAB */}
+          {/* 5. ORDERS & SHIPPING TRACKING */}
+          {activeTab === "orders" && (
+            <div className="space-y-4">
+              <p className="text-xs text-slate-400">Live order fulfillment, payment verification, and shipment tracking in `orders` table.</p>
+
+              <div className="grid gap-3">
+                {orders.map((ord) => (
+                  <div key={ord.id} className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs text-blue-400 font-bold">{ord.order_number}</span>
+                          <span className="text-xs text-slate-500">{new Date(ord.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <p className="text-xs text-slate-300 mt-0.5">Amount: <b className="text-emerald-400 font-mono">₹{ord.total_amount_inr}</b></p>
+                      </div>
+
+                      {/* Status Selector */}
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={ord.status}
+                          onChange={(e) => handleUpdateOrderStatus(ord.id, e.target.value)}
+                          className="px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white capitalize font-semibold"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="paid">Paid</option>
+                          <option value="processing">Processing</option>
+                          <option value="shipped">Shipped</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {ord.shipping_address && (
+                      <div className="text-xs text-slate-400 space-y-0.5">
+                        <p className="text-slate-300 font-semibold">Shipment Address:</p>
+                        <p>{ord.shipping_address.fullName} • {ord.shipping_address.addressLine}, {ord.shipping_address.city}, {ord.shipping_address.state} - {ord.shipping_address.postalCode}</p>
+                        <p className="font-mono text-slate-500">Contact: {ord.shipping_address.phone}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 6. CERTIFICATE REGISTRY */}
           {activeTab === "certificates" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-400">Issue and manage cryptographic verifiable certificates (`/verify/[id]`).</p>
-                <button onClick={() => setShowCertForm(!showCertForm)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-md hover:bg-blue-500">
+                <p className="text-xs text-slate-400">Issue and revoke cryptographic verified credentials in `certificates` table.</p>
+                <button onClick={() => setShowCertForm(!showCertForm)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-md hover:bg-blue-500 cursor-pointer">
                   <Plus className="w-4 h-4" /> Issue Certificate
                 </button>
               </div>
 
               {showCertForm && (
-                <div className="bg-slate-950 border border-blue-500/40 p-6 rounded-2xl space-y-4">
+                <form onSubmit={handleIssueCertificate} className="bg-slate-900 border border-blue-500/40 p-6 rounded-2xl space-y-4">
                   <h3 className="text-sm font-bold text-white">Generate Verified Certificate</h3>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <input value={certForm.id} onChange={e => setCertForm({ ...certForm, id: e.target.value })} placeholder="Certificate ID (e.g. ST-2026-X100)" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white font-mono" />
-                    <input value={certForm.studentName} onChange={e => setCertForm({ ...certForm, studentName: e.target.value })} placeholder="Student Full Name" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
+                    <input required value={certForm.id} onChange={e => setCertForm({ ...certForm, id: e.target.value })} placeholder="Certificate ID (e.g. ST-2026-X100)" className="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white font-mono" />
+                    <input required value={certForm.student_name} onChange={e => setCertForm({ ...certForm, student_name: e.target.value })} placeholder="Student Full Name" className="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white" />
                   </div>
-                  <input value={certForm.programName} onChange={e => setCertForm({ ...certForm, programName: e.target.value })} placeholder="Program / Track Name" className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                  <textarea value={certForm.achievement} onChange={e => setCertForm({ ...certForm, achievement: e.target.value })} placeholder="Achievement Summary" rows={2} className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                  <input value={certForm.skillsVerified} onChange={e => setCertForm({ ...certForm, skillsVerified: e.target.value })} placeholder="Verified Skills (comma separated)" className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
+                  <input required value={certForm.program_name} onChange={e => setCertForm({ ...certForm, program_name: e.target.value })} placeholder="Program / Track Name" className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white" />
+                  <textarea required value={certForm.achievement} onChange={e => setCertForm({ ...certForm, achievement: e.target.value })} placeholder="Achievement summary (e.g. Built an autonomous solar monitoring station)" rows={2} className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white" />
+                  <input value={certForm.skills_verified} onChange={e => setCertForm({ ...certForm, skills_verified: e.target.value })} placeholder="Skills (comma separated)" className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white" />
                   <div className="flex gap-2">
-                    <button onClick={addCertificate} className="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg">Issue Credential</button>
-                    <button onClick={() => setShowCertForm(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-lg">Cancel</button>
+                    <button type="submit" disabled={actionLoading} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-lg cursor-pointer">
+                      {actionLoading ? "Issuing..." : "Issue Credential"}
+                    </button>
+                    <button type="button" onClick={() => setShowCertForm(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-lg cursor-pointer">Cancel</button>
                   </div>
-                </div>
+                </form>
               )}
 
               <div className="grid sm:grid-cols-2 gap-4">
                 {certificates.map((cert) => (
-                  <div key={cert.id} className="p-5 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                  <div key={cert.id} className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-mono text-xs text-amber-400 font-bold">{cert.id}</span>
-                      <button onClick={() => removeCertificate(cert.id)} className="text-slate-500 hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => handleDeleteCertificate(cert.id)} className="text-slate-500 hover:text-red-400 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
                     </div>
-                    <h4 className="text-sm font-bold text-white">{cert.studentName}</h4>
-                    <p className="text-xs text-slate-400">{cert.programName}</p>
+                    <h4 className="text-sm font-bold text-white">{cert.student_name}</h4>
+                    <p className="text-xs text-slate-400">{cert.program_name}</p>
                     <p className="text-[11px] text-slate-500">{cert.achievement}</p>
                     <div className="pt-2 flex items-center justify-between border-t border-slate-800">
-                      <span className="text-[10px] text-slate-500">Issued: {cert.issuedDate}</span>
+                      <span className="text-[10px] text-slate-500">Issued: {cert.issued_date}</span>
                       <a href={`https://siksatech.in/verify/${cert.id}`} target="_blank" rel="noopener noreferrer" className="text-[11px] text-blue-400 font-bold hover:underline flex items-center gap-1">
                         Verify View &rarr;
                       </a>
@@ -508,25 +842,45 @@ export default function TeamPortalDashboard() {
             </div>
           )}
 
-          {/* LEADS & GRIEVANCES TAB */}
+          {/* 7. HACKATHONS & COMPETITIONS */}
+          {activeTab === "events" && (
+            <div className="space-y-4">
+              <p className="text-xs text-slate-400">National STEM Innovation Hackathons, teams, and problem statements in `competitions` table.</p>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                {competitions.map((c) => (
+                  <div key={c.id} className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase text-amber-400 font-mono">{c.competition_type}</span>
+                      <span className="px-2 py-0.5 bg-slate-800 rounded text-[10px] font-semibold text-slate-300">{c.status}</span>
+                    </div>
+                    <h4 className="text-sm font-bold text-white">{c.title}</h4>
+                    <p className="text-xs text-slate-400 line-clamp-2">{c.description}</p>
+                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs font-mono">
+                      <span className="text-emerald-400">Prize: ₹{c.prize_pool_inr}</span>
+                      <span className="text-slate-500">Teams: {c.competition_teams?.length || 0}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 8. SCHOOL LEADS & INQUIRIES */}
           {activeTab === "leads" && (
             <div className="space-y-4">
-              <p className="text-xs text-slate-400">Inbound inquiries from schools, student leads, and DPDP grievance tickets.</p>
+              <p className="text-xs text-slate-400">Inbound inquiries from ATL lab schools and institutional partners in `institution_inquiries` table.</p>
+
               <div className="grid gap-3">
-                {leads.map((l) => (
-                  <div key={l.id} className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                {inquiries.map((inq) => (
+                  <div key={inq.id} className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          l.details?.type === "institution" ? "bg-purple-900/60 text-purple-400" : "bg-blue-900/60 text-blue-400"
-                        }`}>{l.details?.type || "lead"}</span>
-                        <span className="text-xs text-slate-500">{new Date(l.createdAt).toLocaleDateString()}</span>
-                      </div>
-                      <h4 className="text-sm font-bold text-white">{l.name} &bull; <span className="text-slate-400 font-normal">{l.email}</span></h4>
-                      {l.phone && <p className="text-xs text-slate-400">Phone: {l.phone}</p>}
+                      <h4 className="text-sm font-bold text-white">{inq.institution_name}</h4>
+                      <p className="text-xs text-slate-400">Contact: {inq.contact_person} ({inq.email} • {inq.phone})</p>
+                      <p className="text-[11px] text-slate-500 font-mono">City: {inq.city} • Est. Students: {inq.estimated_students}</p>
                     </div>
-                    <span className="px-2.5 py-1 bg-slate-800 text-slate-300 text-xs font-semibold rounded-lg">
-                      {l.status}
+                    <span className="px-3 py-1 bg-slate-800 text-purple-400 text-xs font-mono font-bold rounded-lg border border-slate-700 capitalize">
+                      {inq.status || "new"}
                     </span>
                   </div>
                 ))}
@@ -534,118 +888,24 @@ export default function TeamPortalDashboard() {
             </div>
           )}
 
-          {/* HARDWARE STORE TAB */}
-          {activeTab === "store" && (
+          {/* 9. USERS & STAFF ROLES */}
+          {activeTab === "users" && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-400">Manage STEM prototyping kit inventory, pricing, and stock status.</p>
-                <button onClick={() => setShowKitForm(!showKitForm)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-md hover:bg-blue-500">
-                  <Plus className="w-4 h-4" /> Add Kit
-                </button>
-              </div>
-
-              {showKitForm && (
-                <div className="bg-slate-950 border border-blue-500/40 p-6 rounded-2xl space-y-4">
-                  <h3 className="text-sm font-bold text-white">Create Hardware Kit</h3>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <input value={kitForm.name} onChange={e => setKitForm({ ...kitForm, name: e.target.value })} placeholder="Kit Name" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                    <input type="number" value={kitForm.price} onChange={e => setKitForm({ ...kitForm, price: Number(e.target.value) })} placeholder="Price (₹)" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                  </div>
-                  <textarea value={kitForm.description} onChange={e => setKitForm({ ...kitForm, description: e.target.value })} placeholder="Description" rows={2} className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                  <input value={kitForm.features} onChange={e => setKitForm({ ...kitForm, features: e.target.value })} placeholder="Features (comma separated)" className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                  <div className="flex gap-2">
-                    <button onClick={addKit} className="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg">Save Kit</button>
-                    <button onClick={() => setShowKitForm(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-lg">Cancel</button>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                {storeKits.map((k) => (
-                  <div key={k.id} className="p-5 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-emerald-400">₹{k.price}</span>
-                      <button onClick={() => removeKit(k.id)} className="text-slate-500 hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
-                    </div>
-                    <h4 className="text-sm font-bold text-white">{k.name}</h4>
-                    <p className="text-xs text-slate-400 line-clamp-2">{k.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* EVENTS TAB */}
-          {activeTab === "events" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-400">Manage Maker Sprints, Hackathons, and Workshops.</p>
-                <button onClick={() => setShowEventForm(!showEventForm)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-md hover:bg-blue-500">
-                  <Plus className="w-4 h-4" /> Add Event
-                </button>
-              </div>
-
-              {showEventForm && (
-                <div className="bg-slate-950 border border-blue-500/40 p-6 rounded-2xl space-y-4">
-                  <h3 className="text-sm font-bold text-white">Create Event / Competition</h3>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <input value={eventForm.title} onChange={e => setEventForm({ ...eventForm, title: e.target.value })} placeholder="Event Title" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                    <input value={eventForm.date} onChange={e => setEventForm({ ...eventForm, date: e.target.value })} placeholder="Date (e.g. Oct 15–20, 2026)" className="px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                  </div>
-                  <textarea value={eventForm.description} onChange={e => setEventForm({ ...eventForm, description: e.target.value })} placeholder="Description" rows={2} className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                  <div className="flex gap-2">
-                    <button onClick={addEvent} className="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg">Save Event</button>
-                    <button onClick={() => setShowEventForm(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-lg">Cancel</button>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                {competitions.map((comp) => (
-                  <div key={comp.id} className="p-5 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase text-purple-400">{comp.type}</span>
-                      <button onClick={() => removeEvent(comp.id)} className="text-slate-500 hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
-                    </div>
-                    <h4 className="text-sm font-bold text-white">{comp.title}</h4>
-                    <p className="text-xs text-slate-400">{comp.description}</p>
-                    <p className="text-[11px] text-slate-500 pt-1">Date: {comp.date}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* FAQS TAB */}
-          {activeTab === "faqs" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-400">Manage FAQs displayed on the homepage.</p>
-                <button onClick={() => setShowFaqForm(!showFaqForm)} className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-md hover:bg-blue-500">
-                  <Plus className="w-4 h-4" /> Add FAQ
-                </button>
-              </div>
-
-              {showFaqForm && (
-                <div className="bg-slate-950 border border-blue-500/40 p-6 rounded-2xl space-y-4">
-                  <h3 className="text-sm font-bold text-white">Create FAQ</h3>
-                  <input value={faqForm.question} onChange={e => setFaqForm({ ...faqForm, question: e.target.value })} placeholder="Question" className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                  <textarea value={faqForm.answer} onChange={e => setFaqForm({ ...faqForm, answer: e.target.value })} placeholder="Answer" rows={2} className="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white" />
-                  <div className="flex gap-2">
-                    <button onClick={addFaq} className="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg">Save FAQ</button>
-                    <button onClick={() => setShowFaqForm(false)} className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-lg">Cancel</button>
-                  </div>
-                </div>
-              )}
+              <p className="text-xs text-slate-400">Active accounts and internal administrative role assignments in `profiles` & `user_roles`.</p>
 
               <div className="grid gap-3">
-                {faqs.map((f) => (
-                  <div key={f.id} className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                {profiles.map((p) => (
+                  <div key={p.id} className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between">
                     <div>
-                      <h4 className="text-sm font-bold text-white">{f.question}</h4>
-                      <p className="text-xs text-slate-400 line-clamp-2">{f.answer}</p>
+                      <h4 className="text-sm font-bold text-white">{p.full_name || "Anonymous User"}</h4>
+                      <p className="text-xs text-slate-400 font-mono">{p.email}</p>
+                      <p className="text-[11px] text-slate-500">School/College: {p.school_college_name || "Not specified"}</p>
                     </div>
-                    <button onClick={() => removeFaq(f.id)} className="p-2 text-slate-500 hover:text-red-400"><Trash2 className="w-4 h-4" /></button>
+                    <span className={`px-3 py-1 text-xs font-mono font-bold rounded-lg uppercase ${
+                      p.role === "super_admin" ? "bg-emerald-950 text-emerald-400 border border-emerald-800" : "bg-blue-950 text-blue-400 border border-blue-800"
+                    }`}>
+                      {p.role || "student"}
+                    </span>
                   </div>
                 ))}
               </div>

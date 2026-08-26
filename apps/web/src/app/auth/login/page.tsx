@@ -10,7 +10,7 @@ import { Cpu, AlertCircle, Loader2 } from "lucide-react";
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get("redirect") ?? "/dashboard/student";
+  const redirectPath = searchParams.get("redirect") ?? "/dashboard";
   const errorParam = searchParams.get("error");
 
   const [state, formAction, isPending] = useActionState(loginWithEmail, { error: null });
@@ -18,14 +18,14 @@ function LoginForm() {
   const handleGoogleLogin = async () => {
     if (!isRealSupabase) {
       await db.login("student@siksatech.in", "student");
-      window.location.href = redirectPath === "/dashboard" ? "/dashboard/student" : redirectPath;
+      window.location.href = redirectPath;
       return;
     }
     const supabase = createBrowserClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath === "/dashboard" ? "/dashboard/student" : redirectPath)}`,
+        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`,
       },
     });
     if (error) alert("Google authentication failed: " + error.message);
