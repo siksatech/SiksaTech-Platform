@@ -45,14 +45,10 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    const user = db.getCurrentUser();
-    if (!user || user.role !== "siksatech_admin") {
-      router.push("/auth/login");
-      return;
-    }
-    setAdminUser(user);
+    // Auth is handled by middleware — no need to check getCurrentUser here
     loadLeadsData();
-  }, [router]);
+  }, []);
+
 
   const updateStatus = async (id: string, nextStatus: Lead["status"]) => {
     const success = await db.updateLeadStatus(id, nextStatus);

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { supabase, isRealSupabase } from "@siksatech/database";
+import { createBrowserClient, isRealSupabase } from "@siksatech/database";
 import { Navbar } from "@siksatech/ui";
 import { Footer } from "@siksatech/ui";
 import { 
@@ -37,8 +37,9 @@ export default function CurriculumEditor() {
 
   const fetchCurriculumData = async () => {
     setLoading(true);
-    if (isRealSupabase && supabase) {
+    if (isRealSupabase) {
       try {
+        const supabase = createBrowserClient() as any;
         const { data: coursesList } = await supabase.from("courses").select("*");
         setCourses(coursesList || []);
 
@@ -70,8 +71,9 @@ export default function CurriculumEditor() {
     if (!newLessonId || !newTitle || !selectedCourseId) return;
     setIsSubmitting(true);
 
-    if (isRealSupabase && supabase) {
+    if (isRealSupabase) {
       try {
+        const supabase = createBrowserClient() as any;
         const { error } = await supabase.from("lessons").insert({
           id: newLessonId,
           course_id: selectedCourseId,

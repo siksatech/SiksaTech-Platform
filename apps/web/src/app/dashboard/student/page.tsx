@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { db, supabase, isRealSupabase } from "@siksatech/database";
+import { db, createBrowserClient, isRealSupabase } from "@siksatech/database";
 import { Navbar } from "@siksatech/ui";
 import { Footer } from "@siksatech/ui";
 import { 
@@ -56,8 +56,9 @@ export default function StudentDashboard() {
   useEffect(() => {
     const loadSessionData = async () => {
       setLoading(true);
-      if (isRealSupabase && supabase) {
+      if (isRealSupabase) {
         try {
+          const supabase = createBrowserClient();
           const { data: { user }, error: authError } = await supabase.auth.getUser();
           if (authError || !user) {
             router.push("/auth/login");
@@ -73,11 +74,11 @@ export default function StudentDashboard() {
 
           const mappedProfile = {
             id: user.id,
-            name: profile?.full_name || "Active Student",
+            name: (profile as any)?.full_name || "Active Student",
             email: user.email,
-            grade: profile?.grade_level || "Class 9",
-            institution: profile?.school_college_name || "SiksaTech Academy",
-            role: profile?.role || "student"
+            grade: (profile as any)?.grade_level || "Class 9",
+            institution: (profile as any)?.school_college_name || "SiksaTech Academy",
+            role: (profile as any)?.role || "student"
           };
           setUserProfile(mappedProfile);
 
@@ -100,7 +101,7 @@ export default function StudentDashboard() {
           setCourses(coursesList || []);
 
           // Fetch matching lessons
-          const courseIds = (coursesList || []).map(c => c.id);
+          const courseIds = (coursesList || []).map((c: any) => c.id);
           if (courseIds.length > 0) {
             const { data: lessonsList } = await supabase
               .from("lessons")
@@ -160,8 +161,9 @@ export default function StudentDashboard() {
     if (!newTitle || !newDesc) return;
     setIsSubmittingProject(true);
 
-    if (isRealSupabase && supabase && userProfile) {
+    if (isRealSupabase && userProfile) {
       try {
+        const supabase = createBrowserClient() as any;
         const { error } = await supabase.from("student_projects").insert({
           student_id: userProfile.id,
           student_name: userProfile.name,

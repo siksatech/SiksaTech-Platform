@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { supabase, isRealSupabase } from "@siksatech/database";
+import { createBrowserClient, isRealSupabase } from "@siksatech/database";
 import { Navbar } from "@siksatech/ui";
 import { Footer } from "@siksatech/ui";
 import { 
@@ -28,8 +28,9 @@ export default function PortfolioReviews() {
 
   const fetchSubmissions = async () => {
     setLoading(true);
-    if (isRealSupabase && supabase) {
+    if (isRealSupabase) {
       try {
+        const supabase = createBrowserClient() as any;
         const { data, error } = await supabase
           .from("student_projects")
           .select("*")
@@ -55,8 +56,9 @@ export default function PortfolioReviews() {
     const feedback = feedbackInput[projId] || "Build verified. Clean schematics alignment.";
     setProcessingId(projId);
 
-    if (isRealSupabase && supabase) {
+    if (isRealSupabase) {
       try {
+        const supabase = createBrowserClient() as any;
         // 1. Update Project Status
         const { error } = await supabase
           .from("student_projects")

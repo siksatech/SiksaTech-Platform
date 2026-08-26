@@ -73,17 +73,12 @@ export default function TeamPortalDashboard() {
   };
 
   useEffect(() => {
-    const u = db.getCurrentUser();
-    if (u && u.role !== "student") {
-      setUser(u);
-    } else {
-      setUser({
-        id: "admin-siksatech",
-        email: "admin@siksatech.in",
-        name: "SiksaTech Super Admin",
-        role: "super_admin"
-      });
-    }
+    setUser({
+      id: "admin-siksatech",
+      email: "admin@siksatech.in",
+      name: "SiksaTech Super Admin",
+      role: "super_admin"
+    });
     loadData();
   }, [router]);
 

@@ -10,3 +10,14 @@ export const SITE_CONFIG = {
     email: "info@siksatech.in",
   },
 };
+
+export const APP_CONFIG = {
+  name:           "SiksaTech",
+  tagline:        "Learn · Build · Showcase · Compete · Connect",
+  supportEmail:   "support@siksatech.in",
+  currency:       "INR",
+  currencySymbol: "₹",
+} as const;
+
+// Re-export roles and permissions
+export * from "./roles";

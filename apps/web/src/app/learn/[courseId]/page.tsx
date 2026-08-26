@@ -98,12 +98,18 @@ export default function CourseDetailPage() {
                 <h3 className="text-base font-bold text-white">Enroll in this Track</h3>
                 <p className="text-xs text-slate-400">Includes complete kit shipment, mentor feedback on build submissions, and verifiable certificate.</p>
                 {user ? (
-                  <button className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2">
+                  <Link
+                    href={`/learn/${courseId}/les-1`}
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
+                  >
                     <Sparkles className="w-4 h-4" /> Start Learning Now
-                  </button>
+                  </Link>
                 ) : (
-                  <Link href="/auth/login" className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2">
-                    <Lock className="w-4 h-4" /> Sign In to Enroll
+                  <Link
+                    href={`/learn/${courseId}/les-1`}
+                    className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Play className="w-4 h-4" /> Preview Curriculum
                   </Link>
                 )}
               </div>
@@ -126,13 +132,17 @@ export default function CourseDetailPage() {
                     </h3>
                     <div className="space-y-2 pl-8">
                       {mod.lessons.map((les, lIdx) => (
-                        <div key={lIdx} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100 text-xs">
+                        <Link
+                          key={lIdx}
+                          href={`/learn/${courseId}/les-${(lIdx % 2) + 1}`}
+                          className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-blue-50/50 border border-slate-100 hover:border-blue-200 text-xs transition-colors group"
+                        >
                           <div className="flex items-center gap-2.5">
                             {les.type === "code" ? <Code2 className="w-4 h-4 text-purple-600" /> : les.type === "lab" ? <Wrench className="w-4 h-4 text-emerald-600" /> : <BookOpen className="w-4 h-4 text-blue-600" />}
-                            <span className="font-semibold text-slate-800">{les.title}</span>
+                            <span className="font-semibold text-slate-800 group-hover:text-blue-600">{les.title}</span>
                           </div>
                           <span className="text-slate-500 font-medium">{les.duration}</span>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   </div>

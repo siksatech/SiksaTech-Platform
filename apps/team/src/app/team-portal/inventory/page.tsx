@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { supabase, isRealSupabase } from "@siksatech/database";
+import { createBrowserClient, isRealSupabase } from "@siksatech/database";
 import { Navbar } from "@siksatech/ui";
 import { Footer } from "@siksatech/ui";
 import { 
@@ -36,8 +36,9 @@ export default function InventoryManager() {
 
   const fetchInventoryData = async () => {
     setLoading(true);
-    if (isRealSupabase && supabase) {
+    if (isRealSupabase) {
       try {
+        const supabase = createBrowserClient() as any;
         const { data: kitsList } = await supabase.from("kits").select("*");
         setKits(kitsList || []);
 
@@ -73,8 +74,9 @@ export default function InventoryManager() {
     if (!kitToUpdate) return;
     const nextStock = kitToUpdate.stock_count + stockDelta;
 
-    if (isRealSupabase && supabase) {
+    if (isRealSupabase) {
       try {
+        const supabase = createBrowserClient() as any;
         const { error } = await supabase
           .from("kits")
           .update({ stock_count: nextStock })
@@ -100,8 +102,9 @@ export default function InventoryManager() {
     const tracking = trackingInput[orderId] || "TRK-PLACEHOLDER-888";
     setUpdatingOrderId(orderId);
 
-    if (isRealSupabase && supabase) {
+    if (isRealSupabase) {
       try {
+        const supabase = createBrowserClient() as any;
         const { error } = await supabase
           .from("orders")
           .update({ status: nextStatus, tracking_number: tracking })
