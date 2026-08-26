@@ -7,6 +7,13 @@
 @source "..";
 @source ".";
 
+@font-face {
+  font-family: 'Rostex';
+  src: url('/fonts/rostex.italic.otf') format('opentype');
+  font-weight: normal;
+  font-style: italic;
+}
+
 :root {
   --font-jakarta-sans: "Plus Jakarta Sans", sans-serif;
   --color-obsidian: #0A0F1D;
