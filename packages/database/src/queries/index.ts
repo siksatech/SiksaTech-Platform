@@ -8,3 +8,4 @@ export * from "./certificates";
 export * from "./store";
 export * from "./projects";
 export * from "./blogs";
+export * from "./institutions";

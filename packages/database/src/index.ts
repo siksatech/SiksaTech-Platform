@@ -108,6 +108,9 @@ export {
   getBlogs,
   getBlogBySlug,
   DEMO_BLOGS,
+  submitInstitutionInquiry,
+  getPartnerInstitutions,
+  DEMO_INSTITUTIONS,
 } from "./queries";
 export type { CourseModule, Enrollment, LessonProgress } from "./queries/learning";
 export type { Assessment, AssessmentQuestion, AssessmentSubmissionResult } from "./queries/assessments";
@@ -115,6 +118,7 @@ export type { VerifiableCertificate } from "./queries/certificates";
 export type { ProductItem, ShippingAddress, OrderItemPayload, OrderRecord } from "./queries/store";
 export type { StudentProjectSubmission } from "./queries/projects";
 export type { BlogItem } from "./queries/blogs";
+export type { InstitutionInquiryPayload, InstitutionRecord } from "./queries/institutions";
 
 // ─── Legacy Mock Data (Fallbacks) ────────────────────────────────────────────
 // Used when Supabase credentials are not configured (development / demo mode)

@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { Navbar, Footer } from "@siksatech/ui";
-import { db } from "@siksatech/database";
+import {
+  submitInstitutionInquiry,
+  createBrowserClient,
+  isRealSupabase,
+  db
+} from "@siksatech/database";
 import {
   Building2, CheckCircle2, FlaskConical, Users, Trophy, Shield,
   ArrowRight, Phone, Mail, Send, Sparkles, Clock, Check, Download,
@@ -16,8 +21,8 @@ export default function InstitutionsPage() {
     email: "",
     phone: "",
     city: "",
-    type: "school",
-    studentCount: "200-500",
+    type: "k12_school" as "k12_school" | "college" | "university" | "polytechnic" | "tinkering_lab",
+    studentCount: 300,
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
@@ -26,19 +31,21 @@ export default function InstitutionsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await db.submitLead(
-      formData.type === "school" ? "school" : "college",
-      formData.contactPerson,
-      formData.email,
-      formData.phone,
-      {
-        institutionName: formData.institutionName,
-        city: formData.city,
-        type: formData.type,
-        studentCount: formData.studentCount,
-        message: formData.message,
-      }
-    );
+    const supabase = isRealSupabase ? createBrowserClient() : undefined;
+
+    await submitInstitutionInquiry(supabase, {
+      institution_name: formData.institutionName,
+      institution_type: formData.type,
+      city: formData.city,
+      state: "India",
+      contact_name: formData.contactPerson,
+      contact_email: formData.email,
+      contact_phone: formData.phone,
+      student_count: Number(formData.studentCount) || 200,
+      target_programs: ["Maker Lab", "Hardware Kits", "Teacher Pedagogy Training"],
+      message: formData.message
+    });
+
     setSubmitted(true);
     setLoading(false);
   };
@@ -176,12 +183,13 @@ export default function InstitutionsPage() {
                         <label className="block text-[11px] font-bold text-slate-700 mb-1">Institution Type</label>
                         <select
                           value={formData.type}
-                          onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                          className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                          onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                          className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                         >
-                          <option value="school">K-12 School (CBSE/ICSE/State)</option>
+                          <option value="k12_school">K-12 School (CBSE/ICSE/State)</option>
                           <option value="college">Engineering / Science College</option>
-                          <option value="training_center">Vocational STEM Center</option>
+                          <option value="university">University / Campus</option>
+                          <option value="tinkering_lab">Atal Tinkering Lab / STEM Lab</option>
                         </select>
                       </div>
                     </div>
