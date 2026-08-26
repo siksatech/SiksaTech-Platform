@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, LogOut, LayoutDashboard, ShoppingBag } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, ShoppingBag, User } from "lucide-react";
 import { db } from "@siksatech/database";
 import SiksaTechLogo from "./SiksaTechLogo";
 
@@ -93,6 +93,13 @@ export default function Navbar() {
                   <LayoutDashboard className="w-4 h-4" />
                   <span>Dashboard</span>
                 </Link>
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all whitespace-nowrap"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Profile</span>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="p-2 text-slate-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
@@ -163,9 +170,17 @@ export default function Navbar() {
                   <LayoutDashboard className="w-4 h-4" />
                   <span>Dashboard</span>
                 </Link>
+                <Link
+                  href="/profile"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center justify-center gap-1.5 py-2.5 text-[14px] font-semibold text-slate-600 border border-slate-200 rounded-lg bg-slate-50"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Profile</span>
+                </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center gap-1.5 py-2.5 text-[14px] font-semibold text-red-600 border border-red-200 rounded-lg bg-red-50"
+                  className="col-span-2 flex items-center justify-center gap-1.5 py-2.5 text-[14px] font-semibold text-red-600 border border-red-200 rounded-lg bg-red-50"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Logout</span>

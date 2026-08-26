@@ -145,9 +145,22 @@ export default function TeamLoginPage() {
           <TeamLoginForm />
         </Suspense>
 
-        <p className="text-center text-[10px] text-slate-700 mt-6">
-          Restricted access. Unauthorized use is prohibited.
-        </p>
+        <div className="text-center mt-6 space-y-4">
+          <p className="text-[10px] text-slate-700">
+            Restricted access. Unauthorized use is prohibited.
+          </p>
+          <div className="pt-4 border-t border-slate-900">
+            <p className="text-xs text-slate-500">
+              Are you a student?{" "}
+              <a 
+                href={process.env.NEXT_PUBLIC_WEB_URL ? `${process.env.NEXT_PUBLIC_WEB_URL}/auth/login` : "http://localhost:3000/auth/login"} 
+                className="text-blue-500 hover:underline font-semibold"
+              >
+                Go to Student Portal &rarr;
+              </a>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
