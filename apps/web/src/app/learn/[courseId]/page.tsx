@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Navbar, Footer } from "@siksatech/ui";
-import { db, Course, Lesson } from "@siksatech/database";
+import { db, Course, Lesson, createBrowserClient, isRealSupabase } from "@siksatech/database";
 import Link from "next/link";
 import {
   BookOpen, Clock, Layers, ArrowLeft, Play, CheckCircle2,
@@ -19,11 +19,33 @@ export default function CourseDetailPage() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    db.getCourses().then((courses) => {
+    const initCourse = async () => {
+      const courses = await db.getCourses();
       const found = courses.find((c) => c.id === courseId);
       if (found) setCourse(found);
-    });
-    setUser(db.getCurrentUser());
+
+      if (isRealSupabase) {
+        try {
+          const supabase = createBrowserClient();
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            setUser({
+              id: authUser.id,
+              name: authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "Student",
+              email: authUser.email,
+              role: "student"
+            });
+            return;
+          }
+        } catch (err) {
+          console.error("CourseDetailPage auth error:", err);
+        }
+      }
+
+      setUser(db.getCurrentUser());
+    };
+
+    initCourse();
   }, [courseId]);
 
   const syllabus = [

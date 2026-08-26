@@ -45,7 +45,11 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    // Auth is handled by middleware — no need to check getCurrentUser here
+    setAdminUser({
+      name: "SiksaTech Super Admin",
+      email: "admin@siksatech.in",
+      role: "super_admin"
+    });
     loadLeadsData();
   }, []);
 

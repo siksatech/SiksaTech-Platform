@@ -1,13 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Navbar } from "@siksatech/ui";
-import { Footer } from "@siksatech/ui";
+import { Navbar, Footer } from "@siksatech/ui";
 import Link from "next/link";
-import { db, LearningPath, Course } from "@siksatech/database";
+import {
+  db,
+  createBrowserClient,
+  isRealSupabase,
+  LearningPath,
+  Course
+} from "@siksatech/database";
 import {
   BookOpen, Cpu, Terminal, Hammer, ArrowRight, ArrowLeft, Lock,
-  Clock, BarChart3, Layers, GraduationCap, Sparkles
+  Clock, BarChart3, Layers, GraduationCap, Sparkles, CheckCircle2
 } from "lucide-react";
 
 export default function LearnPage() {
@@ -22,12 +27,36 @@ export default function LearnPage() {
   const [recommendedPath, setRecommendedPath] = useState<string>("");
 
   useEffect(() => {
-    db.getLearningPaths().then(setPaths);
-    db.getCourses().then(setCourses);
-    const currentUser = db.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-    }
+    const initData = async () => {
+      // Load paths & courses
+      const loadedPaths = await db.getLearningPaths();
+      const loadedCourses = await db.getCourses();
+      setPaths(loadedPaths);
+      setCourses(loadedCourses);
+
+      // Auth state
+      if (isRealSupabase) {
+        try {
+          const supabase = createBrowserClient();
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            setUser({
+              name: authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "Student",
+              email: authUser.email || "",
+              role: "student"
+            });
+            return;
+          }
+        } catch (e) {
+          console.error("LearnPage auth error:", e);
+        }
+      }
+
+      const legacy = db.getCurrentUser();
+      if (legacy) setUser(legacy);
+    };
+
+    initData();
   }, []);
 
   const classOptions = [
@@ -111,7 +140,7 @@ export default function LearnPage() {
                       <button
                         key={opt.value}
                         onClick={() => setSelectedClass(opt.value)}
-                        className={`p-4 rounded-xl border-2 text-left transition-all ${
+                        className={`p-4 rounded-xl border-2 text-left transition-all cursor-pointer ${
                           selectedClass === opt.value
                             ? "border-blue-500 bg-blue-50 shadow-md"
                             : "border-slate-200 hover:border-slate-300 bg-white"
@@ -137,7 +166,7 @@ export default function LearnPage() {
                       <button
                         key={interest}
                         onClick={() => setSelectedInterest(interest)}
-                        className={`px-4 py-2 rounded-full text-xs font-semibold border transition-all ${
+                        className={`px-4 py-2 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                           selectedInterest === interest
                             ? "border-blue-500 bg-blue-50 text-blue-700"
                             : "border-slate-200 text-slate-600 hover:border-slate-300"
@@ -153,7 +182,7 @@ export default function LearnPage() {
                 <button
                   onClick={handleIntakeSubmit}
                   disabled={!selectedClass}
-                  className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                  className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
                     selectedClass
                       ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20"
                       : "bg-slate-100 text-slate-400 cursor-not-allowed"
@@ -175,7 +204,7 @@ export default function LearnPage() {
               <div className="flex items-center gap-4 mb-8">
                 <button
                   onClick={() => setStep("intake")}
-                  className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-white transition-all"
+                  className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-white transition-all cursor-pointer"
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
@@ -195,7 +224,7 @@ export default function LearnPage() {
               <div className="flex flex-wrap gap-2 mb-8">
                 <button
                   onClick={() => setRecommendedPath("")}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold tracking-wide transition-all ${
+                  className={`px-4 py-2 rounded-lg text-xs font-bold tracking-wide transition-all cursor-pointer ${
                     !recommendedPath
                       ? "bg-slate-900 text-white"
                       : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
@@ -210,7 +239,7 @@ export default function LearnPage() {
                     <button
                       key={path.id}
                       onClick={() => setRecommendedPath(path.id)}
-                      className={`px-4 py-2 rounded-lg text-xs font-bold tracking-wide transition-all ${
+                      className={`px-4 py-2 rounded-lg text-xs font-bold tracking-wide transition-all cursor-pointer ${
                         isActive
                           ? `${colors.bg} ${colors.text} ${colors.border} border`
                           : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
@@ -230,63 +259,69 @@ export default function LearnPage() {
                   return (
                     <div
                       key={course.id}
-                      className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-blue-200 transition-all group"
+                      className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-blue-200 transition-all group flex flex-col justify-between"
                     >
-                      {/* Top accent bar */}
-                      <div className={`h-1.5 ${colors.bg.replace("50", "400")}`}
-                        style={{ background: colors.text === "text-emerald-700" ? "#10B981" : colors.text === "text-blue-700" ? "#3B82F6" : colors.text === "text-purple-700" ? "#8B5CF6" : "#F97316" }}
-                      />
-                      <div className="p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className={`w-10 h-10 rounded-lg ${colors.bg} flex items-center justify-center`}>
-                            <Icon className={`w-5 h-5 ${colors.text}`} />
-                          </div>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${difficultyColors[course.difficulty]}`}>
-                            {course.difficulty}
-                          </span>
-                        </div>
-
-                        <h3 className="text-base font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
-                          {course.title}
-                        </h3>
-                        <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                          {course.description}
-                        </p>
-
-                        <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            {course.duration}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Layers className="w-3.5 h-3.5" />
-                            {course.modulesCount} modules
-                          </span>
-                        </div>
-
-                        <div className="flex flex-wrap gap-1.5 mb-5">
-                          {course.skills.map((skill, i) => (
-                            <span
-                              key={i}
-                              className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600"
-                            >
-                              {skill}
+                      <div>
+                        {/* Top accent bar */}
+                        <div className={`h-1.5 ${colors.bg.replace("50", "400")}`}
+                          style={{ background: colors.text === "text-emerald-700" ? "#10B981" : colors.text === "text-blue-700" ? "#3B82F6" : colors.text === "text-purple-700" ? "#8B5CF6" : "#F97316" }}
+                        />
+                        <div className="p-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className={`w-10 h-10 rounded-lg ${colors.bg} flex items-center justify-center`}>
+                              <Icon className={`w-5 h-5 ${colors.text}`} />
+                            </div>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${difficultyColors[course.difficulty]}`}>
+                              {course.difficulty}
                             </span>
-                          ))}
-                        </div>
+                          </div>
 
+                          <h3 className="text-base font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+                            {course.title}
+                          </h3>
+                          <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                            {course.description}
+                          </p>
+
+                          <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" />
+                              {course.duration}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Layers className="w-3.5 h-3.5" />
+                              {course.modulesCount} modules
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1.5 mb-5">
+                            {course.skills.map((skill, i) => (
+                              <span
+                                key={i}
+                                className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-6 pt-0">
                         {user ? (
-                          <button className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5">
+                          <Link
+                            href={`/learn/${course.id}`}
+                            className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                          >
                             <Sparkles className="w-3.5 h-3.5" />
-                            Enroll Now
-                          </button>
+                            Start Learning &rarr;
+                          </Link>
                         ) : (
                           <Link
-                            href="/auth/login"
-                            className="w-full py-2.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold transition-all flex items-center justify-center gap-1.5 hover:bg-slate-200"
+                            href={`/learn/${course.id}`}
+                            className="w-full py-2.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 hover:bg-slate-200"
                           >
-                            <Lock className="w-3.5 h-3.5" />
-                            Login to Enroll
+                            View Syllabus &amp; Enroll
                           </Link>
                         )}
                       </div>

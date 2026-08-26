@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   db,
   createBrowserClient,
@@ -11,8 +11,7 @@ import {
   DEMO_PROJECTS,
   DEMO_CERTIFICATES
 } from "@siksatech/database";
-import { Navbar } from "@siksatech/ui";
-import { Footer } from "@siksatech/ui";
+import { Navbar, Footer } from "@siksatech/ui";
 import { 
   User, 
   BookOpen, 
@@ -28,16 +27,29 @@ import {
   Plus,
   ShieldCheck,
   FileCode,
-  AlertTriangle
+  AlertTriangle,
+  Edit3,
+  Check,
+  Sparkles,
+  Save,
+  X
 } from "lucide-react";
 
-export default function StudentDashboard() {
+function StudentDashboardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  
   const [activeTab, setActiveTab] = useState<"overview" | "courses" | "projects" | "certificates">("overview");
   
   // User Profile
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editGrade, setEditGrade] = useState("");
+  const [editSchool, setEditSchool] = useState("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   // LMS Data States
   const [courses, setCourses] = useState<any[]>([]);
@@ -58,6 +70,13 @@ export default function StudentDashboard() {
   const [newVideoUrl, setNewVideoUrl] = useState("");
   const [newCode, setNewCode] = useState("");
   const [isSubmittingProject, setIsSubmittingProject] = useState(false);
+
+  // Sync tab from search param if present
+  useEffect(() => {
+    if (tabParam && ["overview", "courses", "projects", "certificates"].includes(tabParam)) {
+      setActiveTab(tabParam as any);
+    }
+  }, [tabParam]);
 
   // Load User Data & Fetch Supabase Tables
   useEffect(() => {
@@ -81,13 +100,16 @@ export default function StudentDashboard() {
 
           const mappedProfile = {
             id: user.id,
-            name: (profile as any)?.full_name || "Active Student",
+            name: (profile as any)?.full_name || user.user_metadata?.full_name || "Active Student",
             email: user.email,
             grade: (profile as any)?.grade_level || "Class 9",
             institution: (profile as any)?.school_college_name || "SiksaTech Academy",
             role: (profile as any)?.role || "student"
           };
           setUserProfile(mappedProfile);
+          setEditName(mappedProfile.name);
+          setEditGrade(mappedProfile.grade);
+          setEditSchool(mappedProfile.institution);
 
           // Get Pathway Level
           let pathLevel = "explorer";
@@ -139,6 +161,9 @@ export default function StudentDashboard() {
           role: "student"
         };
         setUserProfile(currUser);
+        setEditName(currUser.name);
+        setEditGrade(currUser.grade);
+        setEditSchool(currUser.institution);
         setCourses(DEMO_COURSES.map((c) => ({
           id: c.id,
           title: c.title,
@@ -163,6 +188,35 @@ export default function StudentDashboard() {
 
     loadSessionData();
   }, [router]);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingProfile(true);
+    if (isRealSupabase && userProfile?.id) {
+      try {
+        const supabase = createBrowserClient() as any;
+        await supabase
+          .from("profiles")
+          .update({
+            full_name: editName,
+            grade_level: editGrade,
+            school_college_name: editSchool,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", userProfile.id);
+      } catch (err) {
+        console.error("Profile update error:", err);
+      }
+    }
+    setUserProfile((prev: any) => ({
+      ...prev,
+      name: editName,
+      grade: editGrade,
+      institution: editSchool
+    }));
+    setEditingProfile(false);
+    setIsSavingProfile(false);
+  };
 
   const handleLogout = async () => {
     await db.logout();
@@ -309,13 +363,104 @@ export default function StudentDashboard() {
               <div className="space-y-6">
                 
                 {/* Header Welcome banner */}
-                <div className="p-8 bg-gradient-to-r from-slate-900 to-indigo-950 rounded-xl text-white space-y-2 relative overflow-hidden">
-                  <span className="text-[10px] font-mono tracking-widest text-indigo-400 font-bold uppercase">SiksaTech Workspace</span>
-                  <h1 className="text-2xl font-extrabold tracking-tight">Welcome back, {userProfile?.name}!</h1>
-                  <p className="text-xs text-slate-300 max-w-lg">
-                    Build physical solutions, solve engineering problems, and construct your maker portfolio.
-                  </p>
+                <div className="p-8 bg-gradient-to-r from-slate-900 to-indigo-950 rounded-xl text-white space-y-3 relative overflow-hidden">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-mono tracking-widest text-indigo-400 font-bold uppercase">SiksaTech Workspace</span>
+                      <h1 className="text-2xl font-extrabold tracking-tight">Welcome back, {userProfile?.name}!</h1>
+                      <p className="text-xs text-slate-300 max-w-lg">
+                        Build physical solutions, solve engineering problems, and construct your maker portfolio.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setEditingProfile((prev) => !prev)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600/60 hover:bg-indigo-600 border border-indigo-400/40 rounded-lg text-xs font-bold text-white transition-all self-start sm:self-center cursor-pointer shrink-0"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      {editingProfile ? "Close Profile Editor" : "Edit Profile Details"}
+                    </button>
+                  </div>
                 </div>
+
+                {/* Profile Edit Card (Conditional) */}
+                {editingProfile && (
+                  <form onSubmit={handleSaveProfile} className="bg-white border-2 border-indigo-200 rounded-xl p-6 shadow-md space-y-4 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <Edit3 className="w-4 h-4 text-indigo-600" />
+                        Update Student Identity
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setEditingProfile(false)}
+                        className="text-slate-400 hover:text-slate-600 p-1"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-extrabold uppercase text-slate-700">Full Name</label>
+                        <input
+                          type="text"
+                          required
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-indigo-600"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-extrabold uppercase text-slate-700">Grade / Academic Level</label>
+                        <select
+                          value={editGrade}
+                          onChange={(e) => setEditGrade(e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-indigo-600"
+                        >
+                          <option value="Class 5">Class 5</option>
+                          <option value="Class 6">Class 6</option>
+                          <option value="Class 7">Class 7</option>
+                          <option value="Class 8">Class 8</option>
+                          <option value="Class 9">Class 9</option>
+                          <option value="Class 10">Class 10</option>
+                          <option value="Class 11">Class 11</option>
+                          <option value="Class 12">Class 12</option>
+                          <option value="College / Graduate">College / Graduate</option>
+                          <option value="Professional">Professional</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-extrabold uppercase text-slate-700">School / University</label>
+                        <input
+                          type="text"
+                          value={editSchool}
+                          onChange={(e) => setEditSchool(e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-indigo-600"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingProfile(false)}
+                        className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSavingProfile}
+                        className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                        {isSavingProfile ? "Saving..." : "Save Changes"}
+                      </button>
+                    </div>
+                  </form>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   
@@ -711,5 +856,18 @@ export default function StudentDashboard() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function StudentDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center space-x-2">
+        <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent animate-spin rounded-full"></div>
+        <span className="text-xs text-slate-500 font-mono">LOADING STUDENT DATA REGISTRY...</span>
+      </div>
+    }>
+      <StudentDashboardContent />
+    </Suspense>
   );
 }
