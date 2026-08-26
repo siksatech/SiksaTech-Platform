@@ -8,6 +8,39 @@
 
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@siksatech/auth";
+import { createClient } from "@supabase/supabase-js";
+
+// ─────────────────────────────────────────────────────────────
+// RESOLVE ID TO EMAIL
+// ─────────────────────────────────────────────────────────────
+export async function resolveIdToEmail(idOrEmail: string): Promise<string | null> {
+  // If it's already an email, just return it
+  if (idOrEmail.includes("@")) {
+    return idOrEmail;
+  }
+
+  // Use service role key to bypass RLS if necessary to find the email
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !serviceKey) {
+    console.error("Missing Supabase env vars for admin client");
+    return null;
+  }
+
+  const adminClient = createClient(supabaseUrl, serviceKey);
+  const { data, error } = await adminClient
+    .from("profiles")
+    .select("email")
+    .eq("siksa_id", idOrEmail.trim())
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data.email;
+}
 
 // ─────────────────────────────────────────────────────────────
 // LOGIN with email + password
@@ -16,12 +49,17 @@ export async function loginWithEmail(
   prevState: { error: string | null },
   formData: FormData
 ): Promise<{ error: string | null }> {
-  const email = formData.get("email") as string;
+  const emailOrId = formData.get("email") as string;
   const password = formData.get("password") as string;
   const redirectTo = formData.get("redirect") as string | null;
 
-  if (!email || !password) {
-    return { error: "Email and password are required." };
+  if (!emailOrId || !password) {
+    return { error: "Email/ID and password are required." };
+  }
+
+  const email = await resolveIdToEmail(emailOrId);
+  if (!email) {
+    return { error: "SiksaTech ID not found." };
   }
 
   const supabase = await createSupabaseServerClient();

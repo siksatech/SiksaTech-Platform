@@ -57,13 +57,15 @@ function LoginForm() {
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otpEmail.trim()) {
-      setOtpError("Please enter your email address.");
+      setOtpError("Please enter your email address or SiksaTech ID.");
       return;
     }
     if (resendTimer > 0) return;
 
     setOtpLoading(true);
     setOtpError(null);
+
+    let finalEmail = otpEmail.trim();
 
     if (!isRealSupabase) {
       setTimeout(() => {
@@ -74,22 +76,39 @@ function LoginForm() {
       return;
     }
 
-    const supabase = createBrowserClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email: otpEmail.trim(),
-      options: {
-        shouldCreateUser: true,
-        emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`,
-      },
-    });
+    try {
+      // If it's not an email, try resolving it as an ID
+      if (!finalEmail.includes("@")) {
+        const { resolveIdToEmail } = await import("../actions");
+        const resolved = await resolveIdToEmail(finalEmail);
+        if (!resolved) {
+          setOtpError("SiksaTech ID not found. Please try again or use your email.");
+          setOtpLoading(false);
+          return;
+        }
+        finalEmail = resolved;
+      }
 
-    if (error) {
-      setOtpError(error.message);
-    } else {
-      setOtpSent(true);
-      startCooldown();
+      const supabase = createBrowserClient();
+      const { error } = await supabase.auth.signInWithOtp({
+        email: finalEmail,
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`,
+        },
+      });
+
+      if (error) {
+        setOtpError(error.message);
+      } else {
+        setOtpSent(true);
+        startCooldown();
+      }
+    } catch (err) {
+      setOtpError("An unexpected error occurred.");
+    } finally {
+      setOtpLoading(false);
     }
-    setOtpLoading(false);
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
@@ -201,15 +220,15 @@ function LoginForm() {
 
           <div className="flex flex-col space-y-1.5">
             <label htmlFor="email" className="text-[10px] font-extrabold tracking-wider text-slate-700 uppercase">
-              Email Address
+              Email Address or SiksaTech ID
             </label>
             <input
               id="email"
-              type="email"
+              type="text"
               name="email"
               required
               autoComplete="email"
-              placeholder="e.g. rahul@gmail.com"
+              placeholder="e.g. rahul@gmail.com or ST-123456"
               className="px-4 py-3 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
             />
           </div>
@@ -265,19 +284,19 @@ function LoginForm() {
             <form onSubmit={handleSendOtp} className="space-y-4">
               <div className="flex flex-col space-y-1.5">
                 <label htmlFor="otp-email" className="text-[10px] font-extrabold tracking-wider text-slate-700 uppercase">
-                  Your Email Address
+                  Your Email Address or SiksaTech ID
                 </label>
                 <input
                   id="otp-email"
-                  type="email"
+                  type="text"
                   value={otpEmail}
                   onChange={(e) => setOtpEmail(e.target.value)}
                   required
-                  placeholder="e.g. rahul@gmail.com"
+                  placeholder="e.g. rahul@gmail.com or ST-123456"
                   className="px-4 py-3 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
                 />
                 <p className="text-[11px] text-slate-500">
-                  We will send a secure verification code directly to your email inbox.
+                  We will find your account and send a secure verification code to your email.
                 </p>
               </div>
 
