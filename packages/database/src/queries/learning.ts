@@ -42,7 +42,7 @@ export async function getLearningPaths(supabase?: SupabaseClient): Promise<Learn
       .from("learning_paths")
       .select("*")
       .order("sort_order", { ascending: true });
-    if (!error && data && data.length > 0) {
+    if (!error && data) {
       return data;
     }
   }
@@ -64,7 +64,7 @@ export async function getCourses(
       .order("sort_order", { ascending: true });
     if (pathId) query = query.eq("learning_path_id", pathId);
     const { data, error } = await query;
-    if (!error && data && data.length > 0) {
+    if (!error && data) {
       return data.map((d: any) => ({
         id: d.id,
         learningPathId: d.learning_path_id,

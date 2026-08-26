@@ -42,7 +42,7 @@ export const db = {
     if (isRealSupabase && supabase) {
       const { data, error } = await supabase
         .from("banners").select("*").eq("is_active", true).order("sort_order");
-      if (!error && data?.length) {
+      if (!error && data) {
         return data.map((d: any) => ({
           id: d.id, title: d.title, subtitle: d.subtitle,
           ctaText: d.cta_text, ctaLink: d.cta_link, bgColor: d.bg_color,
@@ -50,7 +50,7 @@ export const db = {
         }));
       }
     }
-    return DEMO_BANNERS;
+    return isRealSupabase ? [] : DEMO_BANNERS;
   },
 
   saveBanner: async (banner: Omit<Banner, "id">): Promise<{ success: boolean }> => {
@@ -75,14 +75,14 @@ export const db = {
       let query = supabase.from("faqs").select("*").order("sort_order");
       if (category) query = query.eq("category", category);
       const { data, error } = await query;
-      if (!error && data?.length) {
+      if (!error && data) {
         return data.map((d: any) => ({
           id: d.id, question: d.question, answer: d.answer,
           category: d.category, sortOrder: d.sort_order
         }));
       }
     }
-    return category ? DEMO_FAQS.filter(f => f.category === category) : DEMO_FAQS;
+    return isRealSupabase ? [] : (category ? DEMO_FAQS.filter(f => f.category === category) : DEMO_FAQS);
   },
 
   saveFAQ: async (faq: Omit<FAQ, "id">): Promise<{ success: boolean }> => {
@@ -104,14 +104,14 @@ export const db = {
   getLearningPaths: async (): Promise<LearningPath[]> => {
     if (isRealSupabase && supabase) {
       const { data, error } = await supabase.from("learning_paths").select("*").order("sort_order");
-      if (!error && data?.length) {
+      if (!error && data) {
         return data.map((d: any) => ({
           id: d.id, title: d.title, targetAges: d.target_ages,
           description: d.description, skills: d.skills || [], projectsCount: d.projects_count
         }));
       }
     }
-    return DEMO_PATHS;
+    return isRealSupabase ? [] : DEMO_PATHS;
   },
 
   getCourses: async (pathId?: string): Promise<Course[]> => {
@@ -119,7 +119,7 @@ export const db = {
       let query = supabase.from("courses").select("*").order("sort_order");
       if (pathId) query = query.eq("learning_path_id", pathId);
       const { data, error } = await query;
-      if (!error && data?.length) {
+      if (!error && data) {
         return data.map((d: any) => ({
           id: d.id, learningPathId: d.learning_path_id, title: d.title,
           description: d.description, difficulty: d.difficulty, duration: d.duration,
@@ -127,7 +127,7 @@ export const db = {
         }));
       }
     }
-    return pathId ? DEMO_COURSES.filter(c => c.learningPathId === pathId) : DEMO_COURSES;
+    return isRealSupabase ? [] : (pathId ? DEMO_COURSES.filter(c => c.learningPathId === pathId) : DEMO_COURSES);
   },
 
   saveCourse: async (course: Course): Promise<{ success: boolean }> => {
@@ -152,7 +152,7 @@ export const db = {
       let query = supabase.from("projects").select("*").order("created_at", { ascending: false });
       if (featuredOnly) query = query.eq("is_featured", true);
       const { data, error } = await query;
-      if (!error && data?.length) {
+      if (!error && data) {
         return data.map((d: any) => ({
           id: d.id, title: d.title, description: d.description,
           problemStatement: d.problem_statement, studentLevel: d.student_level,
@@ -164,7 +164,7 @@ export const db = {
         }));
       }
     }
-    return featuredOnly ? DEMO_PROJECTS.filter(p => p.isFeatured) : DEMO_PROJECTS;
+    return isRealSupabase ? [] : (featuredOnly ? DEMO_PROJECTS.filter(p => p.isFeatured) : DEMO_PROJECTS);
   },
 
   getProject: async (id: string): Promise<Project | null> => {
@@ -182,7 +182,7 @@ export const db = {
         };
       }
     }
-    return DEMO_PROJECTS.find(p => p.id === id) || null;
+    return isRealSupabase ? null : (DEMO_PROJECTS.find(p => p.id === id) || null);
   },
 
   saveProject: async (project: Omit<Project, "id"> & { id?: string }): Promise<{ success: boolean; data?: Project }> => {
@@ -212,7 +212,7 @@ export const db = {
   getCompetitions: async (): Promise<Competition[]> => {
     if (isRealSupabase && supabase) {
       const { data, error } = await supabase.from("competitions").select("*").order("date");
-      if (!error && data?.length) {
+      if (!error && data) {
         return data.map((d: any) => ({
           id: d.id, title: d.title, description: d.description,
           date: d.date, endDate: d.end_date, location: d.location,
@@ -220,7 +220,7 @@ export const db = {
         }));
       }
     }
-    return DEMO_COMPETITIONS;
+    return isRealSupabase ? [] : DEMO_COMPETITIONS;
   },
 
   saveCompetition: async (comp: Omit<Competition, "id">): Promise<{ success: boolean }> => {
@@ -245,7 +245,7 @@ export const db = {
       let query = supabase.from("store_kits").select("*").order("price");
       if (category) query = query.eq("category", category);
       const { data, error } = await query;
-      if (!error && data?.length) {
+      if (!error && data) {
         return data.map((d: any) => ({
           id: d.id, name: d.name, description: d.description, price: d.price,
           originalPrice: d.original_price, category: d.category, imageUrl: d.image_url,
@@ -253,7 +253,7 @@ export const db = {
         }));
       }
     }
-    return category ? DEMO_STORE_KITS.filter(k => k.category === category) : DEMO_STORE_KITS;
+    return isRealSupabase ? [] : (category ? DEMO_STORE_KITS.filter(k => k.category === category) : DEMO_STORE_KITS);
   },
 
   saveStoreKit: async (kit: Omit<StoreKit, "id">): Promise<{ success: boolean }> => {
@@ -343,14 +343,14 @@ export const db = {
   getCertificates: async (): Promise<Certificate[]> => {
     if (isRealSupabase && supabase) {
       const { data, error } = await supabase.from("certificates").select("*").order("created_at", { ascending: false });
-      if (!error && data?.length) {
+      if (!error && data) {
         return data.map((d: any) => ({
           id: d.id, studentName: d.student_name, programName: d.program_name,
           achievement: d.achievement, issuedDate: d.issued_date, skillsVerified: d.skills_verified || []
         }));
       }
     }
-    return Object.values(DEMO_CERTIFICATES);
+    return isRealSupabase ? [] : Object.values(DEMO_CERTIFICATES);
   },
 
   verifyCertificate: async (id: string): Promise<Certificate | null> => {
@@ -363,7 +363,7 @@ export const db = {
         };
       }
     }
-    return DEMO_CERTIFICATES[id] || null;
+    return isRealSupabase ? null : (DEMO_CERTIFICATES[id] || null);
   },
 
   // ─── Auth (DEPRECATED — use Server Actions + createServerClient) ─────────

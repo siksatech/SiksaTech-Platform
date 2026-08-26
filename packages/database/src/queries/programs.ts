@@ -141,7 +141,7 @@ export async function getEducationalPrograms(
       .eq("is_active", true)
       .order("sort_order", { ascending: true });
 
-    if (!error && data && data.length > 0) {
+    if (!error && data) {
       return data;
     }
   }
@@ -162,7 +162,7 @@ export async function getActiveCompetitions(
       .eq("is_published", true)
       .order("start_date", { ascending: false });
 
-    if (!error && data && data.length > 0) {
+    if (!error && data) {
       return data;
     }
   }
