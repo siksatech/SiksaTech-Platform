@@ -97,10 +97,16 @@ export {
   verifyCertificate,
   issueCertificate,
   DEMO_ASSESSMENT,
+  getStoreProducts,
+  getStoreProductBySlug,
+  createOrder,
+  getUserOrders,
+  DEMO_PRODUCTS,
 } from "./queries";
 export type { CourseModule, Enrollment, LessonProgress } from "./queries/learning";
 export type { Assessment, AssessmentQuestion, AssessmentSubmissionResult } from "./queries/assessments";
 export type { VerifiableCertificate } from "./queries/certificates";
+export type { ProductItem, ShippingAddress, OrderItemPayload, OrderRecord } from "./queries/store";
 
 // ─── Legacy Mock Data (Fallbacks) ────────────────────────────────────────────
 // Used when Supabase credentials are not configured (development / demo mode)

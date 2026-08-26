@@ -29,9 +29,38 @@ export default function StorePage() {
     ? kits.filter((k) => k.category === selectedCategory)
     : kits;
 
-  const handleAddToCart = (name: string) => {
-    setAddedItem(name);
+  const handleAddToCart = (kit: StoreKit) => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("siksatech_cart");
+      let items: any[] = [];
+      if (saved) {
+        try {
+          items = JSON.parse(saved);
+        } catch {
+          items = [];
+        }
+      }
+      const existing = items.find((i) => i.id === kit.id);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        items.push({
+          id: kit.id,
+          title: kit.name,
+          price_inr: kit.price,
+          quantity: 1,
+          category: kit.category
+        });
+      }
+      localStorage.setItem("siksatech_cart", JSON.stringify(items));
+    }
+    setAddedItem(kit.name);
     setTimeout(() => setAddedItem(null), 2500);
+  };
+
+  const handleBuyNow = (kit: StoreKit) => {
+    handleAddToCart(kit);
+    window.location.href = "/cart";
   };
 
   return (
@@ -146,17 +175,17 @@ export default function StorePage() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <button
-                      onClick={() => handleAddToCart(kit.name)}
-                      className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs rounded-xl transition-all"
+                      onClick={() => handleAddToCart(kit)}
+                      className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs rounded-xl transition-all cursor-pointer"
                     >
                       Add to Cart
                     </button>
-                    <Link
-                      href={`/enquiry/kit?kitId=${kit.id}`}
-                      className="py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-center font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all"
+                    <button
+                      onClick={() => handleBuyNow(kit)}
+                      className="py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-center font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer"
                     >
-                      Order Now &rarr;
-                    </Link>
+                      Buy Now &rarr;
+                    </button>
                   </div>
                 </div>
               </div>
