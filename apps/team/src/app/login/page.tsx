@@ -153,7 +153,7 @@ export default function TeamLoginPage() {
             <p className="text-xs text-slate-500">
               Are you a student?{" "}
               <a 
-                href={process.env.NEXT_PUBLIC_WEB_URL ? `${process.env.NEXT_PUBLIC_WEB_URL}/auth/login` : "http://localhost:3000/auth/login"} 
+                href={process.env.NEXT_PUBLIC_WEB_URL ? `${process.env.NEXT_PUBLIC_WEB_URL}/auth/login` : "https://siksatech.in/auth/login"} 
                 className="text-blue-500 hover:underline font-semibold"
               >
                 Go to Student Portal &rarr;
