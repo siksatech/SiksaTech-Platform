@@ -76,8 +76,9 @@ function LoginForm() {
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!otpCode.trim()) {
-      setOtpError("Please enter the 6-digit code sent to your email.");
+    const cleanToken = otpCode.trim().replace(/[\s-]/g, "");
+    if (!cleanToken) {
+      setOtpError("Please enter the verification code sent to your email.");
       return;
     }
     setOtpLoading(true);
@@ -92,7 +93,7 @@ function LoginForm() {
     const supabase = createBrowserClient();
     const { error } = await supabase.auth.verifyOtp({
       email: otpEmail.trim(),
-      token: otpCode.trim(),
+      token: cleanToken,
       type: "email",
     });
 
@@ -258,7 +259,7 @@ function LoginForm() {
                   className="px-4 py-3 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
                 />
                 <p className="text-[11px] text-slate-500">
-                  We will send a 6-digit secure login code directly to your email inbox.
+                  We will send a secure verification code directly to your email inbox.
                 </p>
               </div>
 
@@ -274,7 +275,7 @@ function LoginForm() {
                   </>
                 ) : (
                   <>
-                    <span>SEND 6-DIGIT CODE</span>
+                    <span>SEND VERIFICATION CODE</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </>
                 )}
@@ -289,16 +290,17 @@ function LoginForm() {
 
               <div className="flex flex-col space-y-1.5">
                 <label htmlFor="otp-code" className="text-[10px] font-extrabold tracking-wider text-slate-700 uppercase">
-                  Enter 6-Digit Code
+                  Enter Verification Code (OTP)
                 </label>
                 <input
                   id="otp-code"
                   type="text"
-                  maxLength={6}
+                  maxLength={12}
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value)}
                   required
-                  placeholder="123456"
+                  autoFocus
+                  placeholder="e.g. 12345678"
                   className="px-4 py-3 rounded-xl border border-slate-200 bg-white text-center font-mono text-lg tracking-widest text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
                 />
               </div>
