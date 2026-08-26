@@ -98,6 +98,51 @@ CREATE TABLE IF NOT EXISTS public.lesson_progress (
   UNIQUE (user_id, lesson_id)
 );
 
+-- Ensure columns exist if tables pre-existed
+ALTER TABLE public.learning_paths ADD COLUMN IF NOT EXISTS title TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.learning_paths ADD COLUMN IF NOT EXISTS target_ages TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.learning_paths ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.learning_paths ADD COLUMN IF NOT EXISTS skills TEXT[] DEFAULT '{}';
+ALTER TABLE public.learning_paths ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0;
+
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS learning_path_id TEXT;
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS title TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS difficulty TEXT NOT NULL DEFAULT 'Beginner';
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS duration TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS skills TEXT[] DEFAULT '{}';
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS class_levels TEXT[] DEFAULT '{}';
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS thumbnail_url TEXT;
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0;
+ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS created_by UUID;
+
+ALTER TABLE public.lessons ADD COLUMN IF NOT EXISTS course_id TEXT;
+ALTER TABLE public.lessons ADD COLUMN IF NOT EXISTS module_id UUID;
+ALTER TABLE public.lessons ADD COLUMN IF NOT EXISTS title TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.lessons ADD COLUMN IF NOT EXISTS lesson_type TEXT NOT NULL DEFAULT 'theory';
+ALTER TABLE public.lessons ADD COLUMN IF NOT EXISTS content_markdown TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.lessons ADD COLUMN IF NOT EXISTS video_url TEXT;
+ALTER TABLE public.lessons ADD COLUMN IF NOT EXISTS starter_code TEXT;
+ALTER TABLE public.lessons ADD COLUMN IF NOT EXISTS solution_code TEXT;
+ALTER TABLE public.lessons ADD COLUMN IF NOT EXISTS duration_minutes INT NOT NULL DEFAULT 15;
+ALTER TABLE public.lessons ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0;
+ALTER TABLE public.lessons ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE public.enrollments ADD COLUMN IF NOT EXISTS user_id UUID;
+ALTER TABLE public.enrollments ADD COLUMN IF NOT EXISTS course_id TEXT;
+ALTER TABLE public.enrollments ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active';
+ALTER TABLE public.enrollments ADD COLUMN IF NOT EXISTS enrolled_at TIMESTAMPTZ NOT NULL DEFAULT now();
+ALTER TABLE public.enrollments ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ;
+
+ALTER TABLE public.lesson_progress ADD COLUMN IF NOT EXISTS user_id UUID;
+ALTER TABLE public.lesson_progress ADD COLUMN IF NOT EXISTS lesson_id TEXT;
+ALTER TABLE public.lesson_progress ADD COLUMN IF NOT EXISTS course_id TEXT;
+ALTER TABLE public.lesson_progress ADD COLUMN IF NOT EXISTS is_completed BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE public.lesson_progress ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ;
+ALTER TABLE public.lesson_progress ADD COLUMN IF NOT EXISTS notes TEXT;
+
+
+
 -- ─────────────────────────────────────────────────────────────
 -- INDEXES
 -- ─────────────────────────────────────────────────────────────
@@ -120,15 +165,31 @@ ALTER TABLE public.enrollments    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lesson_progress ENABLE ROW LEVEL SECURITY;
 
 -- Public read access to published courses & content
+DROP POLICY IF EXISTS "paths_public_read" ON public.learning_paths;
 CREATE POLICY "paths_public_read" ON public.learning_paths FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "courses_public_read" ON public.courses;
 CREATE POLICY "courses_public_read" ON public.courses FOR SELECT USING (is_published = true);
+
+DROP POLICY IF EXISTS "modules_public_read" ON public.course_modules;
 CREATE POLICY "modules_public_read" ON public.course_modules FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "lessons_public_read" ON public.lessons;
 CREATE POLICY "lessons_public_read" ON public.lessons FOR SELECT USING (is_published = true);
 
 -- User can manage their own enrollments & progress
+DROP POLICY IF EXISTS "enrollments_user_read" ON public.enrollments;
 CREATE POLICY "enrollments_user_read" ON public.enrollments FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "enrollments_user_insert" ON public.enrollments;
 CREATE POLICY "enrollments_user_insert" ON public.enrollments FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "enrollments_user_update" ON public.enrollments;
 CREATE POLICY "enrollments_user_update" ON public.enrollments FOR UPDATE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "progress_user_read" ON public.lesson_progress;
 CREATE POLICY "progress_user_read" ON public.lesson_progress FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "progress_user_all" ON public.lesson_progress;
 CREATE POLICY "progress_user_all" ON public.lesson_progress FOR ALL USING (auth.uid() = user_id);
+

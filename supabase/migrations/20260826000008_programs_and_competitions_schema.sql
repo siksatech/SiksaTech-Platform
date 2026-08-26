@@ -4,9 +4,16 @@
 -- ============================================================
 
 -- ─────────────────────────────────────────────────────────────
+-- DROP PRE-EXISTING TABLES IF EMPTY TO ENSURE CLEAN SCHEMA
+-- ─────────────────────────────────────────────────────────────
+DROP TABLE IF EXISTS public.competition_teams CASCADE;
+DROP TABLE IF EXISTS public.competitions CASCADE;
+DROP TABLE IF EXISTS public.programs CASCADE;
+
+-- ─────────────────────────────────────────────────────────────
 -- EDUCATIONAL PROGRAMS & BOOTCAMPS
 -- ─────────────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS public.programs (
+CREATE TABLE public.programs (
   id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   slug                  TEXT UNIQUE NOT NULL,
   title                 TEXT NOT NULL,
@@ -26,7 +33,7 @@ CREATE TABLE IF NOT EXISTS public.programs (
 -- ─────────────────────────────────────────────────────────────
 -- COMPETITIONS & NATIONAL HACKATHONS
 -- ─────────────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS public.competitions (
+CREATE TABLE public.competitions (
   id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   slug                  TEXT UNIQUE NOT NULL,
   title                 TEXT NOT NULL,
@@ -50,7 +57,7 @@ CREATE TABLE IF NOT EXISTS public.competitions (
 -- ─────────────────────────────────────────────────────────────
 -- COMPETITION TEAMS & SUBMISSIONS
 -- ─────────────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS public.competition_teams (
+CREATE TABLE public.competition_teams (
   id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   competition_id     UUID NOT NULL REFERENCES public.competitions(id) ON DELETE CASCADE,
   team_name          TEXT NOT NULL,
@@ -137,9 +144,16 @@ ALTER TABLE public.competitions      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.competition_teams ENABLE ROW LEVEL SECURITY;
 
 -- Public read access to active programs & competitions
+DROP POLICY IF EXISTS "programs_public_read" ON public.programs;
 CREATE POLICY "programs_public_read" ON public.programs FOR SELECT USING (is_active = true);
+
+DROP POLICY IF EXISTS "competitions_public_read" ON public.competitions;
 CREATE POLICY "competitions_public_read" ON public.competitions FOR SELECT USING (is_published = true);
+
+DROP POLICY IF EXISTS "comp_teams_public_read" ON public.competition_teams;
 CREATE POLICY "comp_teams_public_read" ON public.competition_teams FOR SELECT USING (true);
 
 -- Anyone can register a team
+DROP POLICY IF EXISTS "comp_teams_insert" ON public.competition_teams;
 CREATE POLICY "comp_teams_insert" ON public.competition_teams FOR INSERT WITH CHECK (true);
+

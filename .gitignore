@@ -49,3 +49,8 @@ apps/*/out
 packages/*/node_modules
 packages/*/.next
 packages/*/out
+
+# Supabase
+supabase/.temp/
+supabase/.branches/
+

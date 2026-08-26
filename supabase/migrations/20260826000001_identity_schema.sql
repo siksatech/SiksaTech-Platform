@@ -24,9 +24,35 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   linkedin_url     TEXT,
   is_public        BOOLEAN NOT NULL DEFAULT true,
   is_profile_complete BOOLEAN NOT NULL DEFAULT false,
+  role             TEXT DEFAULT 'student',
+  grade_level      TEXT,
+  school_college_name TEXT,
   created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Ensure columns exist even if table was pre-created
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS display_name TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS date_of_birth DATE;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS gender TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS bio TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS city TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS state TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS country TEXT NOT NULL DEFAULT 'India';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS website_url TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS github_url TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS linkedin_url TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_public BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_profile_complete BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'student';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS grade_level TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS school_college_name TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 
 -- ─────────────────────────────────────────────────────────────
 -- ROLES
@@ -142,39 +168,48 @@ ALTER TABLE public.user_roles        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.parent_child_links ENABLE ROW LEVEL SECURITY;
 
 -- Profiles: public portfolios are readable by all; user can edit own
+DROP POLICY IF EXISTS "profiles_public_read" ON public.profiles;
 CREATE POLICY "profiles_public_read"
   ON public.profiles FOR SELECT
   USING (is_public = true OR auth.uid() = id);
 
+DROP POLICY IF EXISTS "profiles_self_update" ON public.profiles;
 CREATE POLICY "profiles_self_update"
   ON public.profiles FOR UPDATE
   USING (auth.uid() = id);
 
 -- Roles: readable by all authenticated users (needed for permission checks)
+DROP POLICY IF EXISTS "roles_read_authenticated" ON public.roles;
 CREATE POLICY "roles_read_authenticated"
   ON public.roles FOR SELECT
   USING (auth.role() = 'authenticated');
 
 -- Permissions: readable by all authenticated users
+DROP POLICY IF EXISTS "permissions_read_authenticated" ON public.permissions;
 CREATE POLICY "permissions_read_authenticated"
   ON public.permissions FOR SELECT
   USING (auth.role() = 'authenticated');
 
 -- Role permissions: readable by authenticated
+DROP POLICY IF EXISTS "role_permissions_read_authenticated" ON public.role_permissions;
 CREATE POLICY "role_permissions_read_authenticated"
   ON public.role_permissions FOR SELECT
   USING (auth.role() = 'authenticated');
 
 -- User roles: user can see own roles; admins see all via service role
+DROP POLICY IF EXISTS "user_roles_self_read" ON public.user_roles;
 CREATE POLICY "user_roles_self_read"
   ON public.user_roles FOR SELECT
   USING (auth.uid() = user_id);
 
 -- Parent-child: parent and child can see the link
+DROP POLICY IF EXISTS "parent_child_read" ON public.parent_child_links;
 CREATE POLICY "parent_child_read"
   ON public.parent_child_links FOR SELECT
   USING (auth.uid() = parent_id OR auth.uid() = child_id);
 
+DROP POLICY IF EXISTS "parent_child_insert" ON public.parent_child_links;
 CREATE POLICY "parent_child_insert"
   ON public.parent_child_links FOR INSERT
   WITH CHECK (auth.uid() = parent_id);
+

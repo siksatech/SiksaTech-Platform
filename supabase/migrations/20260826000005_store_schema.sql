@@ -51,6 +51,38 @@ CREATE TABLE IF NOT EXISTS public.orders (
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Ensure columns exist if tables pre-existed
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS slug TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS title TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS price_inr NUMERIC(10, 2) NOT NULL DEFAULT 0;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS compare_at_price NUMERIC(10, 2);
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'component';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS images TEXT[] DEFAULT '{}';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS features TEXT[] DEFAULT '{}';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS components_list TEXT[] DEFAULT '{}';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS sku TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS stock_count INT NOT NULL DEFAULT 0;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_in_stock BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0;
+
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS order_number TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS user_id UUID;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'processing';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'paid';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_gateway TEXT NOT NULL DEFAULT 'razorpay';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_id TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS total_amount_inr NUMERIC(10, 2) NOT NULL DEFAULT 0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS subtotal_inr NUMERIC(10, 2) NOT NULL DEFAULT 0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS tax_inr NUMERIC(10, 2) NOT NULL DEFAULT 0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS shipping_fee_inr NUMERIC(10, 2) NOT NULL DEFAULT 0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS shipping_address JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS billing_address JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS tracking_number TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS courier_name TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS notes TEXT;
+
 -- ─────────────────────────────────────────────────────────────
 -- ORDER ITEMS
 -- ─────────────────────────────────────────────────────────────
@@ -136,13 +168,21 @@ ALTER TABLE public.orders      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 
 -- Products: readable by everyone
+DROP POLICY IF EXISTS "products_public_read" ON public.products;
 CREATE POLICY "products_public_read" ON public.products FOR SELECT USING (is_published = true);
 
 -- Orders: Users can read their own orders; can create new orders
+DROP POLICY IF EXISTS "orders_user_read" ON public.orders;
 CREATE POLICY "orders_user_read" ON public.orders FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "orders_user_insert" ON public.orders;
 CREATE POLICY "orders_user_insert" ON public.orders FOR INSERT WITH CHECK (auth.uid() = user_id OR auth.uid() IS NULL);
 
+DROP POLICY IF EXISTS "order_items_user_read" ON public.order_items;
 CREATE POLICY "order_items_user_read" ON public.order_items FOR SELECT USING (
   EXISTS (SELECT 1 FROM public.orders o WHERE o.id = order_items.order_id AND (o.user_id = auth.uid() OR auth.uid() IS NULL))
 );
+
+DROP POLICY IF EXISTS "order_items_user_insert" ON public.order_items;
 CREATE POLICY "order_items_user_insert" ON public.order_items FOR INSERT WITH CHECK (true);
+

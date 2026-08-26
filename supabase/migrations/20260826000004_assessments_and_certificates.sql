@@ -71,9 +71,23 @@ CREATE TABLE IF NOT EXISTS public.certificates (
   issued_date       DATE NOT NULL DEFAULT CURRENT_DATE,
   issuer_name       TEXT NOT NULL DEFAULT 'SiksaTech Academic Council',
   is_revoked        BOOLEAN NOT NULL DEFAULT false,
-  metadata          JSONB DEFAULT '{}'::jsonb,
   created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Ensure columns exist if table pre-existed
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS user_id UUID;
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS student_name TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS program_name TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS achievement TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS course_id TEXT;
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS skills_verified TEXT[] DEFAULT '{}';
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS verification_hash TEXT;
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS issued_date DATE NOT NULL DEFAULT CURRENT_DATE;
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS issuer_name TEXT NOT NULL DEFAULT 'SiksaTech Academic Council';
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS is_revoked BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE public.certificates ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 
 -- ─────────────────────────────────────────────────────────────
 -- INDEXES
@@ -98,8 +112,13 @@ CREATE POLICY "assessments_public_read" ON public.assessments FOR SELECT USING (
 CREATE POLICY "questions_public_read" ON public.assessment_questions FOR SELECT USING (true);
 
 -- Submissions: User can see own submissions and insert new attempts
+DROP POLICY IF EXISTS "submissions_user_read" ON public.assessment_submissions;
 CREATE POLICY "submissions_user_read" ON public.assessment_submissions FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "submissions_user_insert" ON public.assessment_submissions;
 CREATE POLICY "submissions_user_insert" ON public.assessment_submissions FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Certificates: Publicly readable for instant credential verification at /verify/[id]
+DROP POLICY IF EXISTS "certificates_public_read" ON public.certificates;
 CREATE POLICY "certificates_public_read" ON public.certificates FOR SELECT USING (true);
+

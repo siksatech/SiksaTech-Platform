@@ -6,7 +6,9 @@
 -- ─────────────────────────────────────────────────────────────
 -- STUDENT PROJECTS & HARDWARE BUILDS
 -- ─────────────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS public.student_projects (
+DROP TABLE IF EXISTS public.student_projects CASCADE;
+
+CREATE TABLE public.student_projects (
   id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   slug               TEXT UNIQUE,
   student_id         UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
@@ -35,6 +37,7 @@ CREATE TABLE IF NOT EXISTS public.student_projects (
   updated_at         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+
 -- ─────────────────────────────────────────────────────────────
 -- COMMUNITY BLOGS & TUTORIALS
 -- ─────────────────────────────────────────────────────────────
@@ -56,6 +59,22 @@ CREATE TABLE IF NOT EXISTS public.blogs (
   created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Ensure columns exist if blogs table pre-existed
+ALTER TABLE public.blogs ADD COLUMN IF NOT EXISTS slug TEXT;
+ALTER TABLE public.blogs ADD COLUMN IF NOT EXISTS title TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.blogs ADD COLUMN IF NOT EXISTS excerpt TEXT;
+ALTER TABLE public.blogs ADD COLUMN IF NOT EXISTS content_markdown TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.blogs ADD COLUMN IF NOT EXISTS author_id UUID;
+ALTER TABLE public.blogs ADD COLUMN IF NOT EXISTS author_name TEXT NOT NULL DEFAULT '';
+ALTER TABLE public.blogs ADD COLUMN IF NOT EXISTS author_role TEXT DEFAULT 'SiksaTech Mentor';
+ALTER TABLE public.blogs ADD COLUMN IF NOT EXISTS cover_image TEXT;
+ALTER TABLE public.blogs ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'tutorial';
+ALTER TABLE public.blogs ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}';
+ALTER TABLE public.blogs ADD COLUMN IF NOT EXISTS read_time_mins INT NOT NULL DEFAULT 5;
+ALTER TABLE public.blogs ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE public.blogs ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ DEFAULT now();
+
 
 -- ─────────────────────────────────────────────────────────────
 -- COMMUNITY POSTS & DISCUSSIONS
@@ -151,11 +170,22 @@ ALTER TABLE public.blogs            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.community_posts  ENABLE ROW LEVEL SECURITY;
 
 -- Projects: approved builds are visible to all; users can see own drafts/pending
+DROP POLICY IF EXISTS "projects_public_read" ON public.student_projects;
 CREATE POLICY "projects_public_read" ON public.student_projects FOR SELECT USING (status = 'approved' OR auth.uid() = student_id);
+
+DROP POLICY IF EXISTS "projects_user_insert" ON public.student_projects;
 CREATE POLICY "projects_user_insert" ON public.student_projects FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "projects_user_update" ON public.student_projects;
 CREATE POLICY "projects_user_update" ON public.student_projects FOR UPDATE USING (auth.uid() = student_id);
 
 -- Blogs & Community
+DROP POLICY IF EXISTS "blogs_public_read" ON public.blogs;
 CREATE POLICY "blogs_public_read" ON public.blogs FOR SELECT USING (is_published = true);
+
+DROP POLICY IF EXISTS "community_public_read" ON public.community_posts;
 CREATE POLICY "community_public_read" ON public.community_posts FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "community_user_insert" ON public.community_posts;
 CREATE POLICY "community_user_insert" ON public.community_posts FOR INSERT WITH CHECK (true);
+

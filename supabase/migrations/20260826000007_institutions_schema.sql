@@ -129,7 +129,10 @@ ALTER TABLE public.institution_students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.institution_inquiries ENABLE ROW LEVEL SECURITY;
 
 -- Public can query verified partner schools
+DROP POLICY IF EXISTS "institutions_public_read" ON public.institutions;
 CREATE POLICY "institutions_public_read" ON public.institutions FOR SELECT USING (status = 'active');
 
 -- Inquiries: anyone can submit an inquiry
+DROP POLICY IF EXISTS "inquiries_public_insert" ON public.institution_inquiries;
 CREATE POLICY "inquiries_public_insert" ON public.institution_inquiries FOR INSERT WITH CHECK (true);
+
