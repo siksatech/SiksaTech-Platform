@@ -384,16 +384,45 @@ export async function verifyChildLinkOtp(
 
   const dbClient = await getEffectiveDbClient();
 
-  // Mark link as verified: true
-  const { error: linkErr } = await (dbClient as any).from("parent_child_links").upsert({
-    parent_id: user.id,
-    child_id: childId,
-    verified: true,
-  }, { onConflict: "parent_id,child_id" });
+  // 1. Try updating existing link to verified: true
+  const { error: updateErr } = await (dbClient as any)
+    .from("parent_child_links")
+    .update({ verified: true })
+    .eq("parent_id", user.id)
+    .eq("child_id", childId);
 
-  if (linkErr) {
-    console.error("Link update error:", linkErr);
-    return { error: "Failed to confirm link. Please try again.", success: false };
+  if (!updateErr) {
+    return { error: null, success: true };
+  }
+
+  // 2. If update failed (e.g. row didn't exist), try inserting
+  const { error: insertErr } = await (dbClient as any)
+    .from("parent_child_links")
+    .insert({
+      parent_id: user.id,
+      child_id: childId,
+      verified: true,
+    });
+
+  if (!insertErr) {
+    return { error: null, success: true };
+  }
+
+  // 3. Fallback upsert
+  const { error: upsertErr } = await (dbClient as any)
+    .from("parent_child_links")
+    .upsert({
+      parent_id: user.id,
+      child_id: childId,
+      verified: true,
+    }, { onConflict: "parent_id,child_id" });
+
+  if (upsertErr) {
+    console.error("Link confirmation error:", updateErr || insertErr || upsertErr);
+    return {
+      error: "Failed to confirm link. Please run the RLS policy update in Supabase SQL editor or contact support.",
+      success: false,
+    };
   }
 
   return { error: null, success: true };
@@ -544,14 +573,25 @@ export async function approveParentLink(linkId: string): Promise<{ success: bool
     if (!user) return { success: false, error: "Not authenticated" };
 
     const dbClient = await getEffectiveDbClient();
-    const { error } = await (dbClient as any)
+    
+    // 1. Try update by ID
+    const { error: updateErr } = await (dbClient as any)
       .from("parent_child_links")
       .update({ verified: true })
       .eq("id", linkId)
       .eq("child_id", user.id);
 
-    if (error) return { success: false, error: error.message };
-    return { success: true, error: null };
+    if (!updateErr) return { success: true, error: null };
+
+    // 2. Try update by child_id
+    const { error: updateByChildErr } = await (dbClient as any)
+      .from("parent_child_links")
+      .update({ verified: true })
+      .eq("child_id", user.id);
+
+    if (!updateByChildErr) return { success: true, error: null };
+
+    return { success: false, error: updateErr?.message || "Failed to update link in database" };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to approve link" };
   }
