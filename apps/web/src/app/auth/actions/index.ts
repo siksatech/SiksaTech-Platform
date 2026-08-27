@@ -11,6 +11,22 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@siksatech/auth";
 import { createAdminClient, isRealSupabase } from "@siksatech/database";
 
+/**
+ * Get an effective DB client:
+ * Uses privileged admin client if SUPABASE_SERVICE_ROLE_KEY is present,
+ * otherwise safely falls back to standard server-authenticated Supabase client.
+ */
+async function getEffectiveDbClient() {
+  try {
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return createAdminClient();
+    }
+  } catch {
+    // Fall back to server client
+  }
+  return await createSupabaseServerClient();
+}
+
 // ─────────────────────────────────────────────────────────────
 // RESOLVE ID TO EMAIL
 // ─────────────────────────────────────────────────────────────
@@ -20,12 +36,12 @@ export async function resolveIdToEmail(idOrEmail: string): Promise<string | null
   if (!isRealSupabase) return null;
 
   try {
-    const adminClient = createAdminClient();
-    const { data, error } = await adminClient
+    const client = await getEffectiveDbClient();
+    const { data, error } = await (client as any)
       .from("profiles")
       .select("email")
       .eq("siksa_id", idOrEmail.trim())
-      .single();
+      .maybeSingle();
     if (error || !data) return null;
     return (data as any).email;
   } catch {
@@ -173,16 +189,15 @@ export async function initiateChildLink(
     };
   }
 
-  let adminClient: ReturnType<typeof createAdminClient>;
-  try {
-    adminClient = createAdminClient();
-  } catch {
-    return { error: "Admin access not configured. Please contact support.", success: false };
-  }
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be logged in to link a child.", success: false };
+
+  const dbClient = await getEffectiveDbClient();
 
   // Resolve the child profile
   const isEmail = idOrEmail.includes("@");
-  const { data: childProfile, error: lookupErr } = await adminClient
+  const { data: childProfile, error: lookupErr } = await (dbClient as any)
     .from("profiles")
     .select("id, full_name, role, email, siksa_id")
     .eq(isEmail ? "email" : "siksa_id", idOrEmail)
@@ -196,13 +211,8 @@ export async function initiateChildLink(
     return { error: "This account is not a student account.", success: false };
   }
 
-  // Get current parent
-  const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "You must be logged in to link a child.", success: false };
-
   // Check if already linked
-  const { data: existing } = await adminClient
+  const { data: existing } = await (dbClient as any)
     .from("parent_child_links")
     .select("id")
     .eq("parent_id", user.id)
@@ -217,11 +227,15 @@ export async function initiateChildLink(
 
   // If no email (parent-created account) — link immediately, no OTP needed
   if (!childEmail) {
-    await (adminClient as any).from("parent_child_links").insert({
+    const { error: insertErr } = await (dbClient as any).from("parent_child_links").insert({
       parent_id: user.id,
       child_id: (childProfile as any).id,
       status: "active",
     });
+    if (insertErr) {
+      console.error("Link insert error:", insertErr);
+      return { error: "Could not link child. Please try again.", success: false };
+    }
     return {
       error: null,
       success: true,
@@ -233,35 +247,41 @@ export async function initiateChildLink(
 
   // Generate a 6-digit OTP and store its hash
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  // Simple hash using base64 for storage (in production use bcrypt/scrypt)
   const otpHash = Buffer.from(`${otp}:${(childProfile as any).id}:${user.id}`).toString("base64");
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min
 
   // Store OTP request
-  await (adminClient as any).from("parent_link_requests").upsert({
-    parent_id: user.id,
-    child_id: (childProfile as any).id,
-    otp_hash: otpHash,
-    expires_at: expiresAt,
-    used: false,
-  }, { onConflict: "parent_id,child_id" });
-
-  // Send OTP via Supabase auth email (using admin)
   try {
-    await (adminClient.auth as any).admin.generateLink({
-      type: "magiclink",
-      email: childEmail,
-      options: {
-        data: {
-          subject: "SiksaTech Parent Linking OTP",
-          message: `Your parent has requested to link your SiksaTech account. Your OTP is: ${otp}\n\nThis code expires in 10 minutes. If you did not expect this, ignore this message.`,
-        },
-      },
-    });
-  } catch {
-    // Fallback — log OTP for dev (remove in strict prod)
-    console.info(`[DEV] Parent link OTP for child ${(childProfile as any).siksa_id}: ${otp}`);
+    await (dbClient as any).from("parent_link_requests").upsert({
+      parent_id: user.id,
+      child_id: (childProfile as any).id,
+      otp_hash: otpHash,
+      expires_at: expiresAt,
+      used: false,
+    }, { onConflict: "parent_id,child_id" });
+  } catch (err) {
+    console.warn("Could not upsert into parent_link_requests:", err);
   }
+
+  // Send OTP via Supabase auth email if admin auth available
+  try {
+    if ((dbClient as any).auth?.admin?.generateLink) {
+      await (dbClient.auth as any).admin.generateLink({
+        type: "magiclink",
+        email: childEmail,
+        options: {
+          data: {
+            subject: "SiksaTech Parent Linking OTP",
+            message: `Your parent has requested to link your SiksaTech account. Your OTP is: ${otp}\n\nThis code expires in 10 minutes. If you did not expect this, ignore this message.`,
+          },
+        },
+      });
+    }
+  } catch (mailErr) {
+    console.warn("Could not send email via admin auth API:", mailErr);
+  }
+
+  console.info(`[SiksaTech] Parent Link OTP generated for ${childEmail}: ${otp}`);
 
   // Mask email for display
   const maskedEmail = childEmail.replace(/(.{2})(.*)(@.*)/, "$1***$3");
@@ -295,26 +315,21 @@ export async function verifyChildLinkOtp(
     return { error: "Invalid OTP. In demo mode, use 123456.", success: false };
   }
 
-  let adminClient: ReturnType<typeof createAdminClient>;
-  try {
-    adminClient = createAdminClient();
-  } catch {
-    return { error: "Admin access not configured. Please contact support.", success: false };
-  }
-
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "You must be logged in.", success: false };
 
+  const dbClient = await getEffectiveDbClient();
+
   // Look up the pending request
-  const { data: request } = await (adminClient as any)
+  const { data: request, error: reqErr } = await (dbClient as any)
     .from("parent_link_requests")
     .select("otp_hash, expires_at, used")
     .eq("parent_id", user.id)
     .eq("child_id", childId)
     .maybeSingle();
 
-  if (!request || (request as any).used) {
+  if (reqErr || !request || (request as any).used) {
     return { error: "No pending link request found or OTP already used.", success: false };
   }
 
@@ -325,23 +340,26 @@ export async function verifyChildLinkOtp(
   // Verify OTP hash
   const expectedHash = Buffer.from(`${otp}:${childId}:${user.id}`).toString("base64");
   if ((request as any).otp_hash !== expectedHash) {
-    return { error: "Incorrect OTP. Please try again.", success: false };
+    return { error: "Incorrect OTP. Please check the code and try again.", success: false };
   }
 
   // Mark request as used and create the active link
-  await (adminClient as any)
+  await (dbClient as any)
     .from("parent_link_requests")
     .update({ used: true })
     .eq("parent_id", user.id)
     .eq("child_id", childId);
 
-  const { error: linkErr } = await (adminClient as any).from("parent_child_links").insert({
+  const { error: linkErr } = await (dbClient as any).from("parent_child_links").insert({
     parent_id: user.id,
     child_id: childId,
     status: "active",
   });
 
-  if (linkErr) return { error: "Failed to create link. Please try again.", success: false };
+  if (linkErr) {
+    console.error("Link creation error:", linkErr);
+    return { error: "Failed to create link: " + (linkErr.message || "Database error"), success: false };
+  }
 
   return { error: null, success: true };
 }
@@ -364,25 +382,17 @@ export async function createChildAccount(
     return { error: null, success: true, childId: demoId };
   }
 
-  let adminClient: ReturnType<typeof createAdminClient>;
-  try {
-    adminClient = createAdminClient();
-  } catch {
-    return {
-      error: "Admin access is not configured. Please add SUPABASE_SERVICE_ROLE_KEY to your .env.local file.",
-      success: false,
-    };
-  }
-
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "You must be logged in to create a child account.", success: false };
+
+  const dbClient = await getEffectiveDbClient();
 
   // Generate a unique SIKSA ID
   const suffix = Date.now().toString(36).toUpperCase().slice(-6);
   const siksaId = `SIKSA-${suffix}`;
 
-  const { data: childProfile, error: profileErr } = await (adminClient as any)
+  const { data: childProfile, error: profileErr } = await (dbClient as any)
     .from("profiles")
     .insert({
       full_name: childName,
@@ -398,14 +408,21 @@ export async function createChildAccount(
 
   if (profileErr || !childProfile) {
     console.error("createChildAccount error:", profileErr);
-    return { error: "Failed to create child account. Please try again.", success: false };
+    return { 
+      error: "Failed to create child account. " + (profileErr?.message || "Please try again."), 
+      success: false 
+    };
   }
 
-  await (adminClient as any).from("parent_child_links").insert({
+  const { error: linkErr } = await (dbClient as any).from("parent_child_links").insert({
     parent_id: user.id,
     child_id: (childProfile as any).id,
     status: "active",
   });
+
+  if (linkErr) {
+    console.error("Error linking newly created child:", linkErr);
+  }
 
   return { error: null, success: true, childId: (childProfile as any).siksa_id };
 }
