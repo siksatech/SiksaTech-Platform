@@ -11,6 +11,10 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "SiksaTech | Team Portal",
   description: "SiksaTech internal team portal for operations, curriculum, and analytics.",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg"
+  }
 };
 
 export default function RootLayout({

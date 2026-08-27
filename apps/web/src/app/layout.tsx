@@ -21,6 +21,13 @@ export const metadata: Metadata = {
     "Build First",
     "Hands-on technology learning"
   ],
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.svg", type: "image/svg+xml" }
+    ],
+    apple: "/icon.svg"
+  }
 };
 
 export default function RootLayout({

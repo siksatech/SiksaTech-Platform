@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <style>
+    @font-face {
+      font-family: 'Rostex';
+      src: url('/fonts/rostex.italic.otf') format('opentype');
+    }
+    .siksa-text {
+      font-family: 'Rostex', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      font-weight: 900;
+      font-style: italic;
+      font-size: 36px;
+      fill: #000000;
+      letter-spacing: -1px;
+    }
+    .tech-text {
+      font-family: 'Rostex', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      font-weight: 900;
+      font-style: italic;
+      font-size: 36px;
+      fill: #2563EB;
+      letter-spacing: -1px;
+    }
+  </style>
+
+  <!-- Clean backdrop container -->
+  <rect width="128" height="128" rx="28" fill="#FFFFFF"/>
+  <rect width="124" height="124" x="2" y="2" rx="26" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
+
+  <!-- SIKSA in Black -->
+  <text x="64" y="52" text-anchor="middle" dominant-baseline="middle" class="siksa-text">SIKSA</text>
+  
+  <!-- TECH in Electric Blue -->
+  <text x="64" y="88" text-anchor="middle" dominant-baseline="middle" class="tech-text">TECH</text>
+</svg>
