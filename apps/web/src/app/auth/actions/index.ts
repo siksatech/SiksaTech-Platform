@@ -384,7 +384,19 @@ export async function verifyChildLinkOtp(
 
   const dbClient = await getEffectiveDbClient();
 
-  // 1. Try updating existing link to verified: true
+  // 1. Try Security Definer RPC first (bypasses RLS safely)
+  try {
+    const { data: rpcData, error: rpcErr } = await (dbClient as any).rpc("confirm_parent_child_link", {
+      target_child_id: childId,
+    });
+    if (!rpcErr && rpcData?.success) {
+      return { error: null, success: true };
+    }
+  } catch {
+    // RPC not created yet, fall through to direct tables
+  }
+
+  // 2. Try updating existing link to verified: true
   const { error: updateErr } = await (dbClient as any)
     .from("parent_child_links")
     .update({ verified: true })
@@ -395,7 +407,7 @@ export async function verifyChildLinkOtp(
     return { error: null, success: true };
   }
 
-  // 2. If update failed (e.g. row didn't exist), try inserting
+  // 3. Try inserting
   const { error: insertErr } = await (dbClient as any)
     .from("parent_child_links")
     .insert({
@@ -408,7 +420,7 @@ export async function verifyChildLinkOtp(
     return { error: null, success: true };
   }
 
-  // 3. Fallback upsert
+  // 4. Fallback upsert
   const { error: upsertErr } = await (dbClient as any)
     .from("parent_child_links")
     .upsert({
@@ -420,7 +432,7 @@ export async function verifyChildLinkOtp(
   if (upsertErr) {
     console.error("Link confirmation error:", updateErr || insertErr || upsertErr);
     return {
-      error: "Failed to confirm link. Please run the RLS policy update in Supabase SQL editor or contact support.",
+      error: "Failed to confirm link. Please run the SQL migration in Supabase SQL editor or contact support.",
       success: false,
     };
   }
@@ -574,7 +586,26 @@ export async function approveParentLink(linkId: string): Promise<{ success: bool
 
     const dbClient = await getEffectiveDbClient();
     
-    // 1. Try update by ID
+    // Find parent ID for this link
+    const { data: linkRow } = await (dbClient as any)
+      .from("parent_child_links")
+      .select("parent_id")
+      .eq("id", linkId)
+      .maybeSingle();
+
+    if (linkRow?.parent_id) {
+      // 1. Try Security Definer RPC first
+      try {
+        const { data: rpcData, error: rpcErr } = await (dbClient as any).rpc("student_approve_parent_link", {
+          target_parent_id: linkRow.parent_id,
+        });
+        if (!rpcErr && rpcData?.success) return { success: true, error: null };
+      } catch {
+        // Fall through to table update
+      }
+    }
+
+    // 2. Try update by ID
     const { error: updateErr } = await (dbClient as any)
       .from("parent_child_links")
       .update({ verified: true })
@@ -583,7 +614,7 @@ export async function approveParentLink(linkId: string): Promise<{ success: bool
 
     if (!updateErr) return { success: true, error: null };
 
-    // 2. Try update by child_id
+    // 3. Try update by child_id
     const { error: updateByChildErr } = await (dbClient as any)
       .from("parent_child_links")
       .update({ verified: true })
