@@ -325,32 +325,22 @@ export async function initiateChildLink(
     };
   }
 
-  // Generate a fresh random 6-digit OTP
-  const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
+  // Compute 6-digit OTP
+  const otp = await generateLinkOtp(user.id, (childProfile as any).id);
 
-  // Create or update pending link in parent_child_links (verified: false, otp_code: randomOtp)
+  // Insert or update pending link in parent_child_links using standard columns
   try {
-    const { error: upsertErr } = await (dbClient as any).from("parent_child_links").upsert({
+    await (dbClient as any).from("parent_child_links").upsert({
       parent_id: user.id,
       child_id: (childProfile as any).id,
       verified: false,
-      otp_code: randomOtp,
     }, { onConflict: "parent_id,child_id" });
-
-    if (upsertErr) {
-      // If otp_code column not present yet, try upsert without otp_code
-      await (dbClient as any).from("parent_child_links").upsert({
-        parent_id: user.id,
-        child_id: (childProfile as any).id,
-        verified: false,
-      }, { onConflict: "parent_id,child_id" });
-    }
   } catch (err) {
     console.warn("Could not insert pending parent_child_links record:", err);
   }
 
   const parentName = user.user_metadata?.full_name || "Parent";
-  sendOtpEmail(childEmail, (childProfile as any).full_name, parentName, randomOtp);
+  sendOtpEmail(childEmail, (childProfile as any).full_name, parentName, otp);
 
   // Mask email for display
   const maskedEmail = childEmail.replace(/(.{2})(.*)(@.*)/, "$1***$3");
@@ -388,24 +378,15 @@ export async function verifyChildLinkOtp(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "You must be logged in.", success: false };
 
-  const dbClient = await getEffectiveDbClient();
-
-  // 1. Fetch the stored link to check stored otp_code
-  const { data: existingLink } = await (dbClient as any)
-    .from("parent_child_links")
-    .select("otp_code, verified")
-    .eq("parent_id", user.id)
-    .eq("child_id", childId)
-    .maybeSingle();
-
-  const isStoredOtpMatch = existingLink?.otp_code && existingLink.otp_code.trim() === otp;
-  const isTimeWindowOtpMatch = await verifyLinkOtp(user.id, childId, otp);
-
-  if (!isStoredOtpMatch && !isTimeWindowOtpMatch) {
-    return { error: "Incorrect or expired verification code. Please check the code and try again.", success: false };
+  // Validate OTP code against deterministic time-windowed OTP
+  const isValid = await verifyLinkOtp(user.id, childId, otp);
+  if (!isValid) {
+    return { error: "Incorrect or expired verification code. Please check with your child and try again.", success: false };
   }
 
-  // 2. Try Security Definer RPC first (bypasses RLS safely)
+  const dbClient = await getEffectiveDbClient();
+
+  // 1. Try Security Definer RPC first (bypasses RLS safely)
   try {
     const { data: rpcData, error: rpcErr } = await (dbClient as any).rpc("confirm_parent_child_link", {
       target_child_id: childId,
@@ -417,10 +398,10 @@ export async function verifyChildLinkOtp(
     // RPC not created yet, fall through to direct tables
   }
 
-  // 3. Try updating existing link to verified: true, otp_code: null
+  // 2. Try updating existing link to verified: true
   const { error: updateErr } = await (dbClient as any)
     .from("parent_child_links")
-    .update({ verified: true, otp_code: null })
+    .update({ verified: true })
     .eq("parent_id", user.id)
     .eq("child_id", childId);
 
@@ -428,7 +409,7 @@ export async function verifyChildLinkOtp(
     return { error: null, success: true };
   }
 
-  // 4. Try inserting fresh link
+  // 3. Try inserting
   const { error: insertErr } = await (dbClient as any)
     .from("parent_child_links")
     .insert({
@@ -441,7 +422,7 @@ export async function verifyChildLinkOtp(
     return { error: null, success: true };
   }
 
-  // 5. Fallback upsert
+  // 4. Fallback upsert
   const { error: upsertErr } = await (dbClient as any)
     .from("parent_child_links")
     .upsert({
@@ -475,12 +456,12 @@ export async function checkChildLinkStatus(childId: string): Promise<{ linked: b
     const dbClient = await getEffectiveDbClient();
     const { data } = await (dbClient as any)
       .from("parent_child_links")
-      .select("verified, status")
+      .select("verified")
       .eq("parent_id", user.id)
       .eq("child_id", childId)
       .maybeSingle();
 
-    if (data && (data.verified === true || data.status === "active")) {
+    if (data && data.verified === true) {
       return { linked: true };
     }
     return { linked: false };
@@ -564,24 +545,50 @@ export async function getStudentPendingParentLinks() {
     if (!user) return [];
 
     const dbClient = await getEffectiveDbClient();
+    
+    // Query standard columns only to avoid any schema mismatch
     const { data, error } = await (dbClient as any)
       .from("parent_child_links")
-      .select("id, parent_id, child_id, verified, otp_code, created_at, parent:profiles!parent_child_links_parent_id_fkey(id, full_name, siksa_id, email)")
+      .select("id, parent_id, child_id, verified, created_at")
       .eq("child_id", user.id)
       .eq("verified", false);
 
-    if (error || !data) return [];
+    if (error) {
+      console.warn("Error fetching pending parent links:", error);
+      return [];
+    }
+
+    if (!data || data.length === 0) return [];
 
     const requestsWithOtp = await Promise.all(
       data.map(async (item: any) => {
-        // Use stored random OTP if available, otherwise compute deterministic OTP
-        const code = item.otp_code || (await generateLinkOtp(item.parent_id, user.id));
+        let parentName = "Parent / Guardian";
+        let parentSiksaId = "";
+        let parentEmail = "";
+
+        try {
+          const { data: parentProf } = await (dbClient as any)
+            .from("profiles")
+            .select("id, full_name, siksa_id, email")
+            .eq("id", item.parent_id)
+            .maybeSingle();
+
+          if (parentProf) {
+            parentName = parentProf.full_name || parentName;
+            parentSiksaId = parentProf.siksa_id || "";
+            parentEmail = parentProf.email || "";
+          }
+        } catch {
+          // ignore lookup error
+        }
+
+        const code = await generateLinkOtp(item.parent_id, user.id);
         return {
           id: item.id,
           parentId: item.parent_id,
-          parentName: item.parent?.full_name || "Parent/Guardian",
-          parentSiksaId: item.parent?.siksa_id || "",
-          parentEmail: item.parent?.email || "",
+          parentName,
+          parentSiksaId,
+          parentEmail,
           otpCode: code,
           createdAt: item.created_at,
         };
@@ -630,7 +637,7 @@ export async function approveParentLink(linkId: string): Promise<{ success: bool
     // 2. Try update by ID
     const { error: updateErr } = await (dbClient as any)
       .from("parent_child_links")
-      .update({ verified: true, otp_code: null })
+      .update({ verified: true })
       .eq("id", linkId)
       .eq("child_id", user.id);
 
@@ -639,7 +646,7 @@ export async function approveParentLink(linkId: string): Promise<{ success: bool
     // 3. Try update by child_id
     const { error: updateByChildErr } = await (dbClient as any)
       .from("parent_child_links")
-      .update({ verified: true, otp_code: null })
+      .update({ verified: true })
       .eq("child_id", user.id);
 
     if (!updateByChildErr) return { success: true, error: null };

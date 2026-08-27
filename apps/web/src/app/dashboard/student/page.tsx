@@ -203,6 +203,20 @@ function StudentDashboardContent() {
     };
 
     loadSessionData();
+
+    // Auto-poll for pending parent link requests every 4 seconds
+    const interval = setInterval(async () => {
+      if (isRealSupabase) {
+        try {
+          const reqs = await getStudentPendingParentLinks();
+          setPendingParentLinks(reqs || []);
+        } catch {
+          // ignore background poll errors
+        }
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, [router]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
