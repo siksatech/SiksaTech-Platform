@@ -94,7 +94,7 @@ export default function TeamLoginPage() {
         {/* Logo + Brand */}
         <div className="text-center mb-8 space-y-3">
           <div className="flex items-center justify-center">
-            <SiksaTechLogo className="h-8 w-auto brightness-0 invert" />
+            <SiksaTechLogo className="text-3xl" variant="light" />
           </div>
           <div>
             <p className="text-xs font-mono text-slate-500 uppercase tracking-widest">

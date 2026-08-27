@@ -1,33 +1,45 @@
 import React from "react";
 
-export interface SiksaTechLogoProps extends React.SVGProps<SVGSVGElement> {
+export interface SiksaTechLogoProps extends React.HTMLAttributes<HTMLSpanElement> {
   className?: string;
   size?: number;
   variant?: "default" | "light" | "dark" | "monochrome" | "accent";
+  siksaColor?: string;
+  techColor?: string;
 }
 
 /**
  * SiksaTech Futuristic Rostex-style Vector Text Logo
- * Renders the custom geometric high-tech SIKSATECH wordmark with connected rooflines and rounded cyber-aesthetic glyphs.
+ * Standard brand representation: "SIKSA" in Black (#000000) and "TECH" in Electric Blue (#2563EB).
  */
 export default function SiksaTechLogo({
   className = "",
   size,
   variant = "default",
+  siksaColor,
+  techColor,
   ...props
 }: SiksaTechLogoProps) {
-  // Height and width handling if size is passed
   const style = size ? { fontSize: `${size}px`, ...props.style } : props.style;
+
+  // Standard brand colors: SIKSA = Black (#000000), TECH = Blue (#2563EB)
+  // When explicitly variant="light" (on dark backdrops/footers), SIKSA = White (#FFFFFF), TECH = Sky/Electric Blue (#38BDF8)
+  const defaultSiksa = variant === "light" ? "#FFFFFF" : "#000000";
+  const defaultTech = variant === "light" ? "#38BDF8" : "#2563EB";
+
+  const finalSiksaColor = siksaColor || defaultSiksa;
+  const finalTechColor = techColor || defaultTech;
 
   return (
     <span
-      className={`select-none inline-flex items-center leading-none ${className}`}
+      className={`select-none inline-flex items-center leading-none font-extrabold tracking-tight ${className}`}
       style={{ fontFamily: "'Rostex', sans-serif", ...style }}
       aria-label="SiksaTech Logo"
       role="img"
-      {...props as any}
+      {...props}
     >
-      SIKSA<span style={{ color: "var(--color-electric-blue, #2563EB)" }}>TECH</span>
+      <span style={{ color: finalSiksaColor }}>SIKSA</span>
+      <span style={{ color: finalTechColor }}>TECH</span>
     </span>
   );
 }

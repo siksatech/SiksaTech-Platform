@@ -217,7 +217,7 @@ export default function LessonPlayerPage({
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div className="flex items-center gap-2">
-            <SiksaTechLogo className="h-5 w-auto brightness-0 invert" />
+            <SiksaTechLogo className="text-lg" variant="light" />
             <span className="text-slate-600">/</span>
             <span className="text-xs font-semibold text-slate-300 truncate max-w-[200px] sm:max-w-sm">
               {course.title}

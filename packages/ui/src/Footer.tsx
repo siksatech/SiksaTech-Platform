@@ -60,7 +60,7 @@ export default function Footer() {
           {/* Brand & Mission Column (Span 4 on Desktop) */}
           <div className="md:col-span-12 lg:col-span-4 space-y-5">
             <Link href="/" className="inline-flex items-center group focus-visible:outline-none" aria-label="SiksaTech Home">
-              <SiksaTechLogo className="h-8 sm:h-9 w-auto text-white group-hover:text-blue-400 transition-colors" />
+              <SiksaTechLogo className="text-2xl sm:text-[26px]" variant="light" />
             </Link>
 
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm">

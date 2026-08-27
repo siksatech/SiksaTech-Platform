@@ -116,7 +116,7 @@ export default function VerifyCertificatePage({
               {/* Verified Ribbon Header */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b-2 border-slate-100 pb-6 mb-8 gap-4">
                 <div className="flex items-center gap-3">
-                  <SiksaTechLogo className="h-8 w-auto" />
+                  <SiksaTechLogo className="text-2xl" />
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />

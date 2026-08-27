@@ -424,7 +424,7 @@ export default function TeamPortalDashboard() {
       {/* Left Sidebar */}
       <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0">
         <div className="p-5 border-b border-slate-800 space-y-1.5">
-          <SiksaTechLogo className="h-6 w-auto brightness-0 invert" />
+          <SiksaTechLogo className="text-xl" variant="light" />
           <p className="text-[10px] text-slate-400 font-mono tracking-wider uppercase">Team Operations OS</p>
         </div>
 

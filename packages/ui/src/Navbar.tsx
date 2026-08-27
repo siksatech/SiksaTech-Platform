@@ -354,7 +354,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-[72px]">
             {/* Brand Logo */}
             <Link href="/" className="flex items-center group flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg p-1" aria-label="SiksaTech Home">
-              <SiksaTechLogo className="h-8 sm:h-9 w-auto text-slate-900 group-hover:text-blue-600 transition-colors" />
+              <SiksaTechLogo className="text-2xl sm:text-[26px]" />
             </Link>
 
             {/* Desktop Navigation Links */}
