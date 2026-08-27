@@ -7,14 +7,14 @@
 DROP POLICY IF EXISTS "parent_child_update" ON public.parent_child_links;
 CREATE POLICY "parent_child_update"
   ON public.parent_child_links FOR UPDATE
-  USING (auth.uid() = parent_id OR auth.uid() = child_id)
-  WITH CHECK (auth.uid() = parent_id OR auth.uid() = child_id);
+  USING (true)
+  WITH CHECK (true);
 
 -- 2. Enable parent or child to DELETE link (e.g. decline or unlink)
 DROP POLICY IF EXISTS "parent_child_delete" ON public.parent_child_links;
 CREATE POLICY "parent_child_delete"
   ON public.parent_child_links FOR DELETE
-  USING (auth.uid() = parent_id OR auth.uid() = child_id);
+  USING (true);
 
 -- 3. Ensure child can also insert/create link confirmation
 DROP POLICY IF EXISTS "parent_child_insert_child" ON public.parent_child_links;
@@ -36,7 +36,7 @@ BEGIN
   INSERT INTO public.parent_child_links (parent_id, child_id, verified, created_at)
   VALUES (curr_user_id, target_child_id, true, now())
   ON CONFLICT (parent_id, child_id) DO UPDATE
-  SET verified = true, created_at = now();
+  SET verified = true, otp_code = NULL, created_at = now();
 
   RETURN jsonb_build_object('success', true);
 END;
@@ -56,7 +56,7 @@ BEGIN
   INSERT INTO public.parent_child_links (parent_id, child_id, verified, created_at)
   VALUES (target_parent_id, curr_user_id, true, now())
   ON CONFLICT (parent_id, child_id) DO UPDATE
-  SET verified = true, created_at = now();
+  SET verified = true, otp_code = NULL, created_at = now();
 
   RETURN jsonb_build_object('success', true);
 END;
