@@ -8,8 +8,11 @@ export interface ProgramItem {
   slug: string;
   title: string;
   subtitle?: string | null;
+  category: "fellowship" | "workshop" | "webinar" | "seminar";
   target_audience: string;
   duration: string;
+  schedule?: string;
+  instructor?: string;
   delivery_mode: "hybrid" | "offline_lab" | "online_live";
   curriculum_highlights: string[];
   outcomes: string[];
@@ -55,8 +58,11 @@ export const DEMO_PROGRAMS_LIST: ProgramItem[] = [
     slug: "school-maker-fellowship",
     title: "National School Maker Fellowship",
     subtitle: "Intensive 8-week hardware fellowship for aspiring school engineers.",
+    category: "fellowship",
     target_audience: "Class 8–12 Students",
     duration: "8 Weeks (Weekend Cohorts)",
+    schedule: "Every Saturday & Sunday • 4:00 PM - 6:00 PM IST",
+    instructor: "Er. Siddharth Verma, Ex-ISRO Systems Consultant",
     delivery_mode: "hybrid",
     curriculum_highlights: [
       "Electronic Circuit Analysis & PCB Design",
@@ -75,8 +81,11 @@ export const DEMO_PROGRAMS_LIST: ProgramItem[] = [
     slug: "autonomous-robotics-bootcamp",
     title: "Autonomous Robotics & Edge AI Bootcamp",
     subtitle: "Master kinematics, motor drivers, OpenCV computer vision, and ROS.",
+    category: "fellowship",
     target_audience: "Engineering & College Students",
     duration: "12 Weeks",
+    schedule: "Tri-weekly Evening Batches • 7:00 PM - 8:30 PM IST",
+    instructor: "Dr. Rajeshwar Sharma, Robotics Lab Director",
     delivery_mode: "hybrid",
     curriculum_highlights: [
       "Differential Drive Kinematics & PID Tuning",
@@ -88,6 +97,73 @@ export const DEMO_PROGRAMS_LIST: ProgramItem[] = [
       "Design autonomous obstacle avoidance rover",
       "Industry-recognized Autonomous Systems Certificate",
       "Direct placement referrals in robotics startups"
+    ]
+  },
+  {
+    id: "prog-3",
+    slug: "hands-on-iot-workshop",
+    title: "Hands-On ESP32 IoT & Sensor Nodes Workshop",
+    subtitle: "A fast-paced 2-day live interactive workshop building cloud-connected sensor arrays.",
+    category: "workshop",
+    target_audience: "Class 8 to College Students",
+    duration: "2 Days (Weekend Workshop)",
+    schedule: "Saturday & Sunday • 10:00 AM - 1:00 PM IST",
+    instructor: "Pooja Hegde, Embedded IoT Lead",
+    delivery_mode: "online_live",
+    curriculum_highlights: [
+      "Breadboard assembly of DHT22 & capacitive moisture sensors",
+      "Writing FreeRTOS non-blocking firmware loops",
+      "Posting real-time data to cloud telemetry APIs",
+      "Setting up mobile push alerts for threshold breaches"
+    ],
+    outcomes: [
+      "Deploy a working home automation node",
+      "Workshop Participation Certificate",
+      "Full source code & schematic repository access"
+    ]
+  },
+  {
+    id: "prog-4",
+    slug: "edge-ai-vision-webinar",
+    title: "Live Masterclass: Edge AI & TinyML on Microcontrollers",
+    subtitle: "Explore how machine learning models run directly on micro-watt microcontrollers without internet access.",
+    category: "webinar",
+    target_audience: "College Innovators & High School Coders",
+    duration: "90 Minutes Interactive",
+    schedule: "Upcoming Wednesday • 6:30 PM - 8:00 PM IST",
+    instructor: "Anand R., TinyML Research Fellow",
+    delivery_mode: "online_live",
+    curriculum_highlights: [
+      "Quantization and pruning neural networks for ARM Cortex-M",
+      "Keyword spotting and voice classification in 64KB RAM",
+      "Live Q&A and architecture teardowns of smart cameras"
+    ],
+    outcomes: [
+      "Understand edge model compression techniques",
+      "Interactive Q&A with industry ML researchers",
+      "Live Certificate of Attendance"
+    ]
+  },
+  {
+    id: "prog-5",
+    slug: "nep2020-stem-pedagogy-seminar",
+    title: "Institutional Seminar: Transforming School Labs under NEP 2020",
+    subtitle: "Strategic symposium for school principals, ATL in-charges, and STEM educators on experiential learning frameworks.",
+    category: "seminar",
+    target_audience: "Educators, ATL Coordinators & School Leadership",
+    duration: "Half-Day Symposium (4 Hours)",
+    schedule: "Next Friday • 10:00 AM - 2:00 PM IST",
+    instructor: "Prof. K. Sundaram, STEM Education Policy Advisor",
+    delivery_mode: "hybrid",
+    curriculum_highlights: [
+      "Aligning maker education with NEP 2020 learning benchmarks",
+      "Optimizing ATL equipment utilization and maintenance",
+      "Evaluating project-based learning outcomes and student maker portfolios"
+    ],
+    outcomes: [
+      "Institutional STEM Audit Framework Checklist",
+      "Educator Masterclass CPD Credits",
+      "Priority Access to SiksaTech Curriculum Grants"
     ]
   }
 ];
