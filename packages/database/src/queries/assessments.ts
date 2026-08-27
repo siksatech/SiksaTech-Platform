@@ -2,6 +2,7 @@
  * Server-side Assessment & Quiz evaluation queries
  */
 import type { SupabaseClient } from "../client";
+import { issueCertificate } from "./certificates";
 
 export interface AssessmentQuestion {
   id: string;
@@ -21,7 +22,7 @@ export interface Assessment {
   course_id: string;
   title: string;
   description: string | null;
-  passing_score: number; // e.g. 70%
+  passing_score: number; // e.g. 75%
   time_limit_mins: number;
   max_attempts: number;
   questions?: AssessmentQuestion[];
@@ -41,7 +42,7 @@ export interface AssessmentSubmissionResult {
   }[];
 }
 
-// Fallback demo assessment
+// Fallback assessment questions for STEM verification
 export const DEMO_ASSESSMENT: Assessment = {
   id: "demo-assessment-1",
   course_id: "builder-arduino-embedded",
@@ -123,24 +124,28 @@ export async function getAssessmentForCourse(
   courseId?: string
 ): Promise<Assessment | null> {
   if (supabase && courseId) {
-    const { data: assessment } = await (supabase as any)
-      .from("assessments")
-      .select("*")
-      .eq("course_id", courseId)
-      .eq("is_published", true)
-      .single();
+    try {
+      const { data: assessment } = await (supabase as any)
+        .from("assessments")
+        .select("*")
+        .eq("course_id", courseId)
+        .eq("is_published", true)
+        .single();
 
-    if (assessment) {
-      const { data: questions } = await (supabase as any)
-        .from("assessment_questions")
-        .select("id, assessment_id, question_text, code_snippet, question_type, options, points, sort_order")
-        .eq("assessment_id", assessment.id)
-        .order("sort_order", { ascending: true });
+      if (assessment) {
+        const { data: questions } = await (supabase as any)
+          .from("assessment_questions")
+          .select("id, assessment_id, question_text, code_snippet, question_type, options, points, sort_order")
+          .eq("assessment_id", assessment.id)
+          .order("sort_order", { ascending: true });
 
-      return {
-        ...assessment,
-        questions: questions || []
-      };
+        return {
+          ...assessment,
+          questions: questions || []
+        };
+      }
+    } catch {
+      // ignore
     }
   }
 
@@ -154,9 +159,10 @@ export async function gradeAssessment(
   supabase: SupabaseClient | undefined,
   userId: string,
   assessmentId: string,
-  answers: Record<string, string> // { questionId: selectedOptionId }
+  answers: Record<string, string>, // { questionId: selectedOptionId }
+  studentName: string = "SiksaTech Student",
+  courseTitle: string = "Hardware Logic & Embedded Firmware Track"
 ): Promise<AssessmentSubmissionResult> {
-  // Correct answers key (in production, retrieved from secured database table)
   const answersKey: Record<string, { correct: string; explanation: string; points: number }> = {
     q1: { correct: "b", points: 25, explanation: "Series resistor is required to limit LED forward current." },
     q2: { correct: "b", points: 25, explanation: "(512 / 1023) * 5.0V ≈ 2.50V." },
@@ -189,33 +195,21 @@ export async function gradeAssessment(
 
   let certificateId: string | undefined;
 
-  if (passed && supabase) {
-    try {
-      // Auto-issue certificate if passed
-      const certNum = `ST-2026-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-      const { data: profile } = await (supabase as any)
-        .from("profiles")
-        .select("full_name")
-        .eq("id", userId)
-        .single();
+  if (passed) {
+    const certNum = `ST-2026-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const result = await issueCertificate(supabase, {
+      id: certNum,
+      studentName,
+      programName: courseTitle,
+      achievement: `Demonstrated exceptional mastery by passing the Comprehensive Systems Assessment with ${scorePercentage}%.`,
+      issuedDate: new Date().toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }),
+      skillsVerified: ["Circuit Architecture", "ADC Telemetry", "Embedded C++", "Timer Interrupts"]
+    });
 
-      const studentName = profile?.full_name || "SiksaTech Student";
-
-      await (supabase as any)
-        .from("certificates")
-        .upsert({
-          id: certNum,
-          user_id: userId,
-          student_name: studentName,
-          program_name: "Hardware Logic & Embedded Firmware Track",
-          achievement: `Demonstrated exceptional mastery by passing the Comprehensive Systems Assessment with ${scorePercentage}%.`,
-          skills_verified: ["Circuit Architecture", "ADC Telemetry", "Embedded C++", "Timer Interrupts"],
-          verification_hash: `HASH-${certNum}-${Date.now().toString(16).toUpperCase()}`
-        });
-
+    if (result.success && result.certificateId) {
+      certificateId = result.certificateId;
+    } else {
       certificateId = certNum;
-    } catch (err) {
-      console.error("Certificate auto-issuance error:", err);
     }
   }
 
@@ -225,7 +219,7 @@ export async function gradeAssessment(
     pointsEarned,
     totalPoints,
     attemptNumber: 1,
-    certificateId: certificateId || (passed ? "ST-2026-A101" : undefined),
+    certificateId,
     feedback
   };
 }

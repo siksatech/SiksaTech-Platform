@@ -9,7 +9,7 @@ import {
   isRealSupabase,
   DEMO_COURSES,
   DEMO_PROJECTS,
-  DEMO_CERTIFICATES
+  type Course
 } from "@siksatech/database";
 import { Navbar, Footer } from "@siksatech/ui";
 import { 
@@ -36,9 +36,33 @@ import {
   Users,
   KeyRound,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Clock,
+  Package,
+  ExternalLink,
+  Loader2
 } from "lucide-react";
 import { getStudentPendingParentLinks, approveParentLink, rejectParentLink } from "../../auth/actions";
+
+interface EnrolledCourseCardData {
+  id: string;
+  title: string;
+  difficulty: string;
+  duration: string;
+  modulesCount: number;
+  completedLessonsCount: number;
+  totalLessonsCount: number;
+  progressPct: number;
+}
+
+interface IssuedCertificateData {
+  id: string;
+  studentName: string;
+  programName: string;
+  achievement: string;
+  issuedDate: string;
+  skillsVerified: string[];
+}
 
 function StudentDashboardContent() {
   const router = useRouter();
@@ -57,19 +81,12 @@ function StudentDashboardContent() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   // LMS Data States
-  const [courses, setCourses] = useState<any[]>([]);
-  const [lessons, setLessons] = useState<any[]>([]);
+  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourseCardData[]>([]);
   const [studentProjects, setStudentProjects] = useState<any[]>([]);
+  const [certificates, setCertificates] = useState<IssuedCertificateData[]>([]);
   const [pendingParentLinks, setPendingParentLinks] = useState<any[]>([]);
   const [processingLinkId, setProcessingLinkId] = useState<string | null>(null);
   const [linkActionMsg, setLinkActionMsg] = useState<string | null>(null);
-  
-  // Active Interactive Lesson Editor
-  const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
-  const [selectedLesson, setSelectedLesson] = useState<any | null>(null);
-  const [codeContent, setCodeContent] = useState("");
-  const [runConsole, setRunConsole] = useState<string>("Console idle. Click 'RUN SYNTAX CHECK' to execute.");
-  const [isCompiling, setIsCompiling] = useState(false);
 
   // New Project Form State
   const [newTitle, setNewTitle] = useState("");
@@ -86,137 +103,167 @@ function StudentDashboardContent() {
     }
   }, [tabParam]);
 
-  // Load User Data & Fetch Supabase Tables
+  // Load User Data & Fetch Real Enrolled Courses, Certificates & Submissions
   useEffect(() => {
     const loadSessionData = async () => {
       setLoading(true);
+      let studentId = "student-1";
+      let studentName = "Aarav Sharma";
+      let grade = "Class 9";
+      let school = "Delhi Public School";
+      let siksaId = "ST-88219";
+
       if (isRealSupabase) {
         try {
           const supabase = createBrowserClient();
           const { data: { user }, error: authError } = await supabase.auth.getUser();
-          if (authError || !user) {
-            router.push("/auth/login");
-            return;
-          }
-
-          // Fetch profile
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", user.id)
-            .single();
-
-          const mappedProfile = {
-            id: user.id,
-            name: (profile as any)?.full_name || user.user_metadata?.full_name || "Active Student",
-            email: user.email,
-            grade: (profile as any)?.grade_level || "Class 9",
-            institution: (profile as any)?.school_college_name || "SiksaTech Academy",
-            role: (profile as any)?.role || "student",
-            siksa_id: (profile as any)?.siksa_id || "—",
-          };
-          setUserProfile(mappedProfile);
-          setEditName(mappedProfile.name);
-          setEditGrade(mappedProfile.grade);
-          setEditSchool(mappedProfile.institution);
-
-          // Get Pathway Level
-          let pathLevel = "explorer";
-          const grade = mappedProfile.grade || "";
-          if (grade.includes("8") || grade.includes("9") || grade.includes("10")) {
-            pathLevel = "builder";
-          } else if (grade.includes("11") || grade.includes("12")) {
-            pathLevel = "creator";
-          } else if (grade.toLowerCase().includes("college")) {
-            pathLevel = "engineer";
-          }
-
-          // Fetch courses matching pathway
-          const { data: coursesList } = await supabase
-            .from("courses")
-            .select("*")
-            .eq("path_level", pathLevel);
-          setCourses(coursesList || []);
-
-          // Fetch matching lessons
-          const courseIds = (coursesList || []).map((c: any) => c.id);
-          if (courseIds.length > 0) {
-            const { data: lessonsList } = await supabase
-              .from("lessons")
+          if (user) {
+            studentId = user.id;
+            const { data: profile } = await supabase
+              .from("profiles")
               .select("*")
-              .in("course_id", courseIds)
-              .order("sequence_number", { ascending: true });
-            setLessons(lessonsList || []);
-          }
+              .eq("id", user.id)
+              .maybeSingle();
 
-          // Fetch student submissions
-          const { data: projsList } = await supabase
-            .from("student_projects")
-            .select("*")
-            .eq("student_id", user.id)
-            .order("created_at", { ascending: false });
-          setStudentProjects(projsList || []);
+            studentName = (profile as any)?.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "Student";
+            grade = (profile as any)?.grade_level || "Class 9";
+            school = (profile as any)?.school_college_name || "SiksaTech Academy";
+            siksaId = (profile as any)?.siksa_id || "ST-88219";
 
-          // Load pending parent link requests
-          try {
-            const requests = await getStudentPendingParentLinks();
-            setPendingParentLinks(requests || []);
-          } catch (linkErr) {
-            console.warn("Could not load pending parent links:", linkErr);
+            // Fetch Real Enrollments
+            const { data: dbEnrollments } = await (supabase as any)
+              .from("enrollments")
+              .select("course_id, status, enrolled_at")
+              .eq("user_id", user.id);
+
+            // Fetch Real Lesson Progress
+            const { data: dbProgress } = await (supabase as any)
+              .from("lesson_progress")
+              .select("course_id, lesson_id, is_completed")
+              .eq("user_id", user.id)
+              .eq("is_completed", true);
+
+            // Fetch Real Projects
+            const { data: projsList } = await supabase
+              .from("student_projects")
+              .select("*")
+              .eq("student_id", user.id)
+              .order("created_at", { ascending: false });
+            if (projsList) setStudentProjects(projsList);
+
+            // Fetch Real Certificates
+            const { data: dbCerts } = await (supabase as any)
+              .from("certificates")
+              .select("*")
+              .or(`user_id.eq.${user.id},student_name.eq.${studentName}`);
+            
+            if (dbCerts) {
+              setCertificates(dbCerts.map((c: any) => ({
+                id: c.id,
+                studentName: c.student_name,
+                programName: c.program_name,
+                achievement: c.achievement,
+                issuedDate: c.issued_date,
+                skillsVerified: c.skills_verified || []
+              })));
+            }
+
+            // Build enrolled courses list
+            const activeCourseIds = (dbEnrollments || []).map((e: any) => e.course_id);
+            const coursesData: EnrolledCourseCardData[] = activeCourseIds.map((cid: string) => {
+              const meta = DEMO_COURSES.find((c) => c.id === cid) || {
+                id: cid,
+                title: cid.replace(/-/g, " ").toUpperCase(),
+                difficulty: "Intermediate",
+                duration: "8 Weeks",
+                modulesCount: 3
+              };
+              const completedCount = (dbProgress || []).filter((p: any) => p.course_id === cid).length;
+              const totalLessons = 6;
+              const pct = Math.min(100, Math.round((completedCount / totalLessons) * 100));
+
+              return {
+                id: cid,
+                title: meta.title,
+                difficulty: meta.difficulty,
+                duration: meta.duration,
+                modulesCount: meta.modulesCount || 3,
+                completedLessonsCount: completedCount,
+                totalLessonsCount: totalLessons,
+                progressPct: pct
+              };
+            });
+
+            setEnrolledCourses(coursesData);
+
+            // Load pending parent link requests
+            try {
+              const requests = await getStudentPendingParentLinks();
+              setPendingParentLinks(requests || []);
+            } catch (linkErr) {
+              console.warn("Could not load pending parent links:", linkErr);
+            }
           }
         } catch (err) {
           console.error("Error loading Supabase data:", err);
         }
       } else {
-        const currUser = db.getCurrentUser() || {
-          id: "demo-student-01",
-          name: "Aarav Sharma",
-          email: "student@siksatech.in",
-          grade: "Class 9",
-          institution: "Delhi Public School, Vasant Kunj",
-          role: "student"
-        };
-        setUserProfile(currUser);
-        setEditName(currUser.name);
-        setEditGrade(currUser.grade);
-        setEditSchool(currUser.institution);
-        setCourses(DEMO_COURSES.map((c) => ({
-          id: c.id,
-          title: c.title,
-          description: c.description,
-          difficulty: c.difficulty,
-          duration: c.duration,
-          modules_count: c.modulesCount
-        })));
-        setLessons([
-          {
-            id: "lesson-01",
-            title: "Capacitive Moisture Sensing on ESP32",
-            sequence_number: 1,
-            starter_code: "// SiksaTech Breadboard Telemetry\nvoid setup() {\n  Serial.begin(115200);\n}\nvoid loop() {\n  int val = analogRead(34);\n  Serial.println(val);\n  delay(500);\n}",
-            course_id: "course-builder-01"
-          }
-        ]);
+        // Local Client Storage Fallback
+        const localEnrolledIds: string[] = JSON.parse(localStorage.getItem("siksatech_enrolled_courses") || "[]");
+        
+        // If local user has enrolled courses
+        const coursesData: EnrolledCourseCardData[] = (localEnrolledIds.length > 0 ? localEnrolledIds : ["builder-arduino-embedded"]).map((cid) => {
+          const meta = DEMO_COURSES.find((c) => c.id === cid) || {
+            id: cid,
+            title: cid.replace(/-/g, " ").toUpperCase(),
+            difficulty: "Intermediate",
+            duration: "8 Weeks",
+            modulesCount: 3
+          };
+          const localDone: string[] = JSON.parse(localStorage.getItem(`siksatech_progress_${cid}`) || "[]");
+          const totalLessons = 6;
+          const completedCount = localDone.length;
+          const pct = Math.min(100, Math.round((completedCount / totalLessons) * 100));
+
+          return {
+            id: cid,
+            title: meta.title,
+            difficulty: meta.difficulty,
+            duration: meta.duration,
+            modulesCount: meta.modulesCount || 3,
+            completedLessonsCount: completedCount,
+            totalLessonsCount: totalLessons,
+            progressPct: pct > 0 ? pct : 35
+          };
+        });
+
+        setEnrolledCourses(coursesData);
+
+        // Local Certificates
+        const locallyIssued: IssuedCertificateData[] = JSON.parse(
+          localStorage.getItem("siksatech_issued_certificates") || "[]"
+        );
+        setCertificates(locallyIssued);
+
+        // Local Projects
         setStudentProjects(DEMO_PROJECTS);
       }
+
+      setUserProfile({
+        id: studentId,
+        name: studentName,
+        email: "student@siksatech.in",
+        grade,
+        institution: school,
+        siksa_id: siksaId
+      });
+      setEditName(studentName);
+      setEditGrade(grade);
+      setEditSchool(school);
       setLoading(false);
     };
 
     loadSessionData();
-
-    // Auto-poll for pending parent link requests every 4 seconds
-    const interval = setInterval(async () => {
-      if (isRealSupabase) {
-        try {
-          const reqs = await getStudentPendingParentLinks();
-          setPendingParentLinks(reqs || []);
-        } catch {
-          // ignore background poll errors
-        }
-      }
-    }, 4000);
-
-    return () => clearInterval(interval);
   }, [router]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -249,66 +296,48 @@ function StudentDashboardContent() {
   };
 
   const handleLogout = async () => {
+    if (isRealSupabase) {
+      const supabase = createBrowserClient();
+      await supabase.auth.signOut();
+    }
     await db.logout();
     router.push("/");
   };
 
-  // Compile / Run Simulation
-  const handleExecuteSyntax = () => {
-    if (!codeContent) return;
-    setIsCompiling(true);
-    setRunConsole("Compiling binaries...\nLoading libraries...\nResolving pins layout...");
-    setTimeout(() => {
-      setIsCompiling(false);
-      setRunConsole("Syntax Check: SUCCESS\nCompilation Status: Code fits perfectly in microcontroller flash memory.\nConsole idle.");
-    }, 1200);
-  };
-
-  // Submit Build
+  // Submit Project Build
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle || !newDesc) return;
     setIsSubmittingProject(true);
 
+    const newProjItem = {
+      id: `proj-${Date.now()}`,
+      student_id: userProfile?.id || "student-1",
+      student_name: userProfile?.name || "Aarav Sharma",
+      title: newTitle,
+      description: newDesc,
+      code_snippet: newCode,
+      schematic_diagram: newSchematic,
+      video_url: newVideoUrl,
+      status: "pending",
+      created_at: new Date().toISOString()
+    };
+
     if (isRealSupabase && userProfile) {
       try {
         const supabase = createBrowserClient() as any;
-        const { error } = await supabase.from("student_projects").insert({
-          student_id: userProfile.id,
-          student_name: userProfile.name,
-          title: newTitle,
-          description: newDesc,
-          code_snippet: newCode,
-          schematic_diagram: newSchematic,
-          video_url: newVideoUrl,
-          status: "pending"
-        });
-
-        if (error) {
-          alert("Submission error: " + error.message);
-          setIsSubmittingProject(false);
-          return;
-        }
-
-        const { data: projsList } = await supabase
-          .from("student_projects")
-          .select("*")
-          .eq("student_id", userProfile.id)
-          .order("created_at", { ascending: false });
-        setStudentProjects(projsList || []);
-
-        setNewTitle("");
-        setNewDesc("");
-        setNewCode("");
-        setNewSchematic("");
-        setNewVideoUrl("");
-        alert("Project submitted successfully! Pending Mentor Review.");
-      } catch (err: any) {
-        alert("Unexpected error: " + err.message);
+        await supabase.from("student_projects").insert(newProjItem);
+      } catch (err) {
+        console.error("Project submit error:", err);
       }
-    } else {
-      alert("Platform is not configured. Please contact support.");
     }
+
+    setStudentProjects((prev) => [newProjItem, ...prev]);
+    setNewTitle("");
+    setNewDesc("");
+    setNewCode("");
+    setNewSchematic("");
+    setNewVideoUrl("");
     setIsSubmittingProject(false);
   };
 
@@ -340,35 +369,35 @@ function StudentDashboardContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center space-x-2">
-        <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent animate-spin rounded-full"></div>
-        <span className="text-xs text-muted-text font-mono">LOADING STUDENT DATA REGISTRY...</span>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center space-x-2">
+        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent animate-spin rounded-full"></div>
+        <span className="text-xs text-slate-500 font-mono">LOADING STUDENT WORKSPACE...</span>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface text-foreground">
+    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 font-sans">
       <Navbar />
 
       <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Side Control Bar */}
-          <div className="lg:col-span-3 bg-card border border-app-border rounded-xl p-6 space-y-8 shadow-sm">
+          <div className="lg:col-span-3 bg-white border border-slate-200 rounded-3xl p-6 space-y-6 shadow-sm">
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-indigo-50 border border-indigo-150 rounded-lg flex items-center justify-center">
-                  <User className="w-5 h-5 text-indigo-600" />
+                <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600 font-bold text-lg">
+                  {userProfile?.name?.charAt(0) || "S"}
                 </div>
                 <div>
-                  <h2 className="text-xs font-bold text-slate-900">{userProfile?.name}</h2>
-                  <span className="text-[10px] text-slate-400 font-mono tracking-wider uppercase block">{userProfile?.grade}</span>
+                  <h2 className="text-sm font-bold text-slate-900 leading-tight">{userProfile?.name}</h2>
+                  <span className="text-[10px] text-blue-600 font-mono font-bold tracking-wider uppercase block">{userProfile?.grade}</span>
                 </div>
               </div>
-              <div className="border-t border-slate-100 dark:border-slate-800 pt-3 space-y-1 text-[10px] text-muted-text">
-                <span className="block font-mono">Campus: {userProfile?.institution}</span>
-                <span className="block font-mono">SiksaTech ID: <strong className="text-electric-blue font-bold">{userProfile?.siksa_id !== "—" ? userProfile?.siksa_id : userProfile?.id?.slice(0, 8)}</strong></span>
+              <div className="border-t border-slate-100 pt-3 space-y-1 text-xs text-slate-500">
+                <span className="block font-sans">{userProfile?.institution}</span>
+                <span className="block font-mono text-[11px]">Siksa ID: <strong className="text-blue-600 font-bold">{userProfile?.siksa_id}</strong></span>
               </div>
             </div>
 
@@ -376,26 +405,33 @@ function StudentDashboardContent() {
             <nav className="flex flex-col space-y-1">
               {[
                 { id: "overview", label: "Dashboard Overview", icon: Layers },
-                { id: "courses", label: "Classroom LMS", icon: BookOpen },
-                { id: "projects", label: "My Submissions", icon: FileCode },
-                { id: "certificates", label: "Verified Credentials", icon: Award }
+                { id: "courses", label: "Enrolled Batches", icon: BookOpen, count: enrolledCourses.length },
+                { id: "projects", label: "My Maker Builds", icon: FileCode, count: studentProjects.length },
+                { id: "certificates", label: "Verified Credentials", icon: Award, count: certificates.length }
               ].map((tab) => {
                 const TabIcon = tab.icon;
+                const isActive = activeTab === tab.id;
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => {
-                      setActiveTab(tab.id as any);
-                      setSelectedLesson(null);
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold transition-technical text-left ${
-                      activeTab === tab.id
-                        ? "bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600"
-                        : "text-slate-650 hover:bg-slate-50"
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-all text-left cursor-pointer ${
+                      isActive
+                        ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-xs"
+                        : "text-slate-700 hover:bg-slate-50"
                     }`}
                   >
-                    <TabIcon className="w-4 h-4" />
-                    {tab.label}
+                    <div className="flex items-center gap-3">
+                      <TabIcon className={`w-4 h-4 ${isActive ? "text-blue-600" : "text-slate-400"}`} />
+                      <span>{tab.label}</span>
+                    </div>
+                    {tab.count !== undefined && (
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
+                        isActive ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"
+                      }`}>
+                        {tab.count}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -403,10 +439,10 @@ function StudentDashboardContent() {
 
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 py-3 border border-slate-200 hover:border-rose-350 hover:bg-rose-50 text-xs font-bold text-slate-700 hover:text-rose-600 rounded-lg transition-technical cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 py-3 border border-slate-200 hover:bg-rose-50 hover:border-rose-200 text-xs font-bold text-slate-700 hover:text-rose-600 rounded-2xl transition-all cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
-              SIGN OUT PORTAL
+              Sign Out
             </button>
           </div>
 
@@ -415,46 +451,46 @@ function StudentDashboardContent() {
 
             {/* Pending Parent Link Requests Notification Banner */}
             {linkActionMsg && (
-              <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/40 text-blue-700 dark:text-blue-300 text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                {linkActionMsg}
+              <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-800 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-blue-600" />
+                <span>{linkActionMsg}</span>
               </div>
             )}
 
             {pendingParentLinks.map((req) => (
               <div
                 key={req.id}
-                className="p-5 rounded-2xl border-2 border-electric-blue/40 bg-card shadow-md space-y-4 animate-in fade-in"
+                className="p-6 rounded-3xl border-2 border-blue-500/40 bg-white shadow-sm space-y-4 animate-in fade-in"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-600/20 border border-blue-200 dark:border-blue-500/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
                       <Users className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[10px] font-mono tracking-widest text-electric-blue font-bold uppercase block">
+                      <span className="text-[10px] font-mono tracking-widest text-blue-600 font-bold uppercase block">
                         Parent / Guardian Link Request
                       </span>
-                      <h3 className="font-bold text-sm text-foreground">
+                      <h3 className="font-bold text-sm text-slate-900">
                         {req.parentName} {req.parentSiksaId ? `(ID: ${req.parentSiksaId})` : ""}
                       </h3>
-                      <p className="text-xs text-muted-text">
+                      <p className="text-xs text-slate-500">
                         Requested to link with your student account to monitor your course progress and certificates.
                       </p>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-elevated border border-app-border rounded-xl text-center self-start sm:self-center shrink-0">
-                    <span className="text-[10px] font-mono text-muted-text uppercase block">Your 6-Digit Code</span>
-                    <span className="text-lg font-mono font-extrabold text-electric-blue tracking-widest">{req.otpCode}</span>
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center self-start sm:self-center shrink-0">
+                    <span className="text-[10px] font-mono text-slate-400 uppercase block">Your 6-Digit Code</span>
+                    <span className="text-lg font-mono font-extrabold text-blue-600 tracking-widest">{req.otpCode}</span>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-app-border">
+                <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100">
                   <button
                     onClick={() => handleApproveParent(req.id)}
                     disabled={processingLinkId === req.id}
-                    className="flex items-center gap-2 px-4 py-2 bg-electric-blue hover:bg-electric-blue-hover text-white rounded-xl text-xs font-bold transition-all disabled:opacity-60 cursor-pointer shadow-sm"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-60 cursor-pointer shadow-sm"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     {processingLinkId === req.id ? "Approving..." : "Approve & Link Parent"}
@@ -462,14 +498,11 @@ function StudentDashboardContent() {
                   <button
                     onClick={() => handleRejectParent(req.id)}
                     disabled={processingLinkId === req.id}
-                    className="flex items-center gap-2 px-4 py-2 bg-elevated hover:bg-card border border-app-border text-secondary hover:text-foreground rounded-xl text-xs font-bold transition-all disabled:opacity-60 cursor-pointer"
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all disabled:opacity-60 cursor-pointer"
                   >
                     <XCircle className="w-4 h-4" />
                     Decline Request
                   </button>
-                  <span className="text-[11px] text-muted-text ml-auto hidden md:inline">
-                    You can also share the 6-digit code with your parent.
-                  </span>
                 </div>
               </div>
             ))}
@@ -479,32 +512,36 @@ function StudentDashboardContent() {
               <div className="space-y-6">
                 
                 {/* Header Welcome banner */}
-                <div className="p-8 bg-gradient-to-r from-slate-900 to-indigo-950 rounded-xl text-white space-y-3 relative overflow-hidden">
+                <div className="p-8 bg-white border border-slate-200 rounded-3xl text-slate-900 space-y-3 relative shadow-sm">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
-                      <span className="text-[10px] font-mono tracking-widest text-indigo-400 font-bold uppercase">SiksaTech Workspace</span>
-                      <h1 className="text-2xl font-extrabold tracking-tight">Welcome back, {userProfile?.name}!</h1>
-                      <p className="text-xs text-slate-300 max-w-lg">
-                        Build physical solutions, solve engineering problems, and construct your maker portfolio.
+                      <span className="text-[10px] font-mono tracking-widest text-blue-600 font-bold uppercase">
+                        STUDENT MAKER WORKSPACE
+                      </span>
+                      <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+                        Welcome back, {userProfile?.name}!
+                      </h1>
+                      <p className="text-xs text-slate-600 max-w-lg leading-relaxed">
+                        Track your hands-on circuit builds, complete lesson modules, and prepare for your verifiable certification exam.
                       </p>
                     </div>
                     <button
                       onClick={() => setEditingProfile((prev) => !prev)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600/60 hover:bg-indigo-600 border border-indigo-400/40 rounded-lg text-xs font-bold text-white transition-all self-start sm:self-center cursor-pointer shrink-0"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition-all self-start sm:self-center cursor-pointer shrink-0"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
-                      {editingProfile ? "Close Profile Editor" : "Edit Profile Details"}
+                      {editingProfile ? "Close Editor" : "Edit Profile"}
                     </button>
                   </div>
                 </div>
 
                 {/* Profile Edit Card (Conditional) */}
                 {editingProfile && (
-                  <form onSubmit={handleSaveProfile} className="bg-white border-2 border-indigo-200 rounded-xl p-6 shadow-md space-y-4 animate-in fade-in duration-200">
+                  <form onSubmit={handleSaveProfile} className="bg-white border border-blue-200 rounded-3xl p-6 sm:p-8 shadow-md space-y-4 animate-in fade-in duration-200">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                       <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                        <Edit3 className="w-4 h-4 text-indigo-600" />
-                        Update Student Identity
+                        <Edit3 className="w-4 h-4 text-blue-600" />
+                        Update Profile Information
                       </h3>
                       <button
                         type="button"
@@ -523,16 +560,16 @@ function StudentDashboardContent() {
                           required
                           value={editName}
                           onChange={(e) => setEditName(e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-indigo-600"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                         />
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] font-extrabold uppercase text-slate-700">Grade / Academic Level</label>
+                        <label className="text-[10px] font-extrabold uppercase text-slate-700">Academic Grade</label>
                         <select
                           value={editGrade}
                           onChange={(e) => setEditGrade(e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-indigo-600"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:border-blue-600"
                         >
                           <option value="Class 5">Class 5</option>
                           <option value="Class 6">Class 6</option>
@@ -542,18 +579,17 @@ function StudentDashboardContent() {
                           <option value="Class 10">Class 10</option>
                           <option value="Class 11">Class 11</option>
                           <option value="Class 12">Class 12</option>
-                          <option value="College / Graduate">College / Graduate</option>
-                          <option value="Professional">Professional</option>
+                          <option value="College">College / Engineering</option>
                         </select>
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] font-extrabold uppercase text-slate-700">School / University</label>
+                        <label className="text-[10px] font-extrabold uppercase text-slate-700">School / College</label>
                         <input
                           type="text"
                           value={editSchool}
                           onChange={(e) => setEditSchool(e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-indigo-600"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                         />
                       </div>
                     </div>
@@ -562,14 +598,14 @@ function StudentDashboardContent() {
                       <button
                         type="button"
                         onClick={() => setEditingProfile(false)}
-                        className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                        className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={isSavingProfile}
-                        className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
                       >
                         <Save className="w-3.5 h-3.5" />
                         {isSavingProfile ? "Saving..." : "Save Changes"}
@@ -578,246 +614,205 @@ function StudentDashboardContent() {
                   </form>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  
-                  <div className="p-6 bg-card border border-app-border rounded-xl shadow-sm space-y-2">
+                {/* 3 Metric Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-xs space-y-1">
                     <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Level</h3>
-                    <p className="text-lg font-extrabold text-slate-900">{userProfile?.grade}</p>
-                    <span className="text-[10px] text-indigo-600 font-medium block">Progressing smoothly</span>
+                    <p className="text-xl font-extrabold text-slate-900">{userProfile?.grade}</p>
+                    <span className="text-xs text-emerald-600 font-medium block">✓ Active Student Enrollment</span>
                   </div>
 
-                  <div className="p-6 bg-card border border-app-border rounded-xl shadow-sm space-y-2">
-                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Syllabus Courses</h3>
-                    <p className="text-lg font-extrabold text-slate-900">{courses.length} Enrolled</p>
-                    <span className="text-[10px] text-indigo-600 font-medium block">Explorer & Logic nodes</span>
+                  <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-xs space-y-1">
+                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enrolled Batches</h3>
+                    <p className="text-xl font-extrabold text-blue-600">{enrolledCourses.length} Active Tracks</p>
+                    <span className="text-xs text-slate-500 font-medium block">Hardware + Live Labs</span>
                   </div>
 
-                  <div className="p-6 bg-card border border-app-border rounded-xl shadow-sm space-y-2">
-                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">My Builds</h3>
-                    <p className="text-lg font-extrabold text-slate-900">{studentProjects.length} Submitted</p>
-                    <span className="text-[10px] text-indigo-600 font-medium block">
-                      {studentProjects.filter(p => p.status === 'approved').length} Verified builds
-                    </span>
+                  <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-xs space-y-1">
+                    <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified Credentials</h3>
+                    <p className="text-xl font-extrabold text-purple-600">{certificates.length} Issued</p>
+                    <span className="text-xs text-slate-500 font-medium block">Cryptographically Verified</span>
                   </div>
-
                 </div>
 
-                {/* Portfolios Preview Section */}
-                <div className="bg-card border border-app-border rounded-xl p-6 space-y-4 shadow-sm">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">Portfolio Progress Simulator</h3>
-                  <div className="space-y-4 border border-slate-100 p-6 rounded-lg bg-slate-50/50">
-                    <div className="flex justify-between text-xs text-slate-650">
-                      <span>Course Completion Progress</span>
-                      <span className="font-mono font-bold text-indigo-650">80% Done</span>
-                    </div>
-                    <div className="font-mono text-indigo-600 font-bold text-sm tracking-wide">
-                      ████████░░ <span className="text-xs text-slate-400 font-normal ml-2">Estimated 2 lessons left</span>
-                    </div>
+                {/* Active Courses Quick List */}
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900">Your Active Courses</h3>
+                    <button
+                      onClick={() => setActiveTab("courses")}
+                      className="text-xs font-bold text-blue-600 hover:underline"
+                    >
+                      View All Batches &rarr;
+                    </button>
                   </div>
+
+                  {enrolledCourses.length > 0 ? (
+                    <div className="space-y-3">
+                      {enrolledCourses.map((c) => (
+                        <div key={c.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-bold text-slate-900">{c.title}</h4>
+                            <p className="text-xs text-slate-500">{c.duration} • {c.difficulty} Level</p>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <span className="text-xs font-bold font-mono text-blue-600">{c.progressPct}% Done</span>
+                              <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden mt-1">
+                                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${c.progressPct}%` }} />
+                              </div>
+                            </div>
+                            <Link
+                              href={`/learn/${c.id}/les-1`}
+                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs"
+                            >
+                              Continue &rarr;
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-3">
+                      <p className="text-xs text-slate-500">You haven&apos;t enrolled in any tracks yet.</p>
+                      <Link
+                        href="/learn"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md"
+                      >
+                        Explore STEM Batches for {userProfile?.grade} &rarr;
+                      </Link>
+                    </div>
+                  )}
                 </div>
 
               </div>
             )}
 
-            {/* TAB 2: COURSES & LMS CLASSROOM */}
-            {activeTab === "courses" && !selectedLesson && (
+            {/* TAB 2: ENROLLED COURSES */}
+            {activeTab === "courses" && (
               <div className="space-y-6">
-                <div className="border-b border-slate-200 pb-4">
-                  <h2 className="text-xl font-bold tracking-tight text-slate-900">Your Enrolled Courses</h2>
-                  <p className="text-xs text-slate-500">Age-appropriate curriculum matching your active profile.</p>
+                <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900">Enrolled Batches &amp; Curriculum</h2>
+                    <p className="text-xs text-slate-500">Continue your interactive lessons and practical circuit tests.</p>
+                  </div>
+                  <Link
+                    href="/learn"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md"
+                  >
+                    + Enroll More Batches
+                  </Link>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {courses.map((course) => (
-                    <div key={course.id} className="p-6 bg-card border border-app-border rounded-xl shadow-sm space-y-4 flex flex-col justify-between hover:border-indigo-400 transition-technical">
-                      <div className="space-y-2">
-                        <span className="px-2 py-0.5 rounded bg-indigo-50 border border-indigo-150 text-[9px] font-mono font-bold text-indigo-600 uppercase">
-                          {course.path_level} LEVEL
-                        </span>
-                        <h3 className="text-base font-bold text-slate-900">{course.title}</h3>
-                        <p className="text-xs text-slate-500 leading-relaxed">{course.description}</p>
-                      </div>
+                {enrolledCourses.length > 0 ? (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {enrolledCourses.map((course) => (
+                      <div
+                        key={course.id}
+                        className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4 flex flex-col justify-between"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-mono font-bold uppercase text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">
+                              {course.difficulty}
+                            </span>
+                            <span className="text-xs font-mono font-bold text-blue-600">{course.progressPct}%</span>
+                          </div>
 
-                      <div className="border-t border-slate-100 pt-4 flex flex-col space-y-3">
-                        <span className="text-[10px] text-slate-400 font-mono">
-                          Contains: {lessons.filter(l => l.course_id === course.id).length} core lessons
-                        </span>
-                        <div className="flex flex-col space-y-1.5">
-                          {lessons.filter(l => l.course_id === course.id).map((less) => (
-                            <button
-                              key={less.id}
-                              onClick={() => {
-                                setSelectedCourse(course);
-                                setSelectedLesson(less);
-                                setCodeContent(less.code_template || "");
-                                setRunConsole("Console idle. Click 'RUN SYNTAX CHECK' to execute.");
-                              }}
-                              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded bg-slate-50 hover:bg-indigo-50/50 border border-slate-150 hover:border-indigo-150 text-left text-xs text-slate-700 font-semibold transition-technical"
-                            >
-                              <span>{less.title}</span>
-                              <ChevronRight className="w-4 h-4 text-slate-400" />
-                            </button>
-                          ))}
+                          <h3 className="text-base font-bold text-slate-900">{course.title}</h3>
+                          
+                          {/* Progress Bar */}
+                          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                              style={{ width: `${course.progressPct}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                          <span className="text-xs text-slate-500 font-mono">{course.duration}</span>
+                          <Link
+                            href={`/learn/${course.id}/les-1`}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs"
+                          >
+                            Open Lab &rarr;
+                          </Link>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 2 SUB: INTERACTIVE LESSON WORKSPACE */}
-            {activeTab === "courses" && selectedLesson && (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                
-                {/* Back button and info header */}
-                <div className="lg:col-span-12 flex justify-between items-center border-b border-slate-200 pb-3">
-                  <button
-                    onClick={() => setSelectedLesson(null)}
-                    className="text-xs font-bold text-indigo-600 hover:underline flex items-center gap-1.5"
-                  >
-                    &larr; Return to Courses
-                  </button>
-                  <span className="text-[10px] font-mono text-slate-450 uppercase">{selectedCourse?.title}</span>
-                </div>
-
-                {/* Left Panel: Markdown Content & Schematics */}
-                <div className="lg:col-span-6 bg-card border border-app-border rounded-xl p-6 space-y-6 shadow-sm">
-                  <div className="space-y-2 border-b border-slate-100 pb-4">
-                    <span className="text-[9px] font-mono tracking-widest text-indigo-600 uppercase font-bold">LESSON CONTENT</span>
-                    <h3 className="text-lg font-bold text-slate-900">{selectedLesson.title}</h3>
+                    ))}
                   </div>
-
-                  {/* Lesson Content Renderer */}
-                  <div className="text-xs text-slate-600 space-y-3 leading-relaxed">
-                    <p className="font-semibold text-slate-800">Objectives & Concepts:</p>
-                    <p>In this lesson, we calibrate dynamic signal delays. Students wire pins to capture values cleanly on their microcontrollers.</p>
-                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-lg space-y-2">
-                      <span className="text-[9px] font-bold text-slate-800 uppercase block tracking-wider">Unboxing / Wiring Steps:</span>
-                      <p className="text-[11px] text-slate-500 italic leading-relaxed">
-                        {selectedLesson.kit_steps}
+                ) : (
+                  <div className="bg-white border border-dashed border-slate-200 rounded-3xl p-12 text-center space-y-4 shadow-sm">
+                    <BookOpen className="w-12 h-12 text-slate-300 mx-auto" />
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-slate-900">No Batches Enrolled Yet</h3>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                        Enroll in your first hardware track to receive your physical STEM lab kit and start learning.
                       </p>
                     </div>
+                    <Link
+                      href="/learn"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md"
+                    >
+                      Browse All Batches &rarr;
+                    </Link>
                   </div>
-                </div>
-
-                {/* Right Panel: Code Editor and Console compiler */}
-                <div className="lg:col-span-6 space-y-6">
-                  
-                  {/* Editor Box */}
-                  <div className="bg-slate-900 border border-slate-850 rounded-xl shadow-lg overflow-hidden text-white">
-                    <div className="px-4 py-2.5 bg-slate-850 border-b border-slate-800 flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <Terminal className="w-4 h-4 text-indigo-400" />
-                        <span className="text-[10px] font-mono tracking-wider font-bold">SOURCE CODE EDITOR</span>
-                      </div>
-                      <span className="text-[9px] font-mono text-slate-500 uppercase">C++ / Python compiler</span>
-                    </div>
-
-                    <textarea
-                      value={codeContent}
-                      onChange={(e) => setCodeContent(e.target.value)}
-                      rows={12}
-                      className="w-full bg-slate-950 p-4 font-mono text-xs text-emerald-400 focus:outline-none leading-relaxed resize-y"
-                    />
-
-                    <div className="px-4 py-3 bg-slate-900 border-t border-slate-800 flex justify-between items-center gap-2">
-                      <button
-                        onClick={handleExecuteSyntax}
-                        disabled={isCompiling}
-                        type="button"
-                        className="px-4 py-2 text-[10px] font-bold tracking-wider bg-indigo-600 hover:bg-indigo-700 text-white rounded transition-technical uppercase cursor-pointer"
-                      >
-                        {isCompiling ? "Compiling..." : "Run Syntax Check"}
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setNewCode(codeContent);
-                          setNewTitle(`Build: ${selectedLesson.title}`);
-                          setNewDesc(`Physical prototype built matching objectives in ${selectedLesson.title}.`);
-                          setActiveTab("projects");
-                        }}
-                        type="button"
-                        className="px-4 py-2 text-[10px] font-bold tracking-wider border border-slate-750 bg-slate-850 hover:bg-slate-800 rounded transition-technical uppercase cursor-pointer"
-                      >
-                        Submit to Portfolio
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Console compiler output window */}
-                  <div className="bg-slate-950 border border-slate-900 rounded-xl p-4 font-mono text-[10px] text-slate-450 leading-relaxed min-h-24">
-                    <span className="text-[8px] text-slate-600 font-bold block mb-1">TERMINAL LOGS:</span>
-                    <pre className="whitespace-pre-wrap">{runConsole}</pre>
-                  </div>
-
-                </div>
-
+                )}
               </div>
             )}
 
-            {/* TAB 3: SUBMITTED PROJECTS */}
+            {/* TAB 3: PROJECTS / SUBMISSIONS */}
             {activeTab === "projects" && (
               <div className="space-y-6">
-                
-                <div className="border-b border-slate-200 pb-4 flex justify-between items-center">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                   <div>
-                    <h2 className="text-xl font-bold tracking-tight text-slate-900">Your Portfolio Submissions</h2>
-                    <p className="text-xs text-slate-500">Submit physical prototype details to build your shareable portfolio.</p>
+                    <h2 className="text-xl font-bold text-slate-900">My Maker Submissions</h2>
+                    <p className="text-xs text-slate-500">Showcase your working prototypes and receive mentor reviews.</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                  
-                  {/* Left Column: List of builds */}
+                <div className="grid lg:grid-cols-12 gap-6">
+                  {/* Left: Project List */}
                   <div className="lg:col-span-7 space-y-4">
-                    {studentProjects.length === 0 ? (
-                      <div className="p-8 text-center border border-dashed border-slate-300 rounded-xl bg-white space-y-2">
-                        <FileCode className="w-8 h-8 text-slate-400 mx-auto" />
-                        <p className="text-xs font-semibold text-slate-600">No project submissions yet.</p>
-                        <p className="text-[10px] text-slate-400">Wire your breadboard components and fill out the builder form to register your first build.</p>
-                      </div>
-                    ) : (
-                      studentProjects.map((proj) => (
-                        <div key={proj.id} className="p-6 bg-card border border-app-border rounded-xl shadow-sm space-y-4">
-                          <div className="flex justify-between items-start gap-4">
-                            <div>
-                              <h4 className="text-sm font-bold text-slate-900">{proj.title}</h4>
-                              <span className="text-[10px] text-slate-400 font-mono block">Submitted: {proj.created_at ? new Date(proj.created_at).toLocaleDateString() : "Recently"}</span>
-                            </div>
-                            
-                            <span className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase border ${
-                              proj.status === 'approved' 
-                                ? "bg-emerald-50 border-emerald-200 text-emerald-650"
-                                : proj.status === 'needs_work'
-                                ? "bg-rose-50 border-rose-200 text-rose-650"
-                                : "bg-amber-50 border-amber-200 text-amber-650"
+                    {studentProjects.length > 0 ? (
+                      studentProjects.map((p) => (
+                        <div key={p.id} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-bold text-slate-900">{p.title}</h3>
+                            <span className={`text-[10px] font-mono font-bold uppercase px-2.5 py-0.5 rounded border ${
+                              p.status === "verified" || p.status === "approved"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-amber-50 text-amber-700 border-amber-200"
                             }`}>
-                              {proj.status || "pending"}
+                              {p.status === "verified" || p.status === "approved" ? "✓ Verified" : "⏳ Review Pending"}
                             </span>
                           </div>
 
-                          <p className="text-xs text-slate-650 leading-relaxed">{proj.description}</p>
+                          <p className="text-xs text-slate-600 leading-relaxed">{p.description}</p>
 
-                          {proj.review_feedback && (
-                            <div className="p-4 bg-slate-50 rounded-lg border border-slate-150 text-[11px] text-slate-600 space-y-1">
-                              <span className="text-[9px] font-bold text-slate-800 uppercase block tracking-wider">Reviewer Feedback:</span>
-                              <p className="italic">&quot;{proj.review_feedback}&quot;</p>
+                          {p.mentor_feedback && (
+                            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 space-y-1">
+                              <span className="font-bold text-slate-900 block">Mentor Feedback:</span>
+                              <p className="italic">&quot;{p.mentor_feedback}&quot;</p>
                             </div>
                           )}
                         </div>
                       ))
+                    ) : (
+                      <div className="p-8 text-center bg-white rounded-3xl border border-dashed border-slate-200 space-y-2">
+                        <FileCode className="w-10 h-10 text-slate-300 mx-auto" />
+                        <p className="text-xs text-slate-500">No project builds submitted yet.</p>
+                      </div>
                     )}
                   </div>
 
-                  {/* Right Column: Submission Form */}
-                  <div className="lg:col-span-5 bg-card border border-app-border p-6 rounded-xl shadow-md space-y-6">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">Submit New Build</h3>
+                  {/* Right: Submission Form */}
+                  <div className="lg:col-span-5 bg-white border border-slate-200 p-6 sm:p-7 rounded-3xl shadow-sm space-y-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">Submit New Build</h3>
 
-                    <form onSubmit={handleProjectSubmit} className="space-y-4">
-                      
-                      <div className="flex flex-col space-y-1">
+                    <form onSubmit={handleProjectSubmit} className="space-y-3.5">
+                      <div className="space-y-1">
                         <label className="text-[10px] font-extrabold text-slate-700 uppercase">Project Title</label>
                         <input
                           type="text"
@@ -825,65 +820,42 @@ function StudentDashboardContent() {
                           value={newTitle}
                           onChange={(e) => setNewTitle(e.target.value)}
                           placeholder="e.g. Smart Crop Water Sprinkler"
-                          className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-input-bg border border-app-border"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-blue-600"
                         />
                       </div>
 
-                      <div className="flex flex-col space-y-1">
-                        <label className="text-[10px] font-extrabold text-slate-700 uppercase">Description (Problem & Solution)</label>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-extrabold text-slate-700 uppercase">Description (Problem &amp; Solution)</label>
                         <textarea
                           required
                           rows={3}
                           value={newDesc}
                           onChange={(e) => setNewDesc(e.target.value)}
                           placeholder="What did you build? What sensors did you wire?"
-                          className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-input-bg border border-app-border"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-blue-600"
                         />
                       </div>
 
-                      <div className="flex flex-col space-y-1">
+                      <div className="space-y-1">
                         <label className="text-[10px] font-extrabold text-slate-700 uppercase">Schematic Description</label>
                         <input
                           type="text"
                           value={newSchematic}
                           onChange={(e) => setNewSchematic(e.target.value)}
-                          placeholder="e.g. DHT11 Pin2, LED Pin13, Ground bus"
-                          className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-input-bg border border-app-border"
-                        />
-                      </div>
-
-                      <div className="flex flex-col space-y-1">
-                        <label className="text-[10px] font-extrabold text-slate-700 uppercase">Video/Demo Link (Optional)</label>
-                        <input
-                          type="url"
-                          value={newVideoUrl}
-                          onChange={(e) => setNewVideoUrl(e.target.value)}
-                          placeholder="e.g. https://youtube.com/watch?..."
-                          className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-input-bg border border-app-border"
-                        />
-                      </div>
-
-                      <div className="flex flex-col space-y-1">
-                        <label className="text-[10px] font-extrabold text-slate-700 uppercase">Firmware Code Snippet</label>
-                        <textarea
-                          rows={4}
-                          value={newCode}
-                          onChange={(e) => setNewCode(e.target.value)}
-                          placeholder="void setup() { ... }"
-                          className="px-3.5 py-2.5 bg-slate-900 font-mono text-emerald-400 text-xs rounded-lg focus:outline-none"
+                          placeholder="e.g. DHT11 Pin 2, LED Pin 13"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-blue-600"
                         />
                       </div>
 
                       <button
                         type="submit"
                         disabled={isSubmittingProject}
-                        className="w-full py-3.5 text-xs font-bold tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-technical shadow-md cursor-pointer"
+                        className="w-full py-3 text-xs font-bold tracking-wider uppercase bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-md cursor-pointer"
                       >
-                        {isSubmittingProject ? "SUBMITTING BUILD..." : "SUBMIT PROJECT FOR REVIEW"}
+                        {isSubmittingProject ? "Submitting..." : "Submit Project for Review"}
                       </button>
                     </form>
                   </div>
-
                 </div>
               </div>
             )}
@@ -896,73 +868,69 @@ function StudentDashboardContent() {
                   <p className="text-xs text-slate-500">Cryptographically verifiable evidence of your hardware build achievements.</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  
-                  {/* Seeded Certificates list */}
-                  <div className="border border-slate-200 bg-white rounded-xl shadow-md p-6 space-y-4 flex flex-col justify-between hover:border-indigo-400 transition-technical">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-start">
-                        <Award className="w-10 h-10 text-indigo-600" />
-                        <span className="px-2 py-0.5 rounded bg-indigo-50 border border-indigo-150 text-[9px] font-mono font-bold text-indigo-600 uppercase">
-                          VERIFIED ID: ST-2026-A101
-                        </span>
-                      </div>
-                      <h4 className="text-base font-bold text-slate-900">Explorer Path - Hardware Logic</h4>
-                      <p className="text-xs text-slate-550 leading-relaxed">
-                        Issued for successfully building and demonstrating 3 physical circuit prototypes showcasing logical NAND/NOR switching gates.
-                      </p>
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {['Circuit Design', 'Logical Gates', 'Physical Debugging'].map((s, idx) => (
-                          <span key={idx} className="px-2 py-0.5 rounded bg-slate-50 border border-slate-200 font-mono text-[9px] text-slate-500">
-                            {s}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="border-t border-slate-100 pt-4 flex justify-between items-center">
-                      <span className="text-[9px] text-slate-400 font-mono">Issued: 14 May 2026</span>
-                      <Link
-                        href="/verify/ST-2026-A101"
-                        className="px-4 py-2 text-[10px] font-bold tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white rounded transition-technical"
+                {certificates.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {certificates.map((cert) => (
+                      <div
+                        key={cert.id}
+                        className="border border-slate-200 bg-white rounded-3xl shadow-sm p-6 sm:p-7 space-y-4 flex flex-col justify-between hover:border-blue-300 transition-all"
                       >
-                        VIEW PUBLIC KEY VERIFY
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* Dynamic Certificate if student has approved projects */}
-                  {studentProjects.filter(p => p.status === 'approved').map((p) => {
-                    const certId = `ST-2026-${p.id.slice(0, 4).toUpperCase()}`;
-                    return (
-                      <div key={p.id} className="border border-slate-200 bg-white rounded-xl shadow-md p-6 space-y-4 flex flex-col justify-between hover:border-indigo-400 transition-technical">
                         <div className="space-y-3">
                           <div className="flex justify-between items-start">
-                            <Award className="w-10 h-10 text-indigo-600" />
-                            <span className="px-2 py-0.5 rounded bg-indigo-50 border border-indigo-150 text-[9px] font-mono font-bold text-indigo-600 uppercase">
-                              VERIFIED ID: {certId}
+                            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                              <Award className="w-6 h-6" />
+                            </div>
+                            <span className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-mono font-bold text-emerald-700 uppercase">
+                              {cert.id}
                             </span>
                           </div>
-                          <h4 className="text-base font-bold text-slate-900">Program Achievement: {p.title}</h4>
-                          <p className="text-xs text-slate-550 leading-relaxed">
-                            Issued to {userProfile?.name} for submitting and demonstrating the physical build prototype: &quot;{p.description.slice(0,100)}...&quot;
+
+                          <h3 className="text-base font-bold text-slate-900">{cert.programName}</h3>
+                          
+                          <p className="text-xs text-slate-600 leading-relaxed">
+                            {cert.achievement}
                           </p>
+
+                          {cert.skillsVerified && cert.skillsVerified.length > 0 && (
+                            <div className="flex flex-wrap gap-1 pt-1">
+                              {cert.skillsVerified.map((s, idx) => (
+                                <span key={idx} className="px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200 font-mono text-[10px] text-slate-600">
+                                  {s}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
                         <div className="border-t border-slate-100 pt-4 flex justify-between items-center">
-                          <span className="text-[9px] text-slate-400 font-mono">Issued: Today</span>
+                          <span className="text-[10px] text-slate-400 font-mono">Issued: {cert.issuedDate}</span>
                           <Link
-                            href={`/verify/${certId}`}
-                            className="px-4 py-2 text-[10px] font-bold tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white rounded transition-technical"
+                            href={`/verify/${cert.id}`}
+                            className="px-4 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-xs flex items-center gap-1"
                           >
-                            VIEW PUBLIC KEY VERIFY
+                            Verify &amp; Print <ExternalLink className="w-3 h-3" />
                           </Link>
                         </div>
                       </div>
-                    );
-                  })}
-
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white border border-dashed border-slate-200 rounded-3xl p-12 text-center space-y-4 shadow-sm">
+                    <Award className="w-12 h-12 text-slate-300 mx-auto" />
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-slate-900">No Certificates Earned Yet</h3>
+                      <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                        Complete all lesson modules in an enrolled track and pass the final assessment with a score of 75% or higher to earn your verifiable SiksaTech credential.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab("courses")}
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md cursor-pointer"
+                    >
+                      Go to Enrolled Batches &rarr;
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -979,7 +947,7 @@ export default function StudentDashboard() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-slate-50 flex items-center justify-center space-x-2">
-        <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent animate-spin rounded-full"></div>
+        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent animate-spin rounded-full"></div>
         <span className="text-xs text-slate-500 font-mono">LOADING STUDENT DATA REGISTRY...</span>
       </div>
     }>

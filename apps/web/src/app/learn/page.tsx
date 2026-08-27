@@ -56,10 +56,10 @@ export default function LearnPage() {
   }, []);
 
   const pathColors: Record<string, { bg: string; border: string; text: string; badgeBg: string; accent: string }> = {
-    explorer: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700", badgeBg: "bg-emerald-100", accent: "#10B981" },
-    builder: { bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-700", badgeBg: "bg-blue-100", accent: "#3B82F6" },
-    creator: { bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-700", badgeBg: "bg-purple-100", accent: "#8B5CF6" },
-    engineer: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", badgeBg: "bg-amber-100", accent: "#F59E0B" },
+    explorer: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-800", badgeBg: "bg-emerald-100", accent: "#10B981" },
+    builder: { bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-800", badgeBg: "bg-blue-100", accent: "#3B82F6" },
+    creator: { bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-800", badgeBg: "bg-purple-100", accent: "#8B5CF6" },
+    engineer: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-800", badgeBg: "bg-amber-100", accent: "#F59E0B" },
   };
 
   const pathIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -81,22 +81,22 @@ export default function LearnPage() {
   });
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 font-sans">
+    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900 font-sans">
       <Navbar />
 
       <main className="flex-1">
-        {/* PhysicsWallah Style Header & Search Banner */}
-        <section className="bg-slate-950 text-white py-12 px-4 sm:px-6 lg:px-8 border-b border-slate-800">
+        {/* Crisp Light Header & Search Banner */}
+        <section className="bg-white text-slate-900 py-12 px-4 sm:px-6 lg:px-8 border-b border-slate-200 shadow-xs">
           <div className="max-w-7xl mx-auto space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-2">
-                <span className="inline-block px-3 py-1 bg-blue-500/20 border border-blue-400/40 text-blue-400 text-xs font-mono font-bold uppercase rounded-full">
+                <span className="inline-block px-3 py-1 bg-blue-50 border border-blue-200 text-blue-800 text-xs font-mono font-bold uppercase rounded-full">
                   🇮🇳 BHARAT&apos;S POPULAR STEM BATCHES
                 </span>
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
                   Explore Structured STEM Batches &amp; Practical Tracks
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
                   Every batch includes hands-on hardware kit doorstep delivery, live weekend labs, daily practice problems, and verifiable certifications.
                 </p>
               </div>
@@ -109,13 +109,13 @@ export default function LearnPage() {
                   placeholder="Search Arduino, Python, IoT, Robotics..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-2xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-all shadow-inner"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 transition-all shadow-inner"
                 />
               </div>
             </div>
 
             {/* PW-Style Horizontal Class Switcher */}
-            <div className="flex items-center gap-2 overflow-x-auto pt-2 pb-1 scrollbar-none border-t border-slate-800/80">
+            <div className="flex items-center gap-2 overflow-x-auto pt-2 pb-1 scrollbar-none border-t border-slate-100">
               {[
                 { id: "all", label: "🌟 All Classes" },
                 { id: "explorer", label: "Class 5–7 (Explorer)" },
@@ -128,8 +128,8 @@ export default function LearnPage() {
                   onClick={() => setSelectedClassTab(tab.id)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
                     selectedClassTab === tab.id
-                      ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-900/40"
-                      : "bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700 hover:bg-slate-800"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20"
+                      : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                   }`}
                 >
                   {tab.label}
@@ -139,127 +139,112 @@ export default function LearnPage() {
           </div>
         </section>
 
-        {/* Course Catalog Grid */}
+        {/* Batches Grid Section */}
         <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-slate-900">
-                {selectedClassTab === "all" ? "All Active Batches" : `${paths.find(p => p.id === selectedClassTab)?.title || "Selected"} Batches`}
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+                Showing {filteredCourses.length} Available Batches
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">Showing {filteredCourses.length} active hands-on courses</p>
-            </div>
-
-            <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>100% Practical Kits Included</span>
+              <p className="text-xs text-slate-500">Includes complete kit shipment, live labs, and verifiable credentials</p>
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCourses.map((course) => {
-              const colors = pathColors[course.learningPathId] || pathColors.explorer;
-              const Icon = pathIcons[course.learningPathId] || Cpu;
+          {filteredCourses.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredCourses.map((course) => {
+                const color = pathColors[course.learningPathId] || pathColors.builder;
+                const IconComponent = pathIcons[course.learningPathId] || Terminal;
 
-              return (
-                <div
-                  key={course.id}
-                  className="bg-white rounded-3xl border-2 border-slate-200 hover:border-blue-500 overflow-hidden transition-all shadow-sm hover:shadow-xl flex flex-col justify-between group"
-                >
-                  <div>
-                    {/* Top Accent Strip */}
-                    <div className="h-1.5 w-full" style={{ background: colors.accent }} />
-
-                    <div className="p-6 space-y-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className={`w-10 h-10 rounded-xl ${colors.bg} border ${colors.border} flex items-center justify-center`}>
-                          <Icon className={`w-5 h-5 ${colors.text}`} />
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
-                            Hinglish + Eng
-                          </span>
-                          <span className={`text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded ${colors.badgeBg} ${colors.text}`}>
-                            {course.difficulty}
-                          </span>
-                        </div>
+                return (
+                  <div
+                    key={course.id}
+                    className="bg-white rounded-3xl border-2 border-slate-200 hover:border-blue-500 p-6 sm:p-7 shadow-sm hover:shadow-xl transition-all flex flex-col justify-between space-y-6 group"
+                  >
+                    <div className="space-y-4">
+                      {/* Top Badges */}
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className={`px-2.5 py-1 rounded-lg border text-[10px] font-mono font-bold uppercase ${color.bg} ${color.border} ${color.text}`}>
+                          {course.difficulty} Level
+                        </span>
+                        <span className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                          Hinglish + English
+                        </span>
                       </div>
 
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors leading-snug">
+                      {/* Title & Tagline */}
+                      <div className="space-y-1.5">
+                        <h3 className="text-base sm:text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors leading-snug">
                           {course.title}
                         </h3>
-                        <p className="text-xs text-slate-600 leading-relaxed mt-2 line-clamp-2">
+                        <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
                           {course.description}
                         </p>
                       </div>
 
-                      {/* Course Deliverables Badges */}
-                      <div className="grid grid-cols-2 gap-2 text-[11px] font-mono font-medium text-slate-600 pt-2 border-t border-slate-100">
-                        <span className="flex items-center gap-1">
+                      {/* Course Features / Specs */}
+                      <div className="space-y-2 py-2 border-y border-slate-100 text-xs text-slate-600 font-medium">
+                        <div className="flex items-center gap-2">
                           <Clock className="w-3.5 h-3.5 text-blue-600" />
-                          {course.duration}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Layers className="w-3.5 h-3.5 text-purple-600" />
-                          {course.modulesCount} Modules
-                        </span>
+                          <span>{course.duration} Hands-on Labs</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Package className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Physical Hardware Kit Delivered</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
+                          <span>Verifiable STEM Credential</span>
+                        </div>
                       </div>
 
                       {/* Skills Tags */}
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {course.skills.map((skill, idx) => (
+                      <div className="flex flex-wrap gap-1.5">
+                        {course.skills.slice(0, 3).map((skill, sIdx) => (
                           <span
-                            key={idx}
-                            className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700"
+                            key={sIdx}
+                            className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono text-[10px]"
                           >
                             #{skill}
                           </span>
                         ))}
                       </div>
-
-                      {/* Hardware Kit Included Tag */}
-                      <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
-                        <Package className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span className="truncate">Hardware Kit Delivered to Home</span>
-                      </div>
                     </div>
-                  </div>
 
-                  {/* Card Action Footer */}
-                  <div className="p-6 pt-0 border-t border-slate-100">
-                    <div className="flex items-center justify-between pt-4">
-                      <div>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-xl font-bold font-mono text-slate-900">₹1,999</span>
-                          <span className="text-xs font-mono text-slate-400 line-through">₹4,999</span>
+                    {/* Pricing & CTA */}
+                    <div className="pt-2 space-y-3">
+                      <div className="flex items-baseline justify-between">
+                        <div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-2xl font-extrabold font-mono text-slate-900">₹1,999</span>
+                            <span className="text-xs font-mono text-slate-400 line-through">₹4,999</span>
+                          </div>
+                          <span className="text-[10px] text-emerald-700 font-bold font-mono">60% DISCOUNT</span>
                         </div>
-                        <span className="text-[10px] font-bold text-emerald-600 font-mono">60% OFF</span>
+                        <span className="text-[10px] text-slate-500 font-mono">Kit Included</span>
                       </div>
 
                       <Link
                         href={`/learn/${course.id}`}
-                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-md inline-flex items-center gap-1"
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 text-center"
                       >
-                        <span>View Batch &rarr;</span>
+                        <span>Explore Batch &amp; Curriculum</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {filteredCourses.length === 0 && (
-            <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 p-8 space-y-4">
-              <p className="text-slate-500 text-sm">No batches found matching your search.</p>
-              <button
-                onClick={() => { setSearchQuery(""); setSelectedClassTab("all"); }}
-                className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl"
-              >
-                Reset Filters
-              </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="p-12 text-center bg-white rounded-3xl border border-dashed border-slate-200 space-y-3">
+              <Search className="w-10 h-10 text-slate-300 mx-auto" />
+              <h3 className="text-sm font-bold text-slate-800">No Batches Found</h3>
+              <p className="text-xs text-slate-500">Try adjusting your search keywords or class filters.</p>
             </div>
           )}
+
         </section>
       </main>
 
