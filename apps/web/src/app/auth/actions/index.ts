@@ -4,7 +4,7 @@
  * Auth Server Actions for siksatech.in
  *
  * Handlers for login, register, logout, OTP authentication, password reset,
- * and parent-child linking (with deterministic time-windowed OTP & in-app approval).
+ * and parent-child linking (with deterministic time-windowed OTP, email dispatch, & in-app approval).
  */
 
 import { redirect } from "next/navigation";
@@ -32,6 +32,61 @@ async function verifyLinkOtp(parentId: string, childId: string, candidateOtp: st
   const currentOtp = await generateLinkOtp(parentId, childId, 0);
   const prevOtp = await generateLinkOtp(parentId, childId, -1);
   return candidateOtp === currentOtp || candidateOtp === prevOtp;
+}
+
+/**
+ * Send styled transactional email with OTP code if Resend API key is available
+ */
+async function sendOtpEmail(toEmail: string, childName: string, parentName: string, otp: string) {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    console.info(`[SiksaTech OTP Dispatch] (Resend key not set in env) OTP for ${toEmail}: ${otp}`);
+    return;
+  }
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "SiksaTech Security <auth@siksatech.in>",
+        to: [toEmail],
+        subject: "SiksaTech: Parent Account Linking Authorization Code",
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px; background-color: #ffffff; color: #0f172a; border: 1px solid #e2e8f0; border-radius: 16px;">
+            <div style="text-align: center; margin-bottom: 24px;">
+              <h2 style="color: #2563eb; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">SIKSATECH</h2>
+              <p style="color: #64748b; font-size: 12px; margin-top: 4px; text-transform: uppercase; font-family: monospace;">Knowledge • Technology • Wisdom</p>
+            </div>
+            <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 12px;">Parent Authorization Request</h3>
+            <p style="font-size: 14px; line-height: 1.6; color: #334155;">Hello <strong>${childName}</strong>,</p>
+            <p style="font-size: 14px; line-height: 1.6; color: #334155;">
+              <strong>${parentName}</strong> has requested to link with your SiksaTech student account as your parent/guardian to monitor your course progress and certificates.
+            </p>
+            <div style="background-color: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0;">
+              <span style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px;">Your 6-Digit Authorization Code</span>
+              <span style="font-family: monospace; font-size: 32px; font-weight: 800; color: #2563eb; letter-spacing: 6px;">${otp}</span>
+              <span style="font-size: 11px; color: #94a3b8; display: block; margin-top: 8px;">Valid for 15 minutes</span>
+            </div>
+            <p style="font-size: 13px; line-height: 1.5; color: #64748b;">
+              Share this code with your parent, or log in to your <a href="https://siksatech.in/dashboard/student" style="color: #2563eb; text-decoration: underline;">Student Dashboard</a> to approve this request directly.
+            </p>
+            <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 24px 0;" />
+            <p style="font-size: 11px; color: #94a3b8; text-align: center;">If you did not expect this request, you can safely ignore this email.</p>
+          </div>
+        `,
+      }),
+    });
+    if (!res.ok) {
+      const errBody = await res.text();
+      console.warn("Resend API response:", errBody);
+    }
+  } catch (err) {
+    console.warn("Error sending OTP email via Resend:", err);
+  }
 }
 
 /**
@@ -280,6 +335,11 @@ export async function initiateChildLink(
     console.warn("Could not insert pending parent_child_links record:", err);
   }
 
+  // Generate 6-digit OTP and send email
+  const otp = await generateLinkOtp(user.id, (childProfile as any).id);
+  const parentName = user.user_metadata?.full_name || "Parent";
+  sendOtpEmail(childEmail, (childProfile as any).full_name, parentName, otp);
+
   // Mask email for display
   const maskedEmail = childEmail.replace(/(.{2})(.*)(@.*)/, "$1***$3");
 
@@ -337,6 +397,34 @@ export async function verifyChildLinkOtp(
   }
 
   return { error: null, success: true };
+}
+
+// ─────────────────────────────────────────────────────────────
+// PARENT: CHECK IF CHILD APPROVED LINK ASYNCHRONOUSLY
+// ─────────────────────────────────────────────────────────────
+export async function checkChildLinkStatus(childId: string): Promise<{ linked: boolean }> {
+  if (!isRealSupabase) return { linked: false };
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { linked: false };
+
+    const dbClient = await getEffectiveDbClient();
+    const { data } = await (dbClient as any)
+      .from("parent_child_links")
+      .select("verified, status")
+      .eq("parent_id", user.id)
+      .eq("child_id", childId)
+      .maybeSingle();
+
+    if (data && (data.verified === true || data.status === "active")) {
+      return { linked: true };
+    }
+    return { linked: false };
+  } catch {
+    return { linked: false };
+  }
 }
 
 // ─────────────────────────────────────────────────────────────

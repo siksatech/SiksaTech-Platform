@@ -10,7 +10,12 @@ import {
   CheckCircle2, Clock, AlertCircle, Loader2, BadgeCheck,
   Plus, ArrowRight, ShoppingBag, User, KeyRound, RefreshCw,
 } from "lucide-react";
-import { initiateChildLink, verifyChildLinkOtp, createChildAccount } from "../../auth/actions";
+import {
+  initiateChildLink,
+  verifyChildLinkOtp,
+  createChildAccount,
+  checkChildLinkStatus,
+} from "../../auth/actions";
 
 // ─── Types ─────────────────────────────────────────────────────
 interface ChildProfile {
@@ -44,6 +49,8 @@ function LinkChildForm({ onSuccess }: { onSuccess: () => void }) {
     error: null, success: false, childId: undefined,
   });
 
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+
   // After step-1 succeeds move to step-2 or immediate success
   useEffect(() => {
     if (initiateState.success && initiateState.childId) {
@@ -58,6 +65,38 @@ function LinkChildForm({ onSuccess }: { onSuccess: () => void }) {
       }
     }
   }, [initiateState, onSuccess]);
+
+  // Auto-poll approval status every 3.5 seconds while waiting for OTP
+  useEffect(() => {
+    if (step !== "otp" || !otpChildId) return;
+    const timer = setInterval(async () => {
+      try {
+        const res = await checkChildLinkStatus(otpChildId);
+        if (res.linked) {
+          setStep("done");
+          onSuccess();
+        }
+      } catch {
+        // ignore poll errors
+      }
+    }, 3500);
+
+    return () => clearInterval(timer);
+  }, [step, otpChildId, onSuccess]);
+
+  const handleManualCheck = async () => {
+    if (!otpChildId) return;
+    setIsCheckingStatus(true);
+    try {
+      const res = await checkChildLinkStatus(otpChildId);
+      if (res.linked) {
+        setStep("done");
+        onSuccess();
+      }
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  };
 
   // After OTP verify succeeds
   useEffect(() => {
@@ -167,13 +206,25 @@ function LinkChildForm({ onSuccess }: { onSuccess: () => void }) {
             {verifyPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
             {verifyPending ? "Verifying..." : "Verify & Link Account"}
           </button>
-          <button
-            type="button"
-            onClick={() => setStep("search")}
-            className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-text hover:text-foreground transition-colors"
-          >
-            <RefreshCw className="w-3.5 h-3.5" /> Try a different account
-          </button>
+          
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleManualCheck}
+              disabled={isCheckingStatus}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-elevated hover:bg-card border border-app-border text-xs font-semibold text-secondary hover:text-foreground transition-all cursor-pointer"
+            >
+              {isCheckingStatus ? <Loader2 className="w-3.5 h-3.5 animate-spin text-electric-blue" /> : <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />}
+              <span>{isCheckingStatus ? "Checking..." : "Check If Approved by Student"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setStep("search")}
+              className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-elevated hover:bg-card border border-app-border text-xs font-semibold text-muted-text hover:text-foreground transition-all cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Cancel
+            </button>
+          </div>
         </form>
       )}
 
