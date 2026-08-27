@@ -345,14 +345,14 @@ function ParentDashboardContent() {
 
       const { data: links } = await (supabase as any)
         .from("parent_child_links")
-        .select(`id, verified, status, child:profiles!parent_child_links_child_id_fkey(id, full_name, siksa_id, grade_level)`)
+        .select(`id, verified, child:profiles!parent_child_links_child_id_fkey(id, full_name, siksa_id, grade_level)`)
         .eq("parent_id", user.id);
 
       if (links?.length > 0) {
         const childProfiles: ChildProfile[] = await Promise.all(
           links.map(async (link: any) => {
             const child = link.child;
-            const isLinked = link.verified === true || link.status === "active";
+            const isLinked = link.verified === true;
             const { count } = await (supabase as any).from("enrollments")
               .select("id", { count: "exact", head: true }).eq("student_id", child.id);
             return {
