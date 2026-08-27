@@ -55,6 +55,28 @@ function OnboardingContent() {
   const [department, setDepartment] = useState("Computer Science & Engineering");
   const [collegeRole, setCollegeRole] = useState("Engineering Student / Club Member");
 
+  const routeToDashboard = (role: string) => {
+    if (redirectUrl) {
+      router.push(redirectUrl);
+      return;
+    }
+    switch (role) {
+      case "parent":
+        router.push("/dashboard/parent");
+        break;
+      case "school":
+        router.push("/dashboard/school");
+        break;
+      case "college":
+        router.push("/dashboard/college");
+        break;
+      case "student":
+      default:
+        router.push("/dashboard/student");
+        break;
+    }
+  };
+
   useEffect(() => {
     async function checkAuth() {
       if (!isRealSupabase) {
@@ -108,28 +130,6 @@ function OnboardingContent() {
 
     checkAuth();
   }, [router, redirectUrl]);
-
-  const routeToDashboard = (role: string) => {
-    if (redirectUrl) {
-      router.push(redirectUrl);
-      return;
-    }
-    switch (role) {
-      case "parent":
-        router.push("/dashboard/parent");
-        break;
-      case "school":
-        router.push("/dashboard/school");
-        break;
-      case "college":
-        router.push("/dashboard/college");
-        break;
-      case "student":
-      default:
-        router.push("/dashboard/student");
-        break;
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

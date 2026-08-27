@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Menu, X, LogOut, LayoutDashboard, ShoppingBag, User,
-  ChevronDown, Package, Award, Sparkles, FolderGit2
+  ChevronDown, Package, Award, Sparkles, FolderGit2,
+  Users, School, Building2, BookOpen, Calendar
 } from "lucide-react";
 import { db, createBrowserClient, isRealSupabase } from "@siksatech/database";
 import SiksaTechLogo from "./SiksaTechLogo";
@@ -17,6 +18,87 @@ export interface NavUser {
   avatarUrl?: string;
   grade?: string;
   role?: string;
+}
+
+export function getRoleInfo(role?: string) {
+  const r = (role || "student").toLowerCase();
+  switch (r) {
+    case "parent":
+      return {
+        label: "Parent / Guardian",
+        badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        dashboardUrl: "/dashboard/parent",
+        dashboardLabel: "Parent Dashboard",
+        icon: Users,
+        links: [
+          { label: "Parent Dashboard", href: "/dashboard/parent", icon: LayoutDashboard, color: "text-emerald-600" },
+          { label: "Child Learning Journey & Reports", href: "/dashboard/parent", icon: Award, color: "text-blue-600" },
+          { label: "STEM Kit Orders & Deliveries", href: "/orders", icon: Package, color: "text-amber-600" },
+          { label: "Browse Recommended Kits", href: "/store", icon: ShoppingBag, color: "text-purple-600" },
+        ]
+      };
+    case "school":
+      return {
+        label: "School / ATL Coordinator",
+        badgeBg: "bg-purple-50 text-purple-700 border-purple-200",
+        dashboardUrl: "/dashboard/school",
+        dashboardLabel: "ATL & School Hub",
+        icon: School,
+        links: [
+          { label: "School & ATL Dashboard", href: "/dashboard/school", icon: LayoutDashboard, color: "text-purple-600" },
+          { label: "ATL Programs & Workshops", href: "/institutions", icon: Calendar, color: "text-blue-600" },
+          { label: "Lab Kit Orders & Invoices", href: "/orders", icon: Package, color: "text-amber-600" },
+          { label: "Curriculum & Lesson Plans", href: "/learn", icon: BookOpen, color: "text-emerald-600" },
+        ]
+      };
+    case "college":
+      return {
+        label: "College Innovator",
+        badgeBg: "bg-amber-50 text-amber-700 border-amber-200",
+        dashboardUrl: "/dashboard/college",
+        dashboardLabel: "Innovation Hub",
+        icon: Building2,
+        links: [
+          { label: "College Innovation Hub", href: "/dashboard/college", icon: LayoutDashboard, color: "text-amber-600" },
+          { label: "Submit Project / Research", href: "/build/submit", icon: FolderGit2, color: "text-blue-600" },
+          { label: "Hardware Kits & Parts", href: "/orders", icon: Package, color: "text-emerald-600" },
+          { label: "Club Programs & Competitions", href: "/programs", icon: Award, color: "text-purple-600" },
+        ]
+      };
+    case "super_admin":
+    case "admin":
+    case "curriculum_editor":
+    case "triage_agent":
+      return {
+        label: "Staff / Team Admin",
+        badgeBg: "bg-rose-50 text-rose-700 border-rose-200",
+        dashboardUrl: "/dashboard",
+        dashboardLabel: "Staff Portal",
+        icon: LayoutDashboard,
+        links: [
+          { label: "Team Operations Portal", href: "/dashboard", icon: LayoutDashboard, color: "text-rose-600" },
+          { label: "Platform Curriculum", href: "/learn", icon: BookOpen, color: "text-blue-600" },
+          { label: "All Store Kits", href: "/store", icon: ShoppingBag, color: "text-amber-600" },
+          { label: "Community Forum", href: "/community", icon: Users, color: "text-purple-600" },
+        ]
+      };
+    case "student":
+    default:
+      return {
+        label: "Student Learner",
+        badgeBg: "bg-blue-50 text-blue-700 border-blue-200",
+        dashboardUrl: "/dashboard/student",
+        dashboardLabel: "Student Dashboard",
+        icon: LayoutDashboard,
+        links: [
+          { label: "Student Dashboard", href: "/dashboard/student", icon: LayoutDashboard, color: "text-blue-600" },
+          { label: "My Courses & Tracks", href: "/dashboard/student?tab=courses", icon: BookOpen, color: "text-indigo-600" },
+          { label: "My Orders & Kits", href: "/orders", icon: Package, color: "text-slate-500" },
+          { label: "Verified Credentials", href: "/dashboard/student?tab=certificates", icon: Award, color: "text-emerald-600" },
+          { label: "Submit Project Build", href: "/build/submit", icon: FolderGit2, color: "text-purple-600" },
+        ]
+      };
+  }
 }
 
 export default function Navbar() {
@@ -52,7 +134,7 @@ export default function Navbar() {
               email: authUser.email || "",
               avatarUrl: (profile as any)?.avatar_url || authUser.user_metadata?.avatar_url,
               grade: (profile as any)?.grade_level || "Active Learner",
-              role: (profile as any)?.role || "student"
+              role: (profile as any)?.role || authUser.user_metadata?.role || "student"
             });
           } else {
             // Check legacy fallback if demo mode
@@ -81,7 +163,7 @@ export default function Navbar() {
                 email: session.user.email || "",
                 avatarUrl: (profile as any)?.avatar_url || session.user.user_metadata?.avatar_url,
                 grade: (profile as any)?.grade_level || "Active Learner",
-                role: (profile as any)?.role || "student"
+                role: (profile as any)?.role || session.user.user_metadata?.role || "student"
               });
             } else {
               setUser(null);
@@ -168,6 +250,8 @@ export default function Navbar() {
       .slice(0, 2);
   };
 
+  const roleInfo = getRoleInfo(user?.role);
+
   return (
     <nav
       className={`sticky top-0 z-50 transition-all duration-200 ${
@@ -209,87 +293,80 @@ export default function Navbar() {
           {/* Desktop User CTAs / Profile Badge */}
           <div className="hidden md:flex items-center gap-2 lg:gap-3 flex-shrink-0">
             {user ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setProfileDropdownOpen((prev) => !prev)}
-                  className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer"
-                  aria-expanded={profileDropdownOpen}
-                  aria-haspopup="true"
+              <div className="flex items-center gap-2.5">
+                {/* Fast 1-Click Dashboard Access */}
+                <Link
+                  href={roleInfo.dashboardUrl}
+                  className="hidden xl:inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-blue-700 bg-blue-50/80 hover:bg-blue-100/80 border border-blue-200 rounded-xl transition-all shadow-xs"
                 >
-                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-sm">
-                    {user.avatarUrl ? (
-                      <img src={user.avatarUrl} alt={user.name} className="w-full h-full rounded-full object-cover" />
-                    ) : (
-                      getInitials(user.name)
-                    )}
-                  </div>
-                  <div className="text-left hidden lg:block">
-                    <p className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[120px]">
-                      {user.name}
-                    </p>
-                    <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block">
-                      {user.grade || "Student"}
-                    </span>
-                  </div>
-                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${profileDropdownOpen ? "rotate-180" : ""}`} />
-                </button>
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <span>My Dashboard</span>
+                </Link>
 
-                {/* Dropdown Menu */}
-                {profileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 divide-y divide-slate-100">
-                    <div className="px-4 py-3 bg-slate-50/70">
-                      <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
-                      <p className="text-[11px] text-slate-500 font-mono truncate">{user.email}</p>
-                      <span className="inline-block mt-1.5 px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 text-[9px] font-mono font-bold uppercase">
-                        Verified Student
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setProfileDropdownOpen((prev) => !prev)}
+                    className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer"
+                    aria-expanded={profileDropdownOpen}
+                    aria-haspopup="true"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-sm">
+                      {user.avatarUrl ? (
+                        <img src={user.avatarUrl} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        getInitials(user.name)
+                      )}
+                    </div>
+                    <div className="text-left hidden lg:block">
+                      <p className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[120px]">
+                        {user.name}
+                      </p>
+                      <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block">
+                        {roleInfo.label}
                       </span>
                     </div>
+                    <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${profileDropdownOpen ? "rotate-180" : ""}`} />
+                  </button>
 
-                    <div className="py-1">
-                      <Link
-                        href="/dashboard/student"
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
-                      >
-                        <LayoutDashboard className="w-4 h-4 text-blue-600" />
-                        <span>Student Dashboard</span>
-                      </Link>
+                  {/* Dropdown Menu */}
+                  {profileDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 divide-y divide-slate-100">
+                      <div className="px-4 py-3 bg-slate-50/70">
+                        <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
+                        <p className="text-[11px] text-slate-500 font-mono truncate">{user.email}</p>
+                        <span className={`inline-block mt-1.5 px-2 py-0.5 rounded-md border text-[9px] font-mono font-bold uppercase ${roleInfo.badgeBg}`}>
+                          {roleInfo.label}
+                        </span>
+                      </div>
 
-                      <Link
-                        href="/orders"
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
-                      >
-                        <Package className="w-4 h-4 text-slate-500" />
-                        <span>My Orders &amp; Kits</span>
-                      </Link>
+                      <div className="py-1">
+                        {roleInfo.links.map((item, idx) => {
+                          const IconComponent = item.icon;
+                          return (
+                            <Link
+                              key={idx}
+                              href={item.href}
+                              className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                            >
+                              <IconComponent className={`w-4 h-4 ${item.color}`} />
+                              <span>{item.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
 
-                      <Link
-                        href="/dashboard/student"
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
-                      >
-                        <Award className="w-4 h-4 text-emerald-600" />
-                        <span>Verified Credentials</span>
-                      </Link>
-
-                      <Link
-                        href="/build/submit"
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
-                      >
-                        <FolderGit2 className="w-4 h-4 text-purple-600" />
-                        <span>Submit Project Build</span>
-                      </Link>
+                      <div className="py-1">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-left"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Sign Out Portal</span>
+                        </button>
+                      </div>
                     </div>
-
-                    <div className="py-1">
-                      <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-left"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Sign Out Portal</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             ) : (
               <Link
@@ -332,6 +409,9 @@ export default function Navbar() {
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
                 <p className="text-[10px] text-slate-500 font-mono truncate">{user.email}</p>
+                <span className={`inline-block mt-1 px-2 py-0.5 rounded-md border text-[8px] font-mono font-bold uppercase ${roleInfo.badgeBg}`}>
+                  {roleInfo.label}
+                </span>
               </div>
             </div>
           )}
@@ -358,24 +438,30 @@ export default function Navbar() {
             {user ? (
               <>
                 <Link
-                  href="/dashboard/student"
+                  href={roleInfo.dashboardUrl}
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-2 px-4 py-3 text-[14px] font-semibold text-blue-600 border border-blue-200 rounded-xl bg-blue-50"
                 >
                   <LayoutDashboard className="w-4 h-4" />
-                  <span>Student Dashboard</span>
+                  <span>{roleInfo.dashboardLabel}</span>
                 </Link>
-                <Link
-                  href="/orders"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-2 px-4 py-3 text-[14px] font-semibold text-slate-700 border border-slate-200 rounded-xl bg-white"
-                >
-                  <Package className="w-4 h-4" />
-                  <span>My Orders &amp; Shipments</span>
-                </Link>
+                {roleInfo.links.filter(l => l.href !== roleInfo.dashboardUrl).map((l, idx) => {
+                  const IconC = l.icon;
+                  return (
+                    <Link
+                      key={idx}
+                      href={l.href}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-[13px] font-semibold text-slate-700 border border-slate-200 rounded-xl bg-white"
+                    >
+                      <IconC className={`w-4 h-4 ${l.color}`} />
+                      <span>{l.label}</span>
+                    </Link>
+                  );
+                })}
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 py-3 text-[14px] font-semibold text-red-600 border border-red-200 rounded-xl bg-red-50"
+                  className="w-full flex items-center justify-center gap-2 py-3 text-[14px] font-semibold text-red-600 border border-red-200 rounded-xl bg-red-50 cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out</span>

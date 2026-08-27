@@ -104,7 +104,7 @@ export default function TeamPortalDashboard() {
   });
 
   const [certForm, setCertForm] = useState({
-    id: `ST-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+    id: "ST-2026-9001",
     student_name: "",
     program_name: "Builder Path - Embedded IoT & Sensors",
     achievement: "Successfully built an autonomous solar telemetry monitoring station.",

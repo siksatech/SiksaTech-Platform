@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Navbar, Footer } from "@siksatech/ui";
+import { Navbar, Footer, getRoleInfo } from "@siksatech/ui";
 import {
   db, Banner, FAQ, LearningPath, Project,
-  DEMO_BANNERS, DEMO_FAQS, DEMO_PATHS, DEMO_PROJECTS
+  DEMO_BANNERS, DEMO_FAQS, DEMO_PATHS, DEMO_PROJECTS,
+  createBrowserClient, isRealSupabase
 } from "@siksatech/database";
 import {
   ArrowRight,
@@ -23,7 +24,9 @@ import {
   Microscope,
   Network,
   Wrench,
-  Users
+  Users,
+  LayoutDashboard,
+  Sparkles
 } from "lucide-react";
 
 export default function HomePage() {
@@ -33,12 +36,40 @@ export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<string | null>(null);
   const [paths, setPaths] = useState<LearningPath[]>(DEMO_PATHS);
   const [projects, setProjects] = useState<Project[]>(DEMO_PROJECTS);
+  const [authUser, setAuthUser] = useState<{ id: string; name: string; email: string; role: string } | null>(null);
 
   useEffect(() => {
     db.getBanners().then((b) => { if (b && b.length > 0) setBanners(b); });
     db.getFAQs().then((f) => { if (f && f.length > 0) setFaqs(f); });
     db.getLearningPaths().then((p) => { if (p && p.length > 0) setPaths(p); });
     db.getProjects(true).then((prj) => { if (prj && prj.length > 0) setProjects(prj); });
+
+    // Check user session
+    async function checkAuth() {
+      if (isRealSupabase) {
+        try {
+          const supabase = createBrowserClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("full_name, role")
+              .eq("id", user.id)
+              .maybeSingle();
+
+            setAuthUser({
+              id: user.id,
+              name: (profile as any)?.full_name || user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
+              email: user.email || "",
+              role: (profile as any)?.role || user.user_metadata?.role || "student"
+            });
+          }
+        } catch (e) {
+          console.error("Auth check on home page:", e);
+        }
+      }
+    }
+    checkAuth();
   }, []);
 
   // Auto-advance carousel
@@ -61,11 +92,45 @@ export default function HomePage() {
     engineer: Cpu,
   };
 
+  const roleInfo = getRoleInfo(authUser?.role);
+
   return (
     <div className="flex flex-col min-h-screen bg-white text-slate-900 selection:bg-blue-100">
       <Navbar />
 
       <main className="flex-1">
+
+        {/* ============================
+            0. LOGGED-IN LMS QUICK HUB BANNER
+           ============================ */}
+        {authUser && (
+          <div className="bg-slate-900 border-b border-slate-800 text-white py-3 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-lg bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-blue-400">
+                  <Sparkles className="w-3.5 h-3.5" />
+                </div>
+                <div className="text-xs">
+                  <span className="font-semibold text-slate-200">Welcome back, {authUser.name}!</span>
+                  <span className="text-slate-400 ml-2 hidden md:inline">
+                    Active Role: <span className="font-mono text-blue-400">{roleInfo.label}</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Link
+                  href={roleInfo.dashboardUrl}
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <span>Open {roleInfo.dashboardLabel}</span>
+                  <ArrowRight className="w-3 h-3 ml-0.5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* ============================
             1. ELEGANT HERO SECTION
@@ -95,19 +160,40 @@ export default function HomePage() {
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <Link
-                    href="/learn"
-                    className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base rounded-xl transition-all shadow-sm hover:shadow-md"
-                  >
-                    Start Learning
-                    <ArrowRight className="w-5 h-5" />
-                  </Link>
-                  <Link
-                    href="/institutions"
-                    className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-semibold text-base rounded-xl transition-all"
-                  >
-                    For Schools & Institutions
-                  </Link>
+                  {authUser ? (
+                    <>
+                      <Link
+                        href={roleInfo.dashboardUrl}
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base rounded-xl transition-all shadow-sm hover:shadow-md"
+                      >
+                        <LayoutDashboard className="w-5 h-5" />
+                        Go to My Dashboard
+                        <ArrowRight className="w-5 h-5" />
+                      </Link>
+                      <Link
+                        href="/learn"
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-semibold text-base rounded-xl transition-all"
+                      >
+                        Browse All Courses & Kits
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/learn"
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base rounded-xl transition-all shadow-sm hover:shadow-md"
+                      >
+                        Start Learning
+                        <ArrowRight className="w-5 h-5" />
+                      </Link>
+                      <Link
+                        href="/institutions"
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-semibold text-base rounded-xl transition-all"
+                      >
+                        For Schools & Institutions
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -294,7 +380,7 @@ export default function HomePage() {
                 A Structured Path to Mastery
               </h2>
               <p className="text-lg text-slate-400">
-                Our curriculum isn't random projects. It's a carefully engineered progression that builds foundational knowledge before introducing complex systems.
+                Our curriculum isn&apos;t random projects. It&apos;s a carefully engineered progression that builds foundational knowledge before introducing complex systems.
               </p>
             </div>
 
@@ -334,7 +420,7 @@ export default function HomePage() {
                     THE EXPERIENTIAL LOOP
                   </h2>
                   <p className="text-lg text-slate-600">
-                    We believe in learning by doing. Every SiksaTech lesson follows an authentic 8-stage engineering process, ensuring students don't just consume information, but actively apply it.
+                    We believe in learning by doing. Every SiksaTech lesson follows an authentic 8-stage engineering process, ensuring students don&apos;t just consume information, but actively apply it.
                   </p>
                 </div>
 

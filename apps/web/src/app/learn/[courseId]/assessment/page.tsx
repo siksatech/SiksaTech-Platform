@@ -40,6 +40,27 @@ export default function AssessmentPage({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<AssessmentSubmissionResult | null>(null);
 
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    let userId = "demo-user";
+    let supabase;
+
+    if (isRealSupabase) {
+      try {
+        supabase = createBrowserClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) userId = user.id;
+      } catch (e) {
+        console.error("Auth context error:", e);
+      }
+    }
+
+    const res = await gradeAssessment(supabase, userId, assessment.id, selectedAnswers);
+    setResult(res);
+    setIsSubmitted(true);
+    setIsSubmitting(false);
+  };
+
   // Countdown timer
   useEffect(() => {
     if (isSubmitted || timeLeftSeconds <= 0) return;
@@ -64,27 +85,6 @@ export default function AssessmentPage({
       ...prev,
       [questionId]: optionId
     }));
-  };
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    let userId = "demo-user";
-    let supabase;
-
-    if (isRealSupabase) {
-      try {
-        supabase = createBrowserClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) userId = user.id;
-      } catch (e) {
-        console.error("Auth context error:", e);
-      }
-    }
-
-    const res = await gradeAssessment(supabase, userId, assessment.id, selectedAnswers);
-    setResult(res);
-    setIsSubmitted(true);
-    setIsSubmitting(false);
   };
 
   const formatTime = (totalSeconds: number) => {
