@@ -285,22 +285,22 @@ function StudentDashboardContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center space-x-2">
+      <div className="min-h-screen bg-surface flex items-center justify-center space-x-2">
         <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent animate-spin rounded-full"></div>
-        <span className="text-xs text-slate-500 font-mono">LOADING STUDENT DATA REGISTRY...</span>
+        <span className="text-xs text-muted-text font-mono">LOADING STUDENT DATA REGISTRY...</span>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 text-slate-900">
+    <div className="flex flex-col min-h-screen bg-surface text-foreground">
       <Navbar />
 
       <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Side Control Bar */}
-          <div className="lg:col-span-3 bg-white border border-slate-200 rounded-xl p-6 space-y-8 shadow-sm">
+          <div className="lg:col-span-3 bg-card border border-app-border rounded-xl p-6 space-y-8 shadow-sm">
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-indigo-50 border border-indigo-150 rounded-lg flex items-center justify-center">
@@ -464,19 +464,19 @@ function StudentDashboardContent() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   
-                  <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm space-y-2">
+                  <div className="p-6 bg-card border border-app-border rounded-xl shadow-sm space-y-2">
                     <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Level</h3>
                     <p className="text-lg font-extrabold text-slate-900">{userProfile?.grade}</p>
                     <span className="text-[10px] text-indigo-600 font-medium block">Progressing smoothly</span>
                   </div>
 
-                  <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm space-y-2">
+                  <div className="p-6 bg-card border border-app-border rounded-xl shadow-sm space-y-2">
                     <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Syllabus Courses</h3>
                     <p className="text-lg font-extrabold text-slate-900">{courses.length} Enrolled</p>
                     <span className="text-[10px] text-indigo-600 font-medium block">Explorer & Logic nodes</span>
                   </div>
 
-                  <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm space-y-2">
+                  <div className="p-6 bg-card border border-app-border rounded-xl shadow-sm space-y-2">
                     <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">My Builds</h3>
                     <p className="text-lg font-extrabold text-slate-900">{studentProjects.length} Submitted</p>
                     <span className="text-[10px] text-indigo-600 font-medium block">
@@ -487,7 +487,7 @@ function StudentDashboardContent() {
                 </div>
 
                 {/* Portfolios Preview Section */}
-                <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm">
+                <div className="bg-card border border-app-border rounded-xl p-6 space-y-4 shadow-sm">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">Portfolio Progress Simulator</h3>
                   <div className="space-y-4 border border-slate-100 p-6 rounded-lg bg-slate-50/50">
                     <div className="flex justify-between text-xs text-slate-650">
@@ -513,7 +513,7 @@ function StudentDashboardContent() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {courses.map((course) => (
-                    <div key={course.id} className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm space-y-4 flex flex-col justify-between hover:border-indigo-400 transition-technical">
+                    <div key={course.id} className="p-6 bg-card border border-app-border rounded-xl shadow-sm space-y-4 flex flex-col justify-between hover:border-indigo-400 transition-technical">
                       <div className="space-y-2">
                         <span className="px-2 py-0.5 rounded bg-indigo-50 border border-indigo-150 text-[9px] font-mono font-bold text-indigo-600 uppercase">
                           {course.path_level} LEVEL
@@ -566,7 +566,7 @@ function StudentDashboardContent() {
                 </div>
 
                 {/* Left Panel: Markdown Content & Schematics */}
-                <div className="lg:col-span-6 bg-white border border-slate-200 rounded-xl p-6 space-y-6 shadow-sm">
+                <div className="lg:col-span-6 bg-card border border-app-border rounded-xl p-6 space-y-6 shadow-sm">
                   <div className="space-y-2 border-b border-slate-100 pb-4">
                     <span className="text-[9px] font-mono tracking-widest text-indigo-600 uppercase font-bold">LESSON CONTENT</span>
                     <h3 className="text-lg font-bold text-slate-900">{selectedLesson.title}</h3>
@@ -664,7 +664,7 @@ function StudentDashboardContent() {
                       </div>
                     ) : (
                       studentProjects.map((proj) => (
-                        <div key={proj.id} className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm space-y-4">
+                        <div key={proj.id} className="p-6 bg-card border border-app-border rounded-xl shadow-sm space-y-4">
                           <div className="flex justify-between items-start gap-4">
                             <div>
                               <h4 className="text-sm font-bold text-slate-900">{proj.title}</h4>
@@ -696,7 +696,7 @@ function StudentDashboardContent() {
                   </div>
 
                   {/* Right Column: Submission Form */}
-                  <div className="lg:col-span-5 bg-white border border-slate-200 p-6 rounded-xl shadow-md space-y-6">
+                  <div className="lg:col-span-5 bg-card border border-app-border p-6 rounded-xl shadow-md space-y-6">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">Submit New Build</h3>
 
                     <form onSubmit={handleProjectSubmit} className="space-y-4">
@@ -709,7 +709,7 @@ function StudentDashboardContent() {
                           value={newTitle}
                           onChange={(e) => setNewTitle(e.target.value)}
                           placeholder="e.g. Smart Crop Water Sprinkler"
-                          className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-indigo-650"
+                          className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-input-bg border border-app-border"
                         />
                       </div>
 
@@ -721,7 +721,7 @@ function StudentDashboardContent() {
                           value={newDesc}
                           onChange={(e) => setNewDesc(e.target.value)}
                           placeholder="What did you build? What sensors did you wire?"
-                          className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-indigo-650"
+                          className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-input-bg border border-app-border"
                         />
                       </div>
 
@@ -732,7 +732,7 @@ function StudentDashboardContent() {
                           value={newSchematic}
                           onChange={(e) => setNewSchematic(e.target.value)}
                           placeholder="e.g. DHT11 Pin2, LED Pin13, Ground bus"
-                          className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-indigo-650"
+                          className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-input-bg border border-app-border"
                         />
                       </div>
 
@@ -743,7 +743,7 @@ function StudentDashboardContent() {
                           value={newVideoUrl}
                           onChange={(e) => setNewVideoUrl(e.target.value)}
                           placeholder="e.g. https://youtube.com/watch?..."
-                          className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:outline-none focus:border-indigo-650"
+                          className="px-3.5 py-2.5 rounded-lg border border-slate-200 bg-input-bg border border-app-border"
                         />
                       </div>
 

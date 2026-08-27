@@ -51,7 +51,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="w-full bg-slate-950 text-slate-300 pt-16 sm:pt-20 pb-12 border-t border-slate-800/80">
+    <footer className="w-full bg-obsidian text-slate-300 dark:bg-obsidian pt-16 sm:pt-20 pb-12 border-t border-slate-800/80 dark:border-slate-800/80 light:bg-slate-900 light:border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         
         {/* Main Footer Grid: 12-Column Responsive Layout */}

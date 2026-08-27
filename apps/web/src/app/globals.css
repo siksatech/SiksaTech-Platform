@@ -14,32 +14,67 @@
   font-style: italic;
 }
 
+/* ─── Semantic colour tokens (resolved by CSS variables) ────────────── */
 @theme {
-  --color-obsidian: #0A0F1D;
-  --color-electric-blue: #2563EB;
-  --color-electric-blue-hover: #1D4ED8;
-  --color-canvas: #FFFFFF;
-  --color-canvas-slate: #F8FAFC;
-  
-  --color-border-slate: #E2E8F0;
-  --color-text-muted: #64748B;
-  
   --font-sans: var(--font-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand / static */
+  --color-obsidian:            #0A0F1D;
+  --color-electric-blue:       #2563EB;
+  --color-electric-blue-hover: #1D4ED8;
+  --color-canvas:              #FFFFFF;
+  --color-canvas-slate:        #F8FAFC;
+
+  /* Semantic — driven by CSS vars so they swap between themes */
+  --color-surface:     var(--surface);
+  --color-card:        var(--card);
+  --color-elevated:    var(--elevated);
+  --color-app-border:  var(--app-border);
+  --color-foreground:  var(--foreground);
+  --color-secondary:   var(--secondary);
+  --color-muted-text:  var(--muted-text);
+  --color-input-bg:    var(--input-bg);
 }
 
+/* ─── LIGHT THEME (default) ─────────────────────────────────────────── */
 :root {
-  --background: #FFFFFF;
-  --foreground: #0A0F1D;
+  --surface:      #F8FAFC;
+  --card:         #FFFFFF;
+  --elevated:     #F1F5F9;
+  --app-border:   #E2E8F0;
+  --foreground:   #0F172A;
+  --secondary:    #475569;
+  --muted-text:   #94A3B8;
+  --input-bg:     #FFFFFF;
+
+  /* Kept for body defaults */
+  --background:   #F8FAFC;
 }
 
+/* ─── DARK THEME ─────────────────────────────────────────────────────── */
+.dark {
+  --surface:      #0A0F1D;
+  --card:         #0F172A;
+  --elevated:     #1E293B;
+  --app-border:   #1E293B;
+  --foreground:   #F1F5F9;
+  --secondary:    #CBD5E1;
+  --muted-text:   #64748B;
+  --input-bg:     #1E293B;
+
+  --background:   #0A0F1D;
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────── */
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Technical grid backgrounds - subtle light grey */
+/* Technical grid backgrounds */
 .tech-grid {
   background-image: 
     linear-gradient(to right, rgba(15, 23, 42, 0.03) 1px, transparent 1px),
@@ -47,40 +82,17 @@ body {
   background-size: 40px 40px;
 }
 
-.tech-grid-fine {
+.dark .tech-grid {
   background-image: 
-    linear-gradient(to right, rgba(15, 23, 42, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(15, 23, 42, 0.02) 1px, transparent 1px);
-  background-size: 10px 10px;
+    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
 }
 
-/* Custom Scrollbar for clean standard look */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #4f46e5;
-}
-
-/* Soft shadow overlays replacing neon glows */
-.glow-cyan {
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);
-}
-
-.glow-cyan-hover:hover {
-  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.15);
-}
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--elevated); }
+::-webkit-scrollbar-thumb { background: var(--app-border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
 
 /* Transition values */
 .transition-technical {

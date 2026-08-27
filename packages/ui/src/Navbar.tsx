@@ -4,12 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Menu, X, LogOut, LayoutDashboard, ShoppingBag, User,
-  ChevronDown, Package, Award, Sparkles, FolderGit2,
+  Menu, X, LogOut, LayoutDashboard, ShoppingBag,
+  ChevronDown, Package, Award, FolderGit2,
   Users, School, Building2, BookOpen, Calendar
 } from "lucide-react";
 import { db, createBrowserClient, isRealSupabase } from "@siksatech/database";
 import SiksaTechLogo from "./SiksaTechLogo";
+import { ThemeToggleCompact } from "./ThemeProvider";
 
 export interface NavUser {
   id: string;
@@ -292,6 +293,7 @@ export default function Navbar() {
 
           {/* Desktop User CTAs / Profile Badge */}
           <div className="hidden md:flex items-center gap-2 lg:gap-3 flex-shrink-0">
+            <ThemeToggleCompact />
             {user ? (
               <div className="flex items-center gap-2.5">
                 {/* Fast 1-Click Dashboard Access */}
@@ -380,6 +382,7 @@ export default function Navbar() {
 
           {/* Mobile Controls (< 768px) */}
           <div className="md:hidden flex items-center gap-2">
+            <ThemeToggleCompact />
             <Link
               href="/store"
               className="p-2 text-slate-600 hover:text-blue-600 rounded-lg"
