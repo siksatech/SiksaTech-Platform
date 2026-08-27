@@ -7,7 +7,7 @@ export const SITE_CONFIG = {
   },
   tagline: "Technology is better understood when you build it.",
   contacts: {
-    email: "info@siksatech.in",
+    email: "support@siksatech.in",
   },
 };
 

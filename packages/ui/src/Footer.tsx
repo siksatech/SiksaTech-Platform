@@ -83,11 +83,11 @@ export default function Footer() {
               </a>
 
               <a
-                href="mailto:info@siksatech.in"
+                href="mailto:support@siksatech.in"
                 className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 hover:text-white hover:border-blue-500 hover:bg-slate-800/80 transition-all group"
               >
                 <Mail className="w-4 h-4 text-blue-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                <span className="font-mono text-slate-200 group-hover:text-white">info@siksatech.in</span>
+                <span className="font-mono text-slate-200 group-hover:text-white">support@siksatech.in</span>
                 <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 transition-colors ml-auto" />
               </a>
             </div>
