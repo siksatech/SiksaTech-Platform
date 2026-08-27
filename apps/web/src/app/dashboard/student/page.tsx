@@ -32,8 +32,13 @@ import {
   Check,
   Sparkles,
   Save,
-  X
+  X,
+  Users,
+  KeyRound,
+  CheckCircle2,
+  XCircle
 } from "lucide-react";
+import { getStudentPendingParentLinks, approveParentLink, rejectParentLink } from "../../auth/actions";
 
 function StudentDashboardContent() {
   const router = useRouter();
@@ -55,6 +60,9 @@ function StudentDashboardContent() {
   const [courses, setCourses] = useState<any[]>([]);
   const [lessons, setLessons] = useState<any[]>([]);
   const [studentProjects, setStudentProjects] = useState<any[]>([]);
+  const [pendingParentLinks, setPendingParentLinks] = useState<any[]>([]);
+  const [processingLinkId, setProcessingLinkId] = useState<string | null>(null);
+  const [linkActionMsg, setLinkActionMsg] = useState<string | null>(null);
   
   // Active Interactive Lesson Editor
   const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
@@ -148,6 +156,13 @@ function StudentDashboardContent() {
             .order("created_at", { ascending: false });
           setStudentProjects(projsList || []);
 
+          // Load pending parent link requests
+          try {
+            const requests = await getStudentPendingParentLinks();
+            setPendingParentLinks(requests || []);
+          } catch (linkErr) {
+            console.warn("Could not load pending parent links:", linkErr);
+          }
         } catch (err) {
           console.error("Error loading Supabase data:", err);
         }
@@ -280,7 +295,32 @@ function StudentDashboardContent() {
       alert("Platform is not configured. Please contact support.");
     }
     setIsSubmittingProject(false);
-    setActiveTab("projects");
+  };
+
+  const handleApproveParent = async (linkId: string) => {
+    setProcessingLinkId(linkId);
+    setLinkActionMsg(null);
+    const res = await approveParentLink(linkId);
+    if (res.success) {
+      setPendingParentLinks((prev) => prev.filter((p) => p.id !== linkId));
+      setLinkActionMsg("Parent link approved successfully! Your parent can now view your learning progress.");
+    } else {
+      setLinkActionMsg("Failed to approve link: " + (res.error || "Unknown error"));
+    }
+    setProcessingLinkId(null);
+  };
+
+  const handleRejectParent = async (linkId: string) => {
+    setProcessingLinkId(linkId);
+    setLinkActionMsg(null);
+    const res = await rejectParentLink(linkId);
+    if (res.success) {
+      setPendingParentLinks((prev) => prev.filter((p) => p.id !== linkId));
+      setLinkActionMsg("Parent link request declined.");
+    } else {
+      setLinkActionMsg("Failed to decline link: " + (res.error || "Unknown error"));
+    }
+    setProcessingLinkId(null);
   };
 
   if (loading) {
@@ -357,6 +397,67 @@ function StudentDashboardContent() {
 
           {/* Core Content Window */}
           <div className="lg:col-span-9 space-y-6">
+
+            {/* Pending Parent Link Requests Notification Banner */}
+            {linkActionMsg && (
+              <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/40 text-blue-700 dark:text-blue-300 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                {linkActionMsg}
+              </div>
+            )}
+
+            {pendingParentLinks.map((req) => (
+              <div
+                key={req.id}
+                className="p-5 rounded-2xl border-2 border-electric-blue/40 bg-card shadow-md space-y-4 animate-in fade-in"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-600/20 border border-blue-200 dark:border-blue-500/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono tracking-widest text-electric-blue font-bold uppercase block">
+                        Parent / Guardian Link Request
+                      </span>
+                      <h3 className="font-bold text-sm text-foreground">
+                        {req.parentName} {req.parentSiksaId ? `(ID: ${req.parentSiksaId})` : ""}
+                      </h3>
+                      <p className="text-xs text-muted-text">
+                        Requested to link with your student account to monitor your course progress and certificates.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-elevated border border-app-border rounded-xl text-center self-start sm:self-center shrink-0">
+                    <span className="text-[10px] font-mono text-muted-text uppercase block">Your 6-Digit Code</span>
+                    <span className="text-lg font-mono font-extrabold text-electric-blue tracking-widest">{req.otpCode}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-app-border">
+                  <button
+                    onClick={() => handleApproveParent(req.id)}
+                    disabled={processingLinkId === req.id}
+                    className="flex items-center gap-2 px-4 py-2 bg-electric-blue hover:bg-electric-blue-hover text-white rounded-xl text-xs font-bold transition-all disabled:opacity-60 cursor-pointer shadow-sm"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    {processingLinkId === req.id ? "Approving..." : "Approve & Link Parent"}
+                  </button>
+                  <button
+                    onClick={() => handleRejectParent(req.id)}
+                    disabled={processingLinkId === req.id}
+                    className="flex items-center gap-2 px-4 py-2 bg-elevated hover:bg-card border border-app-border text-secondary hover:text-foreground rounded-xl text-xs font-bold transition-all disabled:opacity-60 cursor-pointer"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Decline Request
+                  </button>
+                  <span className="text-[11px] text-muted-text ml-auto hidden md:inline">
+                    You can also share the 6-digit code with your parent.
+                  </span>
+                </div>
+              </div>
+            ))}
             
             {/* TAB 1: OVERVIEW */}
             {activeTab === "overview" && (

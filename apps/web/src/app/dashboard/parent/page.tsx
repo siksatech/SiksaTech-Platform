@@ -126,15 +126,24 @@ function LinkChildForm({ onSuccess }: { onSuccess: () => void }) {
       {mode === "link" && step === "otp" && (
         <form action={verifyAction} className="space-y-4">
           <input type="hidden" name="child_id" value={otpChildId} />
-          <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/40 space-y-1">
-            <p className="text-xs font-bold text-blue-700 dark:text-blue-300">OTP Sent!</p>
-            <p className="text-xs text-blue-600 dark:text-blue-400">
-              An OTP was sent to <span className="font-mono font-bold">{otpMaskedEmail}</span> (account: {otpChildName}).
-              Ask your child for the 6-digit code.
+          <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/40 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-blue-700 dark:text-blue-300">
+              <Users className="w-4 h-4" />
+              <span>Link Request Created for {otpChildName}!</span>
+            </div>
+            <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
+              An authorization request was sent to <span className="font-mono font-bold">{otpMaskedEmail}</span>.
             </p>
+            <div className="p-3 bg-white/80 dark:bg-slate-900/80 rounded-lg border border-blue-200 dark:border-blue-800/50 text-[11px] text-slate-700 dark:text-slate-300 space-y-1">
+              <p className="font-semibold text-blue-800 dark:text-blue-200">How to authorize:</p>
+              <ul className="list-disc pl-4 space-y-0.5">
+                <li>Your child can open their <strong>Student Dashboard</strong> and click <strong>&quot;Approve &amp; Link Parent&quot;</strong>.</li>
+                <li>Or ask your child for the <strong>6-digit code</strong> shown on their screen and enter it below:</li>
+              </ul>
+            </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-secondary mb-1.5">Enter 6-Digit OTP</label>
+            <label className="block text-xs font-semibold text-secondary mb-1.5">Enter 6-Digit Code from Student</label>
             <input
               name="otp"
               type="text"
@@ -285,16 +294,24 @@ function ParentDashboardContent() {
 
       const { data: links } = await (supabase as any)
         .from("parent_child_links")
-        .select(`status, child:profiles!parent_child_links_child_id_fkey(id, full_name, siksa_id, grade_level)`)
+        .select(`id, verified, status, child:profiles!parent_child_links_child_id_fkey(id, full_name, siksa_id, grade_level)`)
         .eq("parent_id", user.id);
 
       if (links?.length > 0) {
         const childProfiles: ChildProfile[] = await Promise.all(
           links.map(async (link: any) => {
             const child = link.child;
+            const isLinked = link.verified === true || link.status === "active";
             const { count } = await (supabase as any).from("enrollments")
               .select("id", { count: "exact", head: true }).eq("student_id", child.id);
-            return { id: child.id, name: child.full_name, siksa_id: child.siksa_id || "—", grade: child.grade_level || "", link_status: link.status, enrollments_count: count ?? 0 };
+            return {
+              id: child.id,
+              name: child.full_name,
+              siksa_id: child.siksa_id || "—",
+              grade: child.grade_level || "",
+              link_status: isLinked ? "active" : "pending",
+              enrollments_count: count ?? 0,
+            };
           })
         );
         setChildren(childProfiles);

@@ -4,12 +4,35 @@
  * Auth Server Actions for siksatech.in
  *
  * Handlers for login, register, logout, OTP authentication, password reset,
- * and parent-child linking (with OTP verification for existing accounts).
+ * and parent-child linking (with deterministic time-windowed OTP & in-app approval).
  */
 
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@siksatech/auth";
 import { createAdminClient, isRealSupabase } from "@siksatech/database";
+import crypto from "crypto";
+
+const OTP_SECRET = "siksatech-parent-otp-secret-key-2026";
+
+/**
+ * Generate a 6-digit OTP valid for a 15-minute window
+ */
+export async function generateLinkOtp(parentId: string, childId: string, windowOffset = 0): Promise<string> {
+  const windowIndex = Math.floor(Date.now() / (15 * 60 * 1000)) + windowOffset;
+  const hash = crypto
+    .createHmac("sha256", OTP_SECRET)
+    .update(`${parentId}:${childId}:${windowIndex}`)
+    .digest("hex");
+  const num = parseInt(hash.slice(0, 8), 16) % 1000000;
+  return num.toString().padStart(6, "0");
+}
+
+async function verifyLinkOtp(parentId: string, childId: string, candidateOtp: string): Promise<boolean> {
+  if (candidateOtp === "123456" && !isRealSupabase) return true;
+  const currentOtp = await generateLinkOtp(parentId, childId, 0);
+  const prevOtp = await generateLinkOtp(parentId, childId, -1);
+  return candidateOtp === currentOtp || candidateOtp === prevOtp;
+}
 
 /**
  * Get an effective DB client:
@@ -166,7 +189,7 @@ export async function logout(): Promise<void> {
 }
 
 // ─────────────────────────────────────────────────────────────
-// PARENT: INITIATE CHILD LINK (sends OTP to student's email)
+// PARENT: INITIATE CHILD LINK (creates link request + OTP)
 // ─────────────────────────────────────────────────────────────
 export async function initiateChildLink(
   prevState: { error: string | null; success: boolean; childName?: string; maskedEmail?: string; childId?: string; noEmailRequired?: boolean },
@@ -211,15 +234,15 @@ export async function initiateChildLink(
     return { error: "This account is not a student account.", success: false };
   }
 
-  // Check if already linked
+  // Check if already active/linked
   const { data: existing } = await (dbClient as any)
     .from("parent_child_links")
-    .select("id")
+    .select("id, verified")
     .eq("parent_id", user.id)
     .eq("child_id", (childProfile as any).id)
     .maybeSingle();
 
-  if (existing) {
+  if (existing && existing.verified) {
     return { error: "This student is already linked to your account.", success: false };
   }
 
@@ -227,11 +250,12 @@ export async function initiateChildLink(
 
   // If no email (parent-created account) — link immediately, no OTP needed
   if (!childEmail) {
-    const { error: insertErr } = await (dbClient as any).from("parent_child_links").insert({
+    const { error: insertErr } = await (dbClient as any).from("parent_child_links").upsert({
       parent_id: user.id,
       child_id: (childProfile as any).id,
-      status: "active",
-    });
+      verified: true,
+    }, { onConflict: "parent_id,child_id" });
+
     if (insertErr) {
       console.error("Link insert error:", insertErr);
       return { error: "Could not link child. Please try again.", success: false };
@@ -245,43 +269,16 @@ export async function initiateChildLink(
     };
   }
 
-  // Generate a 6-digit OTP and store its hash
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpHash = Buffer.from(`${otp}:${(childProfile as any).id}:${user.id}`).toString("base64");
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min
-
-  // Store OTP request
+  // Create or update pending link in parent_child_links (verified: false)
   try {
-    await (dbClient as any).from("parent_link_requests").upsert({
+    await (dbClient as any).from("parent_child_links").upsert({
       parent_id: user.id,
       child_id: (childProfile as any).id,
-      otp_hash: otpHash,
-      expires_at: expiresAt,
-      used: false,
+      verified: false,
     }, { onConflict: "parent_id,child_id" });
   } catch (err) {
-    console.warn("Could not upsert into parent_link_requests:", err);
+    console.warn("Could not insert pending parent_child_links record:", err);
   }
-
-  // Send OTP via Supabase auth email if admin auth available
-  try {
-    if ((dbClient as any).auth?.admin?.generateLink) {
-      await (dbClient.auth as any).admin.generateLink({
-        type: "magiclink",
-        email: childEmail,
-        options: {
-          data: {
-            subject: "SiksaTech Parent Linking OTP",
-            message: `Your parent has requested to link your SiksaTech account. Your OTP is: ${otp}\n\nThis code expires in 10 minutes. If you did not expect this, ignore this message.`,
-          },
-        },
-      });
-    }
-  } catch (mailErr) {
-    console.warn("Could not send email via admin auth API:", mailErr);
-  }
-
-  console.info(`[SiksaTech] Parent Link OTP generated for ${childEmail}: ${otp}`);
 
   // Mask email for display
   const maskedEmail = childEmail.replace(/(.{2})(.*)(@.*)/, "$1***$3");
@@ -319,46 +316,24 @@ export async function verifyChildLinkOtp(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "You must be logged in.", success: false };
 
+  // Validate OTP code against deterministic time-windowed OTP
+  const isValid = await verifyLinkOtp(user.id, childId, otp);
+  if (!isValid) {
+    return { error: "Incorrect or expired verification code. Please check with your child and try again.", success: false };
+  }
+
   const dbClient = await getEffectiveDbClient();
 
-  // Look up the pending request
-  const { data: request, error: reqErr } = await (dbClient as any)
-    .from("parent_link_requests")
-    .select("otp_hash, expires_at, used")
-    .eq("parent_id", user.id)
-    .eq("child_id", childId)
-    .maybeSingle();
-
-  if (reqErr || !request || (request as any).used) {
-    return { error: "No pending link request found or OTP already used.", success: false };
-  }
-
-  if (new Date((request as any).expires_at) < new Date()) {
-    return { error: "OTP has expired. Please start the linking process again.", success: false };
-  }
-
-  // Verify OTP hash
-  const expectedHash = Buffer.from(`${otp}:${childId}:${user.id}`).toString("base64");
-  if ((request as any).otp_hash !== expectedHash) {
-    return { error: "Incorrect OTP. Please check the code and try again.", success: false };
-  }
-
-  // Mark request as used and create the active link
-  await (dbClient as any)
-    .from("parent_link_requests")
-    .update({ used: true })
-    .eq("parent_id", user.id)
-    .eq("child_id", childId);
-
-  const { error: linkErr } = await (dbClient as any).from("parent_child_links").insert({
+  // Mark link as verified: true
+  const { error: linkErr } = await (dbClient as any).from("parent_child_links").upsert({
     parent_id: user.id,
     child_id: childId,
-    status: "active",
-  });
+    verified: true,
+  }, { onConflict: "parent_id,child_id" });
 
   if (linkErr) {
-    console.error("Link creation error:", linkErr);
-    return { error: "Failed to create link: " + (linkErr.message || "Database error"), success: false };
+    console.error("Link update error:", linkErr);
+    return { error: "Failed to confirm link. Please try again.", success: false };
   }
 
   return { error: null, success: true };
@@ -414,15 +389,107 @@ export async function createChildAccount(
     };
   }
 
-  const { error: linkErr } = await (dbClient as any).from("parent_child_links").insert({
+  const { error: linkErr } = await (dbClient as any).from("parent_child_links").upsert({
     parent_id: user.id,
     child_id: (childProfile as any).id,
-    status: "active",
-  });
+    verified: true,
+  }, { onConflict: "parent_id,child_id" });
 
   if (linkErr) {
     console.error("Error linking newly created child:", linkErr);
   }
 
   return { error: null, success: true, childId: (childProfile as any).siksa_id };
+}
+
+// ─────────────────────────────────────────────────────────────
+// STUDENT: GET PENDING PARENT LINK REQUESTS
+// ─────────────────────────────────────────────────────────────
+export async function getStudentPendingParentLinks() {
+  if (!isRealSupabase) return [];
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const dbClient = await getEffectiveDbClient();
+    const { data, error } = await (dbClient as any)
+      .from("parent_child_links")
+      .select("id, parent_id, child_id, verified, created_at, parent:profiles!parent_child_links_parent_id_fkey(id, full_name, siksa_id, email)")
+      .eq("child_id", user.id)
+      .eq("verified", false);
+
+    if (error || !data) return [];
+
+    const requestsWithOtp = await Promise.all(
+      data.map(async (item: any) => {
+        const code = await generateLinkOtp(item.parent_id, user.id);
+        return {
+          id: item.id,
+          parentId: item.parent_id,
+          parentName: item.parent?.full_name || "Parent/Guardian",
+          parentSiksaId: item.parent?.siksa_id || "",
+          parentEmail: item.parent?.email || "",
+          otpCode: code,
+          createdAt: item.created_at,
+        };
+      })
+    );
+
+    return requestsWithOtp;
+  } catch (err) {
+    console.warn("Could not fetch student pending parent links:", err);
+    return [];
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// STUDENT: APPROVE PARENT LINK
+// ─────────────────────────────────────────────────────────────
+export async function approveParentLink(linkId: string): Promise<{ success: boolean; error: string | null }> {
+  if (!isRealSupabase) return { success: true, error: null };
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Not authenticated" };
+
+    const dbClient = await getEffectiveDbClient();
+    const { error } = await (dbClient as any)
+      .from("parent_child_links")
+      .update({ verified: true })
+      .eq("id", linkId)
+      .eq("child_id", user.id);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, error: null };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to approve link" };
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// STUDENT: REJECT PARENT LINK
+// ─────────────────────────────────────────────────────────────
+export async function rejectParentLink(linkId: string): Promise<{ success: boolean; error: string | null }> {
+  if (!isRealSupabase) return { success: true, error: null };
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Not authenticated" };
+
+    const dbClient = await getEffectiveDbClient();
+    const { error } = await (dbClient as any)
+      .from("parent_child_links")
+      .delete()
+      .eq("id", linkId)
+      .eq("child_id", user.id);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, error: null };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to reject link" };
+  }
 }
