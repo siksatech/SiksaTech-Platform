@@ -10,25 +10,21 @@ export interface SiksaTechLogoProps extends React.HTMLAttributes<HTMLSpanElement
 
 /**
  * SiksaTech Futuristic Rostex-style Vector Text Logo
- * Standard brand representation: "SIKSA" in Black (#000000) and "TECH" in Electric Blue (#2563EB).
+ * Strict Brand Rule: "SIKSA" is ALWAYS Black (#000000) and "TECH" is ALWAYS Electric Blue (#2563EB) everywhere.
  */
 export default function SiksaTechLogo({
   className = "",
   size,
-  variant = "default",
+  variant,
   siksaColor,
   techColor,
   ...props
 }: SiksaTechLogoProps) {
   const style = size ? { fontSize: `${size}px`, ...props.style } : props.style;
 
-  // Standard brand colors: SIKSA = Black (#000000), TECH = Blue (#2563EB)
-  // When explicitly variant="light" (on dark backdrops/footers), SIKSA = White (#FFFFFF), TECH = Sky/Electric Blue (#38BDF8)
-  const defaultSiksa = variant === "light" ? "#FFFFFF" : "#000000";
-  const defaultTech = variant === "light" ? "#38BDF8" : "#2563EB";
-
-  const finalSiksaColor = siksaColor || defaultSiksa;
-  const finalTechColor = techColor || defaultTech;
+  // Strict Brand Rule: SIKSA = Black (#000000), TECH = Electric Blue (#2563EB)
+  const finalSiksaColor = siksaColor || "#000000";
+  const finalTechColor = techColor || "#2563EB";
 
   return (
     <span

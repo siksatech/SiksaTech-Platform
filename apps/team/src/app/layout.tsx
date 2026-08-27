@@ -12,8 +12,12 @@ export const metadata: Metadata = {
   title: "SiksaTech | Team Portal",
   description: "SiksaTech internal team portal for operations, curriculum, and analytics.",
   icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg"
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+      { url: "/favicon.png", type: "image/png" },
+      { url: "/icon.svg", type: "image/svg+xml" }
+    ],
+    apple: "/icon.png"
   }
 };
 
