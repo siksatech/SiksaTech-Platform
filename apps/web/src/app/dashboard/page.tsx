@@ -22,6 +22,8 @@ export default function DashboardRouter() {
           router.push("/dashboard/school");
         } else if (user.role === "college") {
           router.push("/dashboard/college");
+        } else if (user.role === "admin" || user.role === "super_admin" || user.role === "staff") {
+          router.push("/dashboard/admin");
         } else {
           router.push("/dashboard/student");
         }
@@ -53,6 +55,8 @@ export default function DashboardRouter() {
         router.push("/dashboard/school");
       } else if (profile.role === "college") {
         router.push("/dashboard/college");
+      } else if (profile.role === "admin" || profile.role === "super_admin" || profile.role === "staff") {
+        router.push("/dashboard/admin");
       } else {
         router.push("/dashboard/student");
       }
