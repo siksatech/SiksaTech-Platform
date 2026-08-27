@@ -40,11 +40,28 @@ export default function LearnPage() {
           const supabase = createBrowserClient();
           const { data: { user: authUser } } = await supabase.auth.getUser();
           if (authUser) {
+            const { data: profile } = await (supabase as any)
+              .from("profiles")
+              .select("grade_level")
+              .eq("id", authUser.id)
+              .single();
+
             setUser({
               name: authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "Student",
               email: authUser.email || "",
               role: "student"
             });
+
+            if (profile?.grade_level) {
+              const grade = profile.grade_level;
+              let recommended = "explorer";
+              if (grade.includes("8") || grade.includes("9") || grade.includes("10")) recommended = "builder";
+              if (grade.includes("11") || grade.includes("12")) recommended = "creator";
+              if (grade.includes("College")) recommended = "engineer";
+              
+              setRecommendedPath(recommended);
+              setStep("browse");
+            }
             return;
           }
         } catch (e) {
