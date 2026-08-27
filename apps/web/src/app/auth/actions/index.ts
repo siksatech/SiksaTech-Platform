@@ -328,7 +328,7 @@ export async function initiateChildLink(
   // Compute 6-digit OTP
   const otp = await generateLinkOtp(user.id, (childProfile as any).id);
 
-  // Insert or update pending link in parent_child_links using standard columns
+  // Try saving pending link with standard columns
   try {
     await (dbClient as any).from("parent_child_links").upsert({
       parent_id: user.id,
@@ -399,14 +399,19 @@ export async function verifyChildLinkOtp(
   }
 
   // 2. Try updating existing link to verified: true
-  const { error: updateErr } = await (dbClient as any)
-    .from("parent_child_links")
-    .update({ verified: true })
-    .eq("parent_id", user.id)
-    .eq("child_id", childId);
+  try {
+    const { data: updateData } = await (dbClient as any)
+      .from("parent_child_links")
+      .update({ verified: true })
+      .eq("parent_id", user.id)
+      .eq("child_id", childId)
+      .select();
 
-  if (!updateErr) {
-    return { error: null, success: true };
+    if (updateData && updateData.length > 0) {
+      return { error: null, success: true };
+    }
+  } catch {
+    // fallback to insert
   }
 
   // 3. Try inserting
@@ -432,9 +437,8 @@ export async function verifyChildLinkOtp(
     }, { onConflict: "parent_id,child_id" });
 
   if (upsertErr) {
-    console.error("Link confirmation error:", updateErr || insertErr || upsertErr);
     return {
-      error: "Failed to confirm link. Please run the SQL migration in Supabase SQL editor or contact support.",
+      error: "Failed to confirm link. Please run the SQL migration in Supabase SQL editor to enable update permissions.",
       success: false,
     };
   }
@@ -634,24 +638,39 @@ export async function approveParentLink(linkId: string): Promise<{ success: bool
       }
     }
 
-    // 2. Try update by ID
-    const { error: updateErr } = await (dbClient as any)
-      .from("parent_child_links")
-      .update({ verified: true })
-      .eq("id", linkId)
-      .eq("child_id", user.id);
+    // 2. Try update by ID with .select() to verify rows modified
+    try {
+      const { data: updateData, error: updateErr } = await (dbClient as any)
+        .from("parent_child_links")
+        .update({ verified: true })
+        .eq("id", linkId)
+        .eq("child_id", user.id)
+        .select();
 
-    if (!updateErr) return { success: true, error: null };
+      if (updateData && updateData.length > 0) return { success: true, error: null };
+      if (updateErr) return { success: false, error: updateErr.message };
+    } catch {
+      // fallback
+    }
 
     // 3. Try update by child_id
-    const { error: updateByChildErr } = await (dbClient as any)
-      .from("parent_child_links")
-      .update({ verified: true })
-      .eq("child_id", user.id);
+    try {
+      const { data: updateByChildData, error: updateByChildErr } = await (dbClient as any)
+        .from("parent_child_links")
+        .update({ verified: true })
+        .eq("child_id", user.id)
+        .select();
 
-    if (!updateByChildErr) return { success: true, error: null };
+      if (updateByChildData && updateByChildData.length > 0) return { success: true, error: null };
+      if (updateByChildErr) return { success: false, error: updateByChildErr.message };
+    } catch {
+      // fallback
+    }
 
-    return { success: false, error: updateErr?.message || "Failed to update link in database" };
+    return { 
+      success: false, 
+      error: "Database update policy required. Please run the SQL migration in Supabase SQL editor." 
+    };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to approve link" };
   }
