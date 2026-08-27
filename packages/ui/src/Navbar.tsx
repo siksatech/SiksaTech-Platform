@@ -7,7 +7,7 @@ import {
   Menu, X, LogOut, LayoutDashboard, ShoppingBag,
   ChevronDown, Package, Award, FolderGit2,
   Users, School, Building2, BookOpen, Calendar,
-  Sparkles, Presentation, ShieldCheck
+  Sparkles, Presentation, ShieldCheck, PhoneCall, Star
 } from "lucide-react";
 import { db, createBrowserClient, isRealSupabase } from "@siksatech/database";
 import SiksaTechLogo from "./SiksaTechLogo";
@@ -245,32 +245,32 @@ export default function Navbar() {
     if (!user) {
       // Unauthenticated / Guest Public Discovery
       return [
-        { label: "Learn", path: "/learn" },
-        { label: "Build", path: "/build" },
-        { label: "Programs", path: "/programs" },
-        { label: "For Institutions", path: "/institutions" },
-        { label: "Community", path: "/community" },
-        { label: "Store", path: "/store" },
+        { label: "Batches & Courses", path: "/learn" },
+        { label: "Workshops & Events", path: "/programs" },
+        { label: "Maker Showcase", path: "/build" },
+        { label: "STEM Store", path: "/store" },
+        { label: "Community Q&A", path: "/community" },
+        { label: "For Schools & ATL", path: "/institutions" },
       ];
     }
 
     if (role === "student") {
-      // Student: Focused on learning, building, events, store, community (No B2B institutional lab links)
+      // Student: Focused on learning, building, events, store, community
       return [
         { label: "My Dashboard", path: "/dashboard/student" },
-        { label: "Courses", path: "/learn" },
+        { label: "Batches & Courses", path: "/learn" },
         { label: "Workshops & Events", path: "/programs" },
         { label: "Maker Showcase", path: "/build" },
-        { label: "Store Kits", path: "/store" },
-        { label: "Community", path: "/community" },
+        { label: "STEM Store", path: "/store" },
+        { label: "Community Q&A", path: "/community" },
       ];
     }
 
     if (role === "parent") {
-      // Parent: Focused on child's journey, kits, events (No B2B institutional lab links)
+      // Parent: Focused on child's journey, kits, events
       return [
         { label: "Parent Dashboard", path: "/dashboard/parent" },
-        { label: "Courses & Tracks", path: "/learn" },
+        { label: "Courses & Syllabus", path: "/learn" },
         { label: "Workshops & Events", path: "/programs" },
         { label: "STEM Kits", path: "/store" },
         { label: "Community", path: "/community" },
@@ -291,8 +291,8 @@ export default function Navbar() {
     // Default Fallback
     return [
       { label: "Dashboard", path: "/dashboard" },
-      { label: "Learn", path: "/learn" },
-      { label: "Build", path: "/build" },
+      { label: "Courses", path: "/learn" },
+      { label: "Showcase", path: "/build" },
       { label: "Programs", path: "/programs" },
       { label: "Community", path: "/community" },
       { label: "Store", path: "/store" },
@@ -314,234 +314,264 @@ export default function Navbar() {
   const roleInfo = getRoleInfo(user?.role);
 
   return (
-    <nav
-      className={`sticky top-0 z-50 transition-all duration-200 ${
-        scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200"
-          : "bg-white border-b border-slate-200"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-[80px]">
-          {/* Brand Logo */}
-          <Link href="/" className="flex items-center group flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg p-1" aria-label="SiksaTech Home">
-            <SiksaTechLogo className="h-8 sm:h-9 w-auto text-slate-900 group-hover:text-blue-600 transition-colors" />
-          </Link>
+    <header className="sticky top-0 z-50">
+      {/* PhysicsWallah / Indian EdTech Top Notification Strip */}
+      <div className="bg-[#0A0F1D] text-white text-[11px] font-medium py-1.5 px-4 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 truncate">
+            <span className="bg-blue-600 text-white font-mono font-bold text-[9px] uppercase px-2 py-0.5 rounded-full shrink-0">
+              ADMISSIONS OPEN 2026-27
+            </span>
+            <span className="truncate text-slate-300">
+              🇮🇳 Bharat&apos;s #1 Hands-on STEM &amp; Robotics Platform • Free Hardware Kits with Every Batch!
+            </span>
+          </div>
 
-          {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-1 lg:gap-2">
+          <div className="hidden sm:flex items-center gap-4 text-slate-400 text-[11px] shrink-0 font-mono">
+            <div className="flex items-center gap-1 text-amber-400">
+              <Star className="w-3.5 h-3.5 fill-amber-400" />
+              <span className="font-bold text-white">4.9/5</span>
+              <span>(50k+ Students)</span>
+            </div>
+            <span className="text-slate-600">•</span>
+            <a href="tel:18008907836" className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors">
+              <PhoneCall className="w-3 h-3 text-emerald-400" />
+              <span>Helpline: 1800-890-7836</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Navbar */}
+      <nav
+        className={`transition-all duration-200 ${
+          scrolled
+            ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200"
+            : "bg-white border-b border-slate-200"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-[72px]">
+            {/* Brand Logo */}
+            <Link href="/" className="flex items-center group flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg p-1" aria-label="SiksaTech Home">
+              <SiksaTechLogo className="h-8 sm:h-9 w-auto text-slate-900 group-hover:text-blue-600 transition-colors" />
+            </Link>
+
+            {/* Desktop Navigation Links */}
+            <div className="hidden md:flex items-center gap-1 lg:gap-1.5">
+              {navLinks.map((link) => {
+                const isActive = pathname === link.path;
+                return (
+                  <Link
+                    key={link.path}
+                    href={link.path}
+                    className={`relative px-3 py-2 text-[13px] lg:text-[14px] font-semibold tracking-normal rounded-xl whitespace-nowrap transition-colors inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                      isActive
+                        ? "text-blue-600 bg-blue-50/80 font-bold"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                    }`}
+                  >
+                    {link.label}
+                    {isActive && (
+                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-blue-600 rounded-full" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Desktop User CTAs / Profile Badge */}
+            <div className="hidden md:flex items-center gap-2 lg:gap-3 flex-shrink-0">
+              <ThemeToggleCompact />
+              {user ? (
+                <div className="flex items-center gap-2.5">
+                  {/* Contextual Role Dashboard Button */}
+                  <Link
+                    href={roleInfo.dashboardUrl}
+                    className={`hidden xl:inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold border rounded-xl transition-all shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${roleInfo.btnColor}`}
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    <span>{roleInfo.dashboardLabel}</span>
+                  </Link>
+
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      onClick={() => setProfileDropdownOpen((prev) => !prev)}
+                      className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      aria-expanded={profileDropdownOpen}
+                      aria-haspopup="true"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-sm">
+                        {user.avatarUrl ? (
+                          <img src={user.avatarUrl} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          getInitials(user.name)
+                        )}
+                      </div>
+                      <div className="text-left hidden lg:block">
+                        <p className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[120px]">
+                          {user.name}
+                        </p>
+                        <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block">
+                          {roleInfo.label}
+                        </span>
+                      </div>
+                      <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${profileDropdownOpen ? "rotate-180" : ""}`} />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {profileDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 divide-y divide-slate-100">
+                        <div className="px-4 py-3 bg-slate-50/70">
+                          <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
+                          <p className="text-[11px] text-slate-500 font-mono truncate">{user.email}</p>
+                          <span className={`inline-block mt-1.5 px-2 py-0.5 rounded-md border text-[9px] font-mono font-bold uppercase ${roleInfo.badgeBg}`}>
+                            {roleInfo.label}
+                          </span>
+                        </div>
+
+                        <div className="py-1">
+                          {roleInfo.links.map((item, idx) => {
+                            const IconComponent = item.icon;
+                            return (
+                              <Link
+                                key={idx}
+                                href={item.href}
+                                className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                              >
+                                <IconComponent className={`w-4 h-4 ${item.color}`} />
+                                <span>{item.label}</span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+
+                        <div className="py-1">
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-left"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            <span>Sign Out Portal</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  href="/auth/login"
+                  className="px-5 py-2.5 text-[13px] font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap inline-flex items-center justify-center min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                >
+                  Login / Enroll Free
+                </Link>
+              )}
+            </div>
+
+            {/* Mobile Controls (< 768px) */}
+            <div className="md:hidden flex items-center gap-2">
+              <ThemeToggleCompact />
+              <Link
+                href="/store"
+                className="p-2.5 text-slate-600 hover:text-blue-600 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Store Cart"
+              >
+                <ShoppingBag className="w-5 h-5" />
+              </Link>
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-2.5 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Toggle mobile menu"
+              >
+                {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Drawer Menu (< 768px) */}
+        {isOpen && (
+          <div className="md:hidden bg-white border-t border-slate-200 px-4 pt-3 pb-6 space-y-3 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
+            {user && (
+              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-sm">
+                  {getInitials(user.name)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
+                  <p className="text-[10px] text-slate-500 font-mono truncate">{user.email}</p>
+                  <span className={`inline-block mt-1 px-2 py-0.5 rounded-md border text-[8px] font-mono font-bold uppercase ${roleInfo.badgeBg}`}>
+                    {roleInfo.label}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {navLinks.map((link) => {
               const isActive = pathname === link.path;
               return (
                 <Link
                   key={link.path}
                   href={link.path}
-                  className={`relative px-3.5 lg:px-4 py-2 text-[14px] font-semibold tracking-normal rounded-lg whitespace-nowrap transition-colors inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                  onClick={() => setIsOpen(false)}
+                  className={`block px-4 py-3 text-[14px] font-semibold rounded-lg transition-colors min-h-[44px] flex items-center ${
                     isActive
-                      ? "text-blue-600 bg-blue-50/80 font-bold"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                      ? "text-blue-600 bg-blue-50 font-bold"
+                      : "text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {link.label}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-blue-600 rounded-full" />
-                  )}
                 </Link>
               );
             })}
-          </div>
 
-          {/* Desktop User CTAs / Profile Badge */}
-          <div className="hidden md:flex items-center gap-2 lg:gap-3 flex-shrink-0">
-            <ThemeToggleCompact />
-            {user ? (
-              <div className="flex items-center gap-2.5">
-                {/* Contextual Role Dashboard Button */}
-                <Link
-                  href={roleInfo.dashboardUrl}
-                  className={`hidden xl:inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold border rounded-xl transition-all shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${roleInfo.btnColor}`}
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5" />
-                  <span>{roleInfo.dashboardLabel}</span>
-                </Link>
-
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    onClick={() => setProfileDropdownOpen((prev) => !prev)}
-                    className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                    aria-expanded={profileDropdownOpen}
-                    aria-haspopup="true"
+            <div className="pt-4 border-t border-slate-100 space-y-2">
+              {user ? (
+                <>
+                  <Link
+                    href={roleInfo.dashboardUrl}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center gap-2 px-4 py-3 text-[14px] font-semibold border rounded-xl min-h-[44px] ${roleInfo.btnColor}`}
                   >
-                    <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-sm">
-                      {user.avatarUrl ? (
-                        <img src={user.avatarUrl} alt={user.name} className="w-full h-full rounded-full object-cover" />
-                      ) : (
-                        getInitials(user.name)
-                      )}
-                    </div>
-                    <div className="text-left hidden lg:block">
-                      <p className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[120px]">
-                        {user.name}
-                      </p>
-                      <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block">
-                        {roleInfo.label}
-                      </span>
-                    </div>
-                    <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${profileDropdownOpen ? "rotate-180" : ""}`} />
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>{roleInfo.dashboardLabel}</span>
+                  </Link>
+                  {roleInfo.links.filter(l => l.href !== roleInfo.dashboardUrl).map((l, idx) => {
+                    const IconC = l.icon;
+                    return (
+                      <Link
+                        key={idx}
+                        href={l.href}
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-[13px] font-semibold text-slate-700 border border-slate-200 rounded-xl bg-white min-h-[44px]"
+                      >
+                        <IconC className={`w-4 h-4 ${l.color}`} />
+                        <span>{l.label}</span>
+                      </Link>
+                    );
+                  })}
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center justify-center gap-2 py-3 text-[14px] font-semibold text-red-600 border border-red-200 rounded-xl bg-red-50 cursor-pointer min-h-[44px]"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign Out</span>
                   </button>
-
-                  {/* Dropdown Menu */}
-                  {profileDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 divide-y divide-slate-100">
-                      <div className="px-4 py-3 bg-slate-50/70">
-                        <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
-                        <p className="text-[11px] text-slate-500 font-mono truncate">{user.email}</p>
-                        <span className={`inline-block mt-1.5 px-2 py-0.5 rounded-md border text-[9px] font-mono font-bold uppercase ${roleInfo.badgeBg}`}>
-                          {roleInfo.label}
-                        </span>
-                      </div>
-
-                      <div className="py-1">
-                        {roleInfo.links.map((item, idx) => {
-                          const IconComponent = item.icon;
-                          return (
-                            <Link
-                              key={idx}
-                              href={item.href}
-                              className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
-                            >
-                              <IconComponent className={`w-4 h-4 ${item.color}`} />
-                              <span>{item.label}</span>
-                            </Link>
-                          );
-                        })}
-                      </div>
-
-                      <div className="py-1">
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-left"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          <span>Sign Out Portal</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <Link
-                href="/auth/login"
-                className="px-5 py-2.5 text-[14px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap inline-flex items-center justify-center min-h-[42px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              >
-                Login / Get Started
-              </Link>
-            )}
-          </div>
-
-          {/* Mobile Controls (< 768px) */}
-          <div className="md:hidden flex items-center gap-2">
-            <ThemeToggleCompact />
-            <Link
-              href="/store"
-              className="p-2.5 text-slate-600 hover:text-blue-600 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
-              aria-label="Store Cart"
-            >
-              <ShoppingBag className="w-5 h-5" />
-            </Link>
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2.5 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-              aria-label="Toggle mobile menu"
-            >
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Drawer Menu (< 768px) */}
-      {isOpen && (
-        <div className="md:hidden bg-white border-t border-slate-200 px-4 pt-3 pb-6 space-y-3 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
-          {user && (
-            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-sm">
-                {getInitials(user.name)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
-                <p className="text-[10px] text-slate-500 font-mono truncate">{user.email}</p>
-                <span className={`inline-block mt-1 px-2 py-0.5 rounded-md border text-[8px] font-mono font-bold uppercase ${roleInfo.badgeBg}`}>
-                  {roleInfo.label}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {navLinks.map((link) => {
-            const isActive = pathname === link.path;
-            return (
-              <Link
-                key={link.path}
-                href={link.path}
-                onClick={() => setIsOpen(false)}
-                className={`block px-4 py-3 text-[14px] font-semibold rounded-lg transition-colors min-h-[44px] flex items-center ${
-                  isActive
-                    ? "text-blue-600 bg-blue-50 font-bold"
-                    : "text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-
-          <div className="pt-4 border-t border-slate-100 space-y-2">
-            {user ? (
-              <>
+                </>
+              ) : (
                 <Link
-                  href={roleInfo.dashboardUrl}
+                  href="/auth/login"
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-2 px-4 py-3 text-[14px] font-semibold border rounded-xl min-h-[44px] ${roleInfo.btnColor}`}
+                  className="w-full flex items-center justify-center py-3 text-[14px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm min-h-[44px]"
                 >
-                  <LayoutDashboard className="w-4 h-4" />
-                  <span>{roleInfo.dashboardLabel}</span>
+                  Login / Enroll Free
                 </Link>
-                {roleInfo.links.filter(l => l.href !== roleInfo.dashboardUrl).map((l, idx) => {
-                  const IconC = l.icon;
-                  return (
-                    <Link
-                      key={idx}
-                      href={l.href}
-                      onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-[13px] font-semibold text-slate-700 border border-slate-200 rounded-xl bg-white min-h-[44px]"
-                    >
-                      <IconC className={`w-4 h-4 ${l.color}`} />
-                      <span>{l.label}</span>
-                    </Link>
-                  );
-                })}
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 py-3 text-[14px] font-semibold text-red-600 border border-red-200 rounded-xl bg-red-50 cursor-pointer min-h-[44px]"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Sign Out</span>
-                </button>
-              </>
-            ) : (
-              <Link
-                href="/auth/login"
-                onClick={() => setIsOpen(false)}
-                className="w-full flex items-center justify-center py-3 text-[14px] font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm min-h-[44px]"
-              >
-                Login / Get Started
-              </Link>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </nav>
+        )}
+      </nav>
+    </header>
   );
 }
