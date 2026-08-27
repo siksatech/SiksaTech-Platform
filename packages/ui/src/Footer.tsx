@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, Sparkles, ArrowUpRight } from "lucide-react";
+import { Mail, Sparkles, ArrowUpRight, PhoneCall, MapPin, Heart } from "lucide-react";
 import SiksaTechLogo from "./SiksaTechLogo";
 
 export default function Footer() {
@@ -7,32 +7,32 @@ export default function Footer() {
 
   const navigation = {
     learning: [
-      { label: "Learning Paths", path: "/learn" },
-      { label: "Courses & Tracks", path: "/learn" },
-      { label: "Student Projects", path: "/build" },
-      { label: "Maker Challenges", path: "/programs" },
-      { label: "Competitions", path: "/programs" },
-      { label: "Public Certificates", path: "/verify" },
+      { label: "Class 5–7 (Explorer)", path: "/learn?path=explorer" },
+      { label: "Class 8–10 (Builder)", path: "/learn?path=builder" },
+      { label: "Class 11–12 (Creator)", path: "/learn?path=creator" },
+      { label: "College / B.Tech (Engineer)", path: "/learn?path=engineer" },
+      { label: "Workshops & Webinars", path: "/programs" },
+      { label: "National STEM Hackathons", path: "/programs" },
     ],
     platform: [
       { label: "How It Works", path: "/about" },
-      { label: "Student Portal", path: "/dashboard/student" },
-      { label: "Build Showcase", path: "/build" },
-      { label: "Maker Community", path: "/community" },
-      { label: "Registry Verification", path: "/verify" },
-      { label: "Hardware Kits Store", path: "/store" },
+      { label: "Student Learner Portal", path: "/dashboard/student" },
+      { label: "Parent Monitoring Hub", path: "/dashboard/parent" },
+      { label: "Maker Project Showcase", path: "/build" },
+      { label: "Community Q&A Forum", path: "/community" },
+      { label: "Hardware Kits & Store", path: "/store" },
     ],
     institutions: [
-      { label: "For Schools (K-12)", path: "/institutions" },
-      { label: "For Colleges & Poly", path: "/institutions" },
-      { label: "Turnkey STEM Labs", path: "/institutions" },
-      { label: "Experiential Workshops", path: "/programs" },
-      { label: "Faculty Development", path: "/institutions" },
+      { label: "For Schools & Principals", path: "/institutions" },
+      { label: "For Colleges & Universities", path: "/institutions" },
+      { label: "Turnkey ATL & STEM Labs", path: "/institutions" },
+      { label: "Experiential Curriculum", path: "/learn" },
+      { label: "Faculty Development (FDP)", path: "/institutions" },
       { label: "Institutional Inquiries", path: "/enquiry" },
     ],
     company: [
       { label: "About SiksaTech", path: "/about" },
-      { label: "Contact & Help", path: "/grievance" },
+      { label: "Contact & Student Support", path: "/grievance" },
       { label: "Careers & Internships", path: "mailto:careers@siksatech.in" },
       { label: "Privacy Policy", path: "/privacy-policy" },
       { label: "Terms of Service", path: "/terms" },
@@ -51,55 +51,63 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="w-full bg-obsidian text-slate-300 dark:bg-obsidian pt-16 sm:pt-20 pb-12 border-t border-slate-800/80 dark:border-slate-800/80 light:bg-slate-900 light:border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+    <footer className="w-full bg-[#0A0F1D] text-slate-200 pt-16 sm:pt-20 pb-12 border-t border-slate-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-12">
         
         {/* Main Footer Grid: 12-Column Responsive Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-12 pb-16">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-12 pb-12 border-b border-slate-800">
           
           {/* Brand & Mission Column (Span 4 on Desktop) */}
-          <div className="md:col-span-12 lg:col-span-4 space-y-6">
-            <Link href="/" className="inline-flex items-center group" aria-label="SiksaTech Home">
+          <div className="md:col-span-12 lg:col-span-4 space-y-5">
+            <Link href="/" className="inline-flex items-center group focus-visible:outline-none" aria-label="SiksaTech Home">
               <SiksaTechLogo className="h-8 sm:h-9 w-auto text-white group-hover:text-blue-400 transition-colors" />
             </Link>
 
-            <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
-              Hands-on STEM and technology learning platform helping students understand, build, and apply engineering from Class 5 through college.
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm">
+              🇮🇳 Bharat&apos;s leading hands-on STEM, Robotics, and Artificial Intelligence education platform helping students understand, build, and apply real engineering from Class 5 through College.
             </p>
 
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/60 border border-blue-800/50 text-blue-400 text-[11px] font-mono font-semibold tracking-wider uppercase">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-950/80 border border-blue-800/80 text-blue-300 text-xs font-mono font-semibold">
               <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-              <span>Knowledge &bull; Technology &bull; Wisdom</span>
+              <span>Knowledge • Technology • Wisdom</span>
             </div>
 
-            {/* Direct Contact Card */}
-            <div className="pt-2">
+            {/* Direct Helpline & Contact Cards */}
+            <div className="pt-2 space-y-2.5">
+              <a
+                href="tel:18008907836"
+                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 hover:text-white hover:border-emerald-500 hover:bg-slate-800/80 transition-all group"
+              >
+                <PhoneCall className="w-4 h-4 text-emerald-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
+                <span className="font-mono text-slate-200 group-hover:text-white">Toll-Free Helpline: 1800-890-7836</span>
+              </a>
+
               <a
                 href="mailto:info@siksatech.in"
-                className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-slate-900/90 border border-slate-800 text-xs text-slate-300 hover:text-white hover:border-blue-500/50 hover:bg-slate-900 transition-all group"
+                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 hover:text-white hover:border-blue-500 hover:bg-slate-800/80 transition-all group"
               >
                 <Mail className="w-4 h-4 text-blue-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                <span className="font-mono text-slate-300 group-hover:text-white">info@siksatech.in</span>
-                <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 transition-colors ml-1" />
+                <span className="font-mono text-slate-200 group-hover:text-white">info@siksatech.in</span>
+                <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 transition-colors ml-auto" />
               </a>
             </div>
           </div>
 
-          {/* Navigation Links (Span 8 on Desktop, 4 equal 2-col groups) */}
+          {/* Navigation Links (Span 8 on Desktop, 4 equal columns) */}
           <div className="md:col-span-12 lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-8 sm:gap-6">
             
             {/* 1. Learning Column */}
             <div className="space-y-4">
-              <h4 className="text-[11px] font-mono font-bold tracking-widest text-white uppercase flex items-center gap-1.5">
+              <h4 className="text-xs font-mono font-bold tracking-wider text-white uppercase flex items-center gap-1.5 border-b border-slate-800 pb-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
-                Learning
+                STEM Batches
               </h4>
               <ul className="space-y-2.5">
                 {navigation.learning.map((link, idx) => (
                   <li key={idx}>
                     <Link
                       href={link.path}
-                      className="text-xs text-slate-400 hover:text-white hover:translate-x-0.5 transition-all inline-block py-0.5"
+                      className="text-xs text-slate-300 hover:text-white hover:translate-x-1 transition-all inline-block py-0.5"
                     >
                       {link.label}
                     </Link>
@@ -110,16 +118,16 @@ export default function Footer() {
 
             {/* 2. Platform Column */}
             <div className="space-y-4">
-              <h4 className="text-[11px] font-mono font-bold tracking-widest text-white uppercase flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
-                Platform
+              <h4 className="text-xs font-mono font-bold tracking-wider text-white uppercase flex items-center gap-1.5 border-b border-slate-800 pb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                Ecosystem
               </h4>
               <ul className="space-y-2.5">
                 {navigation.platform.map((link, idx) => (
                   <li key={idx}>
                     <Link
                       href={link.path}
-                      className="text-xs text-slate-400 hover:text-white hover:translate-x-0.5 transition-all inline-block py-0.5"
+                      className="text-xs text-slate-300 hover:text-white hover:translate-x-1 transition-all inline-block py-0.5"
                     >
                       {link.label}
                     </Link>
@@ -130,8 +138,8 @@ export default function Footer() {
 
             {/* 3. Institutions Column */}
             <div className="space-y-4">
-              <h4 className="text-[11px] font-mono font-bold tracking-widest text-white uppercase flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
+              <h4 className="text-xs font-mono font-bold tracking-wider text-white uppercase flex items-center gap-1.5 border-b border-slate-800 pb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 inline-block" />
                 Institutions
               </h4>
               <ul className="space-y-2.5">
@@ -139,7 +147,7 @@ export default function Footer() {
                   <li key={idx}>
                     <Link
                       href={link.path}
-                      className="text-xs text-slate-400 hover:text-white hover:translate-x-0.5 transition-all inline-block py-0.5"
+                      className="text-xs text-slate-300 hover:text-white hover:translate-x-1 transition-all inline-block py-0.5"
                     >
                       {link.label}
                     </Link>
@@ -150,8 +158,8 @@ export default function Footer() {
 
             {/* 4. Company Column */}
             <div className="space-y-4">
-              <h4 className="text-[11px] font-mono font-bold tracking-widest text-white uppercase flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
+              <h4 className="text-xs font-mono font-bold tracking-wider text-white uppercase flex items-center gap-1.5 border-b border-slate-800 pb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
                 Company
               </h4>
               <ul className="space-y-2.5">
@@ -159,7 +167,7 @@ export default function Footer() {
                   <li key={idx}>
                     <Link
                       href={link.path}
-                      className="text-xs text-slate-400 hover:text-white hover:translate-x-0.5 transition-all inline-block py-0.5"
+                      className="text-xs text-slate-300 hover:text-white hover:translate-x-1 transition-all inline-block py-0.5"
                     >
                       {link.label}
                     </Link>
@@ -172,18 +180,18 @@ export default function Footer() {
         </div>
 
         {/* Closing Brand Statement Banner */}
-        <div className="w-full border-t border-slate-800/80 py-8 flex items-center justify-center">
-          <div className="px-6 py-3 rounded-full bg-slate-900/60 border border-slate-800 text-center">
-            <p className="text-xs sm:text-sm font-medium text-slate-300 tracking-wide">
+        <div className="w-full flex items-center justify-center">
+          <div className="px-6 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-center max-w-xl">
+            <p className="text-xs sm:text-sm font-medium text-slate-200 tracking-wide">
               Technology is better understood when you build it<span className="text-blue-500 font-bold">.</span>
             </p>
           </div>
         </div>
 
-        {/* Bottom Bar: Copyright (Left) & Legal Navigation (Right) */}
-        <div className="w-full border-t border-slate-800/80 pt-8 flex flex-col md:flex-row items-center justify-between gap-5 text-xs text-slate-500">
+        {/* Bottom Bar: Copyright & Legal Navigation */}
+        <div className="w-full pt-4 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400 border-t border-slate-800/80">
           <p className="text-center md:text-left text-slate-400">
-            &copy; {currentYear} SiksaTech India. All rights reserved.
+            &copy; {currentYear} SiksaTech India. All rights reserved. Made with <Heart className="w-3 h-3 text-red-500 inline fill-red-500" /> for young innovators.
           </p>
 
           <nav className="flex flex-wrap items-center justify-center md:justify-end gap-x-2 gap-y-2 text-[11px] text-slate-400">
