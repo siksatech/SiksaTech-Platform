@@ -112,7 +112,8 @@ function StudentDashboardContent() {
             email: user.email,
             grade: (profile as any)?.grade_level || "Class 9",
             institution: (profile as any)?.school_college_name || "SiksaTech Academy",
-            role: (profile as any)?.role || "student"
+            role: (profile as any)?.role || "student",
+            siksa_id: (profile as any)?.siksa_id || "—",
           };
           setUserProfile(mappedProfile);
           setEditName(mappedProfile.name);
@@ -351,9 +352,9 @@ function StudentDashboardContent() {
                   <span className="text-[10px] text-slate-400 font-mono tracking-wider uppercase block">{userProfile?.grade}</span>
                 </div>
               </div>
-              <div className="border-t border-slate-100 pt-3 space-y-1 text-[10px] text-slate-500">
+              <div className="border-t border-slate-100 dark:border-slate-800 pt-3 space-y-1 text-[10px] text-muted-text">
                 <span className="block font-mono">Campus: {userProfile?.institution}</span>
-                <span className="block font-mono">ID: {userProfile?.id?.slice(0, 8)}...</span>
+                <span className="block font-mono">SiksaTech ID: <strong className="text-electric-blue font-bold">{userProfile?.siksa_id !== "—" ? userProfile?.siksa_id : userProfile?.id?.slice(0, 8)}</strong></span>
               </div>
             </div>
 
