@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Navbar, Footer } from "@siksatech/ui";
 import {
   db, Course, Lesson, createBrowserClient, isRealSupabase,
-  enrollUserInCourse, getUserEnrollment
+  enrollUserInCourse, getUserEnrollment, getCourseWithCurriculum
 } from "@siksatech/database";
 import Link from "next/link";
 import {
@@ -19,16 +19,31 @@ export default function CourseDetailPage() {
   const router = useRouter();
   const courseId = params.courseId as string;
   const [course, setCourse] = useState<Course | null>(null);
+  const [modules, setModules] = useState<any[]>([]);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
   const [user, setUser] = useState<any>(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const initCourse = async () => {
-      const courses = await db.getCourses();
-      const found = courses.find((c) => c.id === courseId);
-      if (found) setCourse(found);
+      setLoading(true);
+      let supabase;
+      if (isRealSupabase) {
+        supabase = createBrowserClient();
+      }
+
+      // Fetch real course data and curriculum modules/lessons
+      const { course: fetchedCourse, modules: fetchedModules, lessons: fetchedLessons } =
+        await getCourseWithCurriculum(supabase, courseId);
+
+      if (fetchedCourse) {
+        setCourse(fetchedCourse);
+        setModules(fetchedModules);
+        setLessons(fetchedLessons);
+      }
 
       // Check local storage enrollments
       const localEnrollments = JSON.parse(localStorage.getItem("siksatech_enrolled_courses") || "[]");
@@ -36,9 +51,8 @@ export default function CourseDetailPage() {
         setIsEnrolled(true);
       }
 
-      if (isRealSupabase) {
+      if (isRealSupabase && supabase) {
         try {
-          const supabase = createBrowserClient();
           const { data: { user: authUser } } = await supabase.auth.getUser();
           if (authUser) {
             setUser({
@@ -52,15 +66,15 @@ export default function CourseDetailPage() {
             if (enrollment && enrollment.status === "active") {
               setIsEnrolled(true);
             }
-            return;
           }
         } catch (err) {
-          console.error("CourseDetailPage auth error:", err);
+          console.error("CourseDetailPage auth lookup error:", err);
         }
+      } else {
+        const legacy = db.getCurrentUser();
+        if (legacy) setUser(legacy);
       }
-
-      const legacy = db.getCurrentUser();
-      if (legacy) setUser(legacy);
+      setLoading(false);
     };
 
     initCourse();
@@ -70,14 +84,14 @@ export default function CourseDetailPage() {
     setIsEnrolling(true);
 
     try {
-      // 1. Save to localStorage for instant client-side persistence
+      // 1. Save to local client storage
       const current = JSON.parse(localStorage.getItem("siksatech_enrolled_courses") || "[]");
       if (!current.includes(courseId)) {
         current.push(courseId);
         localStorage.setItem("siksatech_enrolled_courses", JSON.stringify(current));
       }
 
-      // 2. If Supabase is active, persist to database
+      // 2. Persist to real Supabase database if connected
       if (isRealSupabase && user?.id) {
         const supabase = createBrowserClient();
         await enrollUserInCourse(supabase, user.id, courseId);
@@ -87,7 +101,6 @@ export default function CourseDetailPage() {
       setShowSuccessModal(true);
     } catch (e) {
       console.error("Enrollment error:", e);
-      // Fallback success
       setIsEnrolled(true);
       setShowSuccessModal(true);
     } finally {
@@ -95,36 +108,46 @@ export default function CourseDetailPage() {
     }
   };
 
-  const syllabus = [
+  // Build dynamic curriculum display from fetched modules and lessons
+  const structuredSyllabus = modules.length > 0 ? modules.map((mod) => ({
+    module: mod.title || "Core Module",
+    lessons: lessons.filter((l) => l.moduleTitle === mod.id || l.courseId === courseId).map((l) => ({
+      id: l.id,
+      title: l.title,
+      duration: `${l.durationMinutes || 30} mins`,
+      type: l.lessonType || "lab"
+    }))
+  })) : [
     {
       module: "Module 1: Foundations & Architecture",
       lessons: [
-        { title: "Hardware Architecture & Current Flow", duration: "30 mins", type: "theory" },
-        { title: "Connecting Your First Sensor on Breadboard", duration: "45 mins", type: "lab" }
+        { id: "les-1", title: "Hardware Architecture & Current Flow", duration: "30 mins", type: "theory" },
+        { id: "les-2", title: "Connecting Your First Sensor on Breadboard", duration: "45 mins", type: "lab" }
       ]
     },
     {
       module: "Module 2: Firmware & Sensor Interfacing",
       lessons: [
-        { title: "Writing Analog & Digital Read Loops", duration: "45 mins", type: "code" },
-        { title: "Calibrating Environmental Telemetry", duration: "60 mins", type: "lab" }
+        { id: "les-1", title: "Writing Analog & Digital Read Loops", duration: "45 mins", type: "code" },
+        { id: "les-2", title: "Calibrating Environmental Telemetry", duration: "60 mins", type: "lab" }
       ]
     },
     {
       module: "Module 3: End-to-End System Integration",
       lessons: [
-        { title: "Transmitting Data over Serial/WiFi", duration: "50 mins", type: "code" },
-        { title: "Capstone Build: Complete Working Prototype", duration: "90 mins", type: "project" }
+        { id: "les-1", title: "Transmitting Data over Serial/WiFi", duration: "50 mins", type: "code" },
+        { id: "les-2", title: "Capstone Build: Complete Working Prototype", duration: "90 mins", type: "project" }
       ]
     }
   ];
 
-  if (!course) {
+  if (loading || !course) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-sm text-slate-500">Loading course curriculum...</p>
+        <div className="flex-1 flex flex-col items-center justify-center space-y-3">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          <p className="text-xs text-slate-500 font-mono">Loading real course curriculum from database...</p>
         </div>
         <Footer />
       </div>
@@ -163,7 +186,7 @@ export default function CourseDetailPage() {
 
                 <div className="flex flex-wrap items-center gap-6 text-xs text-slate-400 pt-2 font-mono">
                   <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-blue-400" /> {course.duration}</span>
-                  <span className="flex items-center gap-2"><Layers className="w-4 h-4 text-emerald-400" /> {course.modulesCount || 3} Core Modules</span>
+                  <span className="flex items-center gap-2"><Layers className="w-4 h-4 text-emerald-400" /> {course.modulesCount || structuredSyllabus.length} Core Modules</span>
                   <span className="flex items-center gap-2"><Cpu className="w-4 h-4 text-purple-400" /> Physical Hardware Kit Included</span>
                 </div>
               </div>
@@ -229,7 +252,7 @@ export default function CourseDetailPage() {
               <h2 className="text-xl font-bold text-slate-900">Hands-on Course Curriculum</h2>
 
               <div className="space-y-4">
-                {syllabus.map((mod, idx) => (
+                {structuredSyllabus.map((mod, idx) => (
                   <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2.5">
                       <span className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-mono font-bold">{idx + 1}</span>
@@ -239,7 +262,7 @@ export default function CourseDetailPage() {
                       {mod.lessons.map((les, lIdx) => (
                         <Link
                           key={lIdx}
-                          href={`/learn/${courseId}/les-${(lIdx % 2) + 1}`}
+                          href={`/learn/${courseId}/${les.id || "les-1"}`}
                           className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 hover:bg-blue-50/50 border border-slate-100 hover:border-blue-200 text-xs transition-all group"
                         >
                           <div className="flex items-center gap-2.5">
