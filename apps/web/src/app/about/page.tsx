@@ -14,15 +14,15 @@ export default function About() {
 
       <main className="flex-1">
         {/* Header Hero */}
-        <section className="bg-slate-900 text-white py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-          <div className="max-w-4xl mx-auto text-center space-y-5 relative z-10">
-            <span className="inline-block px-3.5 py-1 rounded-full bg-blue-900/60 border border-blue-700 text-blue-400 text-xs font-bold uppercase tracking-widest">
+        <section className="bg-white text-slate-900 py-16 sm:py-20 px-4 sm:px-6 lg:px-8 border-b border-slate-200 shadow-xs">
+          <div className="max-w-4xl mx-auto text-center space-y-4">
+            <span className="inline-block px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold uppercase tracking-widest font-mono">
               Roots &bull; Philosophy &bull; Engineering Vision
             </span>
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight text-slate-900">
               Technology is Better Understood When You Build It
             </h1>
-            <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
               SiksaTech bridges the gap between rote theoretical schooling and real-world engineering through physical prototyping, embedded electronics, and practical computer science.
             </p>
           </div>

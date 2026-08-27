@@ -81,34 +81,32 @@ export default function InstitutionsPage() {
 
       <main className="flex-1">
         {/* Business Hero */}
-        <section className="bg-[#0A0F1D] text-white py-16 sm:py-24 border-b border-slate-800 relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px] opacity-10" />
-
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <section className="bg-white text-slate-900 py-14 sm:py-20 border-b border-slate-200 shadow-xs">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-12 gap-12 items-center">
               <div className="lg:col-span-7 space-y-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/40 text-blue-400 text-xs font-mono font-bold uppercase tracking-wider">
-                  <Sparkles className="w-3.5 h-3.5" /> Turnkey STEM &amp; Tinkering Infrastructure
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-xs font-mono font-bold uppercase tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Turnkey STEM &amp; Tinkering Infrastructure
                 </div>
-                <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
                   Turn Your Campus Into a Regional Innovation Hub
                 </h1>
-                <p className="text-sm sm:text-base text-slate-300 max-w-xl leading-relaxed">
+                <p className="text-sm sm:text-base text-slate-600 max-w-xl leading-relaxed">
                   Equip your school or college with turnkey hardware labs, NEP 2020 aligned experiential curricula, faculty upskilling, and verifiable student maker portfolios.
                 </p>
 
                 <div className="grid grid-cols-3 gap-4 pt-2">
-                  <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-xl">
-                    <p className="text-lg sm:text-2xl font-extrabold text-blue-400">100%</p>
-                    <p className="text-[11px] text-slate-400">NEP 2020 Aligned</p>
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <p className="text-lg sm:text-2xl font-extrabold text-blue-600 font-mono">100%</p>
+                    <p className="text-[11px] text-slate-600 font-medium">NEP 2020 Aligned</p>
                   </div>
-                  <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-xl">
-                    <p className="text-lg sm:text-2xl font-extrabold text-white">48 Hrs</p>
-                    <p className="text-[11px] text-slate-400">Proposal SLA</p>
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <p className="text-lg sm:text-2xl font-extrabold text-slate-900 font-mono">48 Hrs</p>
+                    <p className="text-[11px] text-slate-600 font-medium">Proposal SLA</p>
                   </div>
-                  <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-xl">
-                    <p className="text-lg sm:text-2xl font-extrabold text-emerald-400">Turnkey</p>
-                    <p className="text-[11px] text-slate-400">Kits + Teacher Training</p>
+                  <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <p className="text-lg sm:text-2xl font-extrabold text-emerald-600 font-mono">Turnkey</p>
+                    <p className="text-[11px] text-slate-600 font-medium">Kits + Teacher Training</p>
                   </div>
                 </div>
               </div>

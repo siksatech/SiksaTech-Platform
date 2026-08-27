@@ -142,15 +142,15 @@ export default function ProgramsPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="bg-slate-950 text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 border-b border-slate-800">
+        <section className="bg-white text-slate-900 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 border-b border-slate-200 shadow-xs">
           <div className="max-w-4xl mx-auto text-center space-y-4">
-            <span className="inline-block px-3 py-1 bg-blue-500/20 border border-blue-400/40 text-blue-400 text-xs font-mono font-bold uppercase rounded-full">
+            <span className="inline-block px-3 py-1 bg-blue-50 border border-blue-200 text-blue-800 text-xs font-mono font-bold uppercase rounded-full">
               Workshops • Webinars • Seminars • Hackathons
             </span>
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white">
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900">
               STEM Workshops, Live Webinars &amp; National Sprints
             </h1>
-            <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
               Join hands-on maker events, live architecture webinars, institutional symposiums, and national engineering hackathons.
             </p>
           </div>
@@ -158,36 +158,34 @@ export default function ProgramsPage() {
 
         {/* National STEM Hackathon Spotlight Banner */}
         <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-slate-900 via-[#0A0F1D] to-blue-950 rounded-3xl p-8 sm:p-12 border border-blue-500/30 text-white shadow-2xl space-y-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-
+          <div className="bg-white rounded-3xl p-8 sm:p-12 border-2 border-blue-500 text-slate-900 shadow-xl space-y-8 relative overflow-hidden">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="space-y-3 max-w-2xl">
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 bg-blue-500 text-white font-mono text-xs font-bold uppercase rounded-md shadow">
+                  <span className="px-3 py-1 bg-blue-600 text-white font-mono text-xs font-bold uppercase rounded-md shadow">
                     Active National Hackathon
                   </span>
-                  <span className="text-xs font-mono text-blue-300 flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" /> Deadline: Sept 25, 2026
+                  <span className="text-xs font-mono text-slate-500 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-blue-600" /> Deadline: Sept 25, 2026
                   </span>
                 </div>
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
                   {DEMO_HACKATHON.title}
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                   {DEMO_HACKATHON.description}
                 </p>
               </div>
 
               {/* Prize Pool Callout */}
-              <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center space-y-2 backdrop-blur-md shrink-0">
-                <span className="text-[10px] font-mono text-slate-400 uppercase font-bold">Total Prize Pool</span>
-                <div className="text-3xl font-extrabold font-mono text-blue-400">
+              <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-2 shrink-0">
+                <span className="text-[10px] font-mono text-slate-500 uppercase font-bold">Total Prize Pool</span>
+                <div className="text-3xl font-extrabold font-mono text-blue-600">
                   ₹{DEMO_HACKATHON.prize_pool_inr.toLocaleString("en-IN")}
                 </div>
                 <button
                   onClick={() => setShowRegModal(true)}
-                  className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
+                  className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer"
                 >
                   Register Team &rarr;
                 </button>
@@ -195,8 +193,8 @@ export default function ProgramsPage() {
             </div>
 
             {/* Problem Statements Cards */}
-            <div className="space-y-4 pt-6 border-t border-slate-800">
-              <h3 className="text-xs font-mono uppercase text-slate-400 font-bold tracking-wider">
+            <div className="space-y-4 pt-6 border-t border-slate-100">
+              <h3 className="text-xs font-mono uppercase text-slate-500 font-bold tracking-wider">
                 Select from 3 Official Hardware Problem Statements:
               </h3>
               <div className="grid md:grid-cols-3 gap-4">
@@ -207,11 +205,11 @@ export default function ProgramsPage() {
                       setSelectedPs(ps.id);
                       setShowRegModal(true);
                     }}
-                    className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-blue-500 cursor-pointer transition-all space-y-2"
+                    className="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-blue-500 cursor-pointer transition-all space-y-2"
                   >
-                    <span className="text-[10px] font-mono text-blue-400 font-bold uppercase">Challenge {ps.id.toUpperCase()}</span>
-                    <h4 className="text-sm font-bold text-white">{ps.title}</h4>
-                    <p className="text-xs text-slate-400 leading-relaxed">{ps.description}</p>
+                    <span className="text-[10px] font-mono text-blue-600 font-bold uppercase">Challenge {ps.id.toUpperCase()}</span>
+                    <h4 className="text-sm font-bold text-slate-900">{ps.title}</h4>
+                    <p className="text-xs text-slate-600 leading-relaxed">{ps.description}</p>
                   </div>
                 ))}
               </div>
