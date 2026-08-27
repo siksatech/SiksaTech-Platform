@@ -179,44 +179,72 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
               <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                Designed for Every Step of the Journey
+                Built Specifically for Every Role in STEM Education
               </h2>
               <p className="text-base sm:text-lg text-slate-600">
-                Whether you are a student exploring robotics at home, or a school aiming to implement NEP 2020 aligned innovation labs, we have a structured path for you.
+                Whether you are a student building robotics, a parent monitoring learning milestones, or an institution implementing turnkey innovation labs.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
               
+              {/* 1. Student Card */}
               <Link
-                href="/auth/register"
-                className="group flex flex-col bg-white rounded-2xl border border-slate-200 p-8 sm:p-10 hover:shadow-xl hover:border-blue-300 transition-all"
+                href="/auth/register?role=student"
+                className="group flex flex-col bg-white rounded-2xl border border-slate-200 p-7 hover:shadow-xl hover:border-blue-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               >
-                <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 mb-6">
-                  <Lightbulb className="w-7 h-7" />
+                <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 mb-5 group-hover:scale-105 transition-transform">
+                  <GraduationCap className="w-6 h-6" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3">For Students &amp; Parents</h3>
-                <p className="text-slate-600 mb-8 flex-1 leading-relaxed">
-                  Access hands-on project kits, step-by-step curricula, and a community of young makers. Turn theoretical physics and math into functional engineering projects.
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-mono font-bold uppercase w-fit mb-2">
+                  Learners
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">For Students</h3>
+                <p className="text-xs text-slate-600 mb-6 flex-1 leading-relaxed">
+                  Master hands-on STEM tracks, build real microcontroller prototypes, submit projects to the Maker Showcase, and earn verifiable certifications.
                 </p>
-                <div className="flex items-center gap-2 font-semibold text-blue-600 group-hover:translate-x-1 transition-transform">
-                  Create Free Account <ArrowRight className="w-4 h-4" />
+                <div className="flex items-center gap-1.5 text-xs font-bold text-blue-600 group-hover:translate-x-1 transition-transform pt-4 border-t border-slate-100">
+                  <span>Start Learning Free</span> <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </Link>
 
+              {/* 2. Parent Card */}
+              <Link
+                href="/auth/register?role=parent"
+                className="group flex flex-col bg-white rounded-2xl border border-slate-200 p-7 hover:shadow-xl hover:border-emerald-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+              >
+                <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-5 group-hover:scale-105 transition-transform">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-mono font-bold uppercase w-fit mb-2">
+                  Guardians
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">For Parents</h3>
+                <p className="text-xs text-slate-600 mb-6 flex-1 leading-relaxed">
+                  Track your child&apos;s course progress, review workshop participation, manage STEM hardware kits, and support their technical journey with zero guesswork.
+                </p>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 group-hover:translate-x-1 transition-transform pt-4 border-t border-slate-100">
+                  <span>Open Parent Portal</span> <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </Link>
+
+              {/* 3. Institution Card */}
               <Link
                 href="/institutions"
-                className="group flex flex-col bg-slate-900 rounded-2xl border border-slate-800 p-8 sm:p-10 hover:shadow-xl hover:border-blue-500 transition-all"
+                className="group flex flex-col bg-[#0A0F1D] rounded-2xl border border-slate-800 p-7 hover:shadow-xl hover:border-purple-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 text-white"
               >
-                <div className="w-14 h-14 rounded-xl bg-slate-800 flex items-center justify-center text-white mb-6">
-                  <Building2 className="w-7 h-7" />
+                <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-purple-400 mb-5 group-hover:scale-105 transition-transform">
+                  <Building2 className="w-6 h-6" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">For Schools &amp; Educators</h3>
-                <p className="text-slate-400 mb-8 flex-1 leading-relaxed">
-                  Deploy complete turnkey STEM innovation labs. We provide the hardware, the pedagogy, and the faculty training needed to bring 21st-century skills to your classrooms.
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-950/80 border border-purple-800/60 text-purple-300 text-[10px] font-mono font-bold uppercase w-fit mb-2">
+                  Schools &amp; Colleges
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">For Institutions &amp; Labs</h3>
+                <p className="text-xs text-slate-300 mb-6 flex-1 leading-relaxed">
+                  Deploy turnkey STEM &amp; ATL innovation labs with NEP 2020 aligned curriculum, faculty development programs, and inter-school hackathons.
                 </p>
-                <div className="flex items-center gap-2 font-semibold text-white group-hover:translate-x-1 transition-transform">
-                  View Institutional Plans <ArrowRight className="w-4 h-4" />
+                <div className="flex items-center gap-1.5 text-xs font-bold text-purple-400 group-hover:translate-x-1 transition-transform pt-4 border-t border-slate-800">
+                  <span>Explore Lab Solutions</span> <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </Link>
 

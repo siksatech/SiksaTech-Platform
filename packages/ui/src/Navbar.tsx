@@ -6,7 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Menu, X, LogOut, LayoutDashboard, ShoppingBag,
   ChevronDown, Package, Award, FolderGit2,
-  Users, School, Building2, BookOpen, Calendar
+  Users, School, Building2, BookOpen, Calendar,
+  Sparkles, Presentation, ShieldCheck
 } from "lucide-react";
 import { db, createBrowserClient, isRealSupabase } from "@siksatech/database";
 import SiksaTechLogo from "./SiksaTechLogo";
@@ -28,13 +29,14 @@ export function getRoleInfo(role?: string) {
       return {
         label: "Parent / Guardian",
         badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        btnColor: "text-emerald-700 bg-emerald-50/90 hover:bg-emerald-100/90 border-emerald-200",
         dashboardUrl: "/dashboard/parent",
         dashboardLabel: "Parent Dashboard",
         icon: Users,
         links: [
           { label: "Parent Dashboard", href: "/dashboard/parent", icon: LayoutDashboard, color: "text-emerald-600" },
-          { label: "Child Learning Journey & Reports", href: "/dashboard/parent", icon: Award, color: "text-blue-600" },
-          { label: "STEM Kit Orders & Deliveries", href: "/orders", icon: Package, color: "text-amber-600" },
+          { label: "Child Learning Journey", href: "/dashboard/parent", icon: Award, color: "text-blue-600" },
+          { label: "STEM Kit Orders", href: "/orders", icon: Package, color: "text-amber-600" },
           { label: "Browse Recommended Kits", href: "/store", icon: ShoppingBag, color: "text-purple-600" },
         ]
       };
@@ -42,6 +44,7 @@ export function getRoleInfo(role?: string) {
       return {
         label: "School / ATL Coordinator",
         badgeBg: "bg-purple-50 text-purple-700 border-purple-200",
+        btnColor: "text-purple-700 bg-purple-50/90 hover:bg-purple-100/90 border-purple-200",
         dashboardUrl: "/dashboard/school",
         dashboardLabel: "ATL & School Hub",
         icon: School,
@@ -56,6 +59,7 @@ export function getRoleInfo(role?: string) {
       return {
         label: "College Innovator",
         badgeBg: "bg-amber-50 text-amber-700 border-amber-200",
+        btnColor: "text-amber-700 bg-amber-50/90 hover:bg-amber-100/90 border-amber-200",
         dashboardUrl: "/dashboard/college",
         dashboardLabel: "Innovation Hub",
         icon: Building2,
@@ -73,6 +77,7 @@ export function getRoleInfo(role?: string) {
       return {
         label: "Staff / Team Admin",
         badgeBg: "bg-rose-50 text-rose-700 border-rose-200",
+        btnColor: "text-rose-700 bg-rose-50/90 hover:bg-rose-100/90 border-rose-200",
         dashboardUrl: "/dashboard",
         dashboardLabel: "Staff Portal",
         icon: LayoutDashboard,
@@ -88,6 +93,7 @@ export function getRoleInfo(role?: string) {
       return {
         label: "Student Learner",
         badgeBg: "bg-blue-50 text-blue-700 border-blue-200",
+        btnColor: "text-blue-700 bg-blue-50/90 hover:bg-blue-100/90 border-blue-200",
         dashboardUrl: "/dashboard/student",
         dashboardLabel: "Student Dashboard",
         icon: LayoutDashboard,
@@ -149,7 +155,7 @@ export default function Navbar() {
             } : null);
           }
 
-          // Listen to realtime auth state changes (login, logout, token refresh)
+          // Listen to realtime auth state changes
           const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (session?.user) {
               const { data: profile } = await supabase
@@ -232,14 +238,68 @@ export default function Navbar() {
     router.refresh();
   };
 
-  const navLinks = [
-    { label: "Learn", path: "/learn" },
-    { label: "Build", path: "/build" },
-    { label: "Programs", path: "/programs" },
-    { label: "For Institutions", path: "/institutions" },
-    { label: "Community", path: "/community" },
-    { label: "Store", path: "/store" },
-  ];
+  // Context-Aware Navigation Links based on Role
+  const getNavLinksForRole = () => {
+    const role = (user?.role || "").toLowerCase();
+
+    if (!user) {
+      // Unauthenticated / Guest Public Discovery
+      return [
+        { label: "Learn", path: "/learn" },
+        { label: "Build", path: "/build" },
+        { label: "Programs", path: "/programs" },
+        { label: "For Institutions", path: "/institutions" },
+        { label: "Community", path: "/community" },
+        { label: "Store", path: "/store" },
+      ];
+    }
+
+    if (role === "student") {
+      // Student: Focused on learning, building, events, store, community (No B2B institutional lab links)
+      return [
+        { label: "My Dashboard", path: "/dashboard/student" },
+        { label: "Courses", path: "/learn" },
+        { label: "Workshops & Events", path: "/programs" },
+        { label: "Maker Showcase", path: "/build" },
+        { label: "Store Kits", path: "/store" },
+        { label: "Community", path: "/community" },
+      ];
+    }
+
+    if (role === "parent") {
+      // Parent: Focused on child's journey, kits, events (No B2B institutional lab links)
+      return [
+        { label: "Parent Dashboard", path: "/dashboard/parent" },
+        { label: "Courses & Tracks", path: "/learn" },
+        { label: "Workshops & Events", path: "/programs" },
+        { label: "STEM Kits", path: "/store" },
+        { label: "Community", path: "/community" },
+      ];
+    }
+
+    if (role === "school" || role === "college") {
+      // Institution SPOC: Institution hub, lab setup, cohort workshops, curriculum
+      return [
+        { label: role === "school" ? "School Dashboard" : "College Hub", path: role === "school" ? "/dashboard/school" : "/dashboard/college" },
+        { label: "ATL & STEM Lab Setup", path: "/institutions" },
+        { label: "Institutional Programs", path: "/programs" },
+        { label: "Curriculum & Tracks", path: "/learn" },
+        { label: "Hardware Store", path: "/store" },
+      ];
+    }
+
+    // Default Fallback
+    return [
+      { label: "Dashboard", path: "/dashboard" },
+      { label: "Learn", path: "/learn" },
+      { label: "Build", path: "/build" },
+      { label: "Programs", path: "/programs" },
+      { label: "Community", path: "/community" },
+      { label: "Store", path: "/store" },
+    ];
+  };
+
+  const navLinks = getNavLinksForRole();
 
   const getInitials = (name: string) => {
     if (!name) return "S";
@@ -264,7 +324,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-[80px]">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center group flex-shrink-0" aria-label="SiksaTech Home">
+          <Link href="/" className="flex items-center group flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg p-1" aria-label="SiksaTech Home">
             <SiksaTechLogo className="h-8 sm:h-9 w-auto text-slate-900 group-hover:text-blue-600 transition-colors" />
           </Link>
 
@@ -276,9 +336,9 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   href={link.path}
-                  className={`relative px-4 py-2 text-[14px] font-semibold tracking-normal rounded-lg whitespace-nowrap transition-colors inline-flex items-center ${
+                  className={`relative px-3.5 lg:px-4 py-2 text-[14px] font-semibold tracking-normal rounded-lg whitespace-nowrap transition-colors inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                     isActive
-                      ? "text-blue-600 bg-blue-50/70"
+                      ? "text-blue-600 bg-blue-50/80 font-bold"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                   }`}
                 >
@@ -296,19 +356,19 @@ export default function Navbar() {
             <ThemeToggleCompact />
             {user ? (
               <div className="flex items-center gap-2.5">
-                {/* Fast 1-Click Dashboard Access */}
+                {/* Contextual Role Dashboard Button */}
                 <Link
                   href={roleInfo.dashboardUrl}
-                  className="hidden xl:inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-blue-700 bg-blue-50/80 hover:bg-blue-100/80 border border-blue-200 rounded-xl transition-all shadow-xs"
+                  className={`hidden xl:inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold border rounded-xl transition-all shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${roleInfo.btnColor}`}
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
-                  <span>My Dashboard</span>
+                  <span>{roleInfo.dashboardLabel}</span>
                 </Link>
 
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setProfileDropdownOpen((prev) => !prev)}
-                    className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer"
+                    className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     aria-expanded={profileDropdownOpen}
                     aria-haspopup="true"
                   >
@@ -373,7 +433,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/auth/login"
-                className="px-5 py-2.5 text-[14px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap inline-flex items-center justify-center min-h-[42px]"
+                className="px-5 py-2.5 text-[14px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all shadow-sm shadow-blue-600/20 hover:shadow-blue-600/30 whitespace-nowrap inline-flex items-center justify-center min-h-[42px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               >
                 Login / Get Started
               </Link>
@@ -385,14 +445,14 @@ export default function Navbar() {
             <ThemeToggleCompact />
             <Link
               href="/store"
-              className="p-2 text-slate-600 hover:text-blue-600 rounded-lg"
+              className="p-2.5 text-slate-600 hover:text-blue-600 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Store Cart"
             >
               <ShoppingBag className="w-5 h-5" />
             </Link>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+              className="p-2.5 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Toggle mobile menu"
             >
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -401,7 +461,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer Menu (Rendered on mobile < 768px when isOpen is true) */}
+      {/* Mobile Drawer Menu (< 768px) */}
       {isOpen && (
         <div className="md:hidden bg-white border-t border-slate-200 px-4 pt-3 pb-6 space-y-3 shadow-lg animate-in fade-in slide-in-from-top-2 duration-200">
           {user && (
@@ -426,9 +486,9 @@ export default function Navbar() {
                 key={link.path}
                 href={link.path}
                 onClick={() => setIsOpen(false)}
-                className={`block px-4 py-3 text-[14px] font-semibold rounded-lg transition-colors ${
+                className={`block px-4 py-3 text-[14px] font-semibold rounded-lg transition-colors min-h-[44px] flex items-center ${
                   isActive
-                    ? "text-blue-600 bg-blue-50"
+                    ? "text-blue-600 bg-blue-50 font-bold"
                     : "text-slate-700 hover:bg-slate-50"
                 }`}
               >
@@ -443,7 +503,7 @@ export default function Navbar() {
                 <Link
                   href={roleInfo.dashboardUrl}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-2 px-4 py-3 text-[14px] font-semibold text-blue-600 border border-blue-200 rounded-xl bg-blue-50"
+                  className={`flex items-center gap-2 px-4 py-3 text-[14px] font-semibold border rounded-xl min-h-[44px] ${roleInfo.btnColor}`}
                 >
                   <LayoutDashboard className="w-4 h-4" />
                   <span>{roleInfo.dashboardLabel}</span>
@@ -455,7 +515,7 @@ export default function Navbar() {
                       key={idx}
                       href={l.href}
                       onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-[13px] font-semibold text-slate-700 border border-slate-200 rounded-xl bg-white"
+                      className="flex items-center gap-2 px-4 py-2.5 text-[13px] font-semibold text-slate-700 border border-slate-200 rounded-xl bg-white min-h-[44px]"
                     >
                       <IconC className={`w-4 h-4 ${l.color}`} />
                       <span>{l.label}</span>
@@ -464,7 +524,7 @@ export default function Navbar() {
                 })}
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 py-3 text-[14px] font-semibold text-red-600 border border-red-200 rounded-xl bg-red-50 cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 py-3 text-[14px] font-semibold text-red-600 border border-red-200 rounded-xl bg-red-50 cursor-pointer min-h-[44px]"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out</span>
